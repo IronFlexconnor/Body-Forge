@@ -261,6 +261,8 @@ function Onboarding() {
           (data.heightUnit ?? "imperial") === "imperial"
             ? (data.heightFeet != null && data.heightInches != null ? ftInToCm(data.heightFeet, data.heightInches) : null)
             : (data.heightCm ?? null),
+        agreed_to_disclaimer: true,
+        agreed_to_disclaimer_at: new Date().toISOString(),
         onboarded: true,
       }).eq("user_id", user.id);
       if (error) throw error;
