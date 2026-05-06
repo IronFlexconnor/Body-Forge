@@ -101,7 +101,11 @@ function Profile() {
           </div>
         </div>
 
-        <Section title="Training">
+        <div className="mb-6">
+          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Units</h3>
+          <UnitToggle value={units} onChange={updateUnits} />
+        </div>
+
           <Row icon={Dumbbell} label="Current program" value={program?.name ?? "—"} />
           <Row icon={Heart} label="Days per week" value={`${p.days_per_week ?? 4}`} />
         </Section>
