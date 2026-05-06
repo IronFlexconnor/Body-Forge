@@ -52,13 +52,16 @@ Deno.serve(async (req) => {
     await supabase.from("chat_messages").insert({ user_id: user.id, role: "user", content: message, attachments: attachments ?? null });
 
     // Gather long-term context
-    const [{ data: profile }, { data: programs }, { data: recentLogs }, { data: recentVideos }, { data: history }, { data: checkins }] = await Promise.all([
+    const sinceToday = new Date(); sinceToday.setHours(0, 0, 0, 0);
+    const [{ data: profile }, { data: programs }, { data: recentLogs }, { data: recentVideos }, { data: history }, { data: checkins }, { data: meals }, { data: adjustments }] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("programs").select("*").eq("user_id", user.id).eq("is_active", true).order("created_at", { ascending: false }).limit(1),
       supabase.from("workout_logs").select("*, set_logs(*)").eq("user_id", user.id).order("started_at", { ascending: false }).limit(5),
       supabase.from("video_uploads").select("exercise_name, score, cues, analysis, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
       supabase.from("chat_messages").select("role, content").eq("user_id", user.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("daily_checkins").select("*").eq("user_id", user.id).order("checkin_date", { ascending: false }).limit(3),
+      supabase.from("meal_logs").select("name, calories, protein_g, carbs_g, fat_g, eaten_at").eq("user_id", user.id).gte("eaten_at", sinceToday.toISOString()),
+      supabase.from("program_adjustments").select("trigger, summary, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
     ]);
 
     const ctx = {
@@ -67,6 +70,8 @@ Deno.serve(async (req) => {
       recentWorkouts: recentLogs ?? [],
       recentVideoAnalyses: recentVideos ?? [],
       recentCheckins: checkins ?? [],
+      mealsToday: meals ?? [],
+      recentProgramAdjustments: adjustments ?? [],
     };
 
     const ctxBlock = `## USER CONTEXT (use this to personalize)\n\`\`\`json\n${JSON.stringify(ctx, null, 2)}\n\`\`\``;
