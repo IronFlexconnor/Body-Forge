@@ -6,6 +6,9 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_UNITS, type Units, kgToLb, weightLabel } from "@/lib/units";
 
+const displayVolume = (kg: number, u: Units) => (u === "imperial" ? kgToLb(kg) : kg);
+const displayLift = (kg: number, u: Units) => Math.round(u === "imperial" ? kgToLb(kg) : kg);
+
 export const Route = createFileRoute("/progress")({
   head: () => ({ meta: [{ title: "Progress — Body Forge" }] }),
   component: Progress,
