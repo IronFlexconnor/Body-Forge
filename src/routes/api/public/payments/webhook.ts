@@ -78,8 +78,13 @@ async function upsertSubscription(sub: Stripe.Subscription, env: StripeEnv) {
 
   const item = sub.items.data[0];
   const priceObj = item?.price;
-  // human-readable price ID — set via lookup_key on the price
-  const priceLookup = priceObj?.lookup_key ?? null;
+  // Prefer human-readable IDs: lookup_key, then metadata.lovable_external_id,
+  // and finally fall back to the raw Stripe price id so the column is never null.
+  const priceLookup =
+    priceObj?.lookup_key ??
+    (priceObj?.metadata as Record<string, string> | undefined)?.lovable_external_id ??
+    priceObj?.id ??
+    null;
   const productId = typeof priceObj?.product === "string" ? priceObj.product : priceObj?.product?.id ?? null;
 
   const customerId = typeof sub.customer === "string" ? sub.customer : sub.customer?.id ?? null;
