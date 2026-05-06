@@ -77,6 +77,8 @@ function Onboarding() {
           equipment: p.equipment ?? [],
           diet: p.diet ?? undefined,
           injuries: p.injuries ?? "",
+          injurySelected: parseInjuries(p.injuries).selected,
+          injuryNotes: parseInjuries(p.injuries).notes,
           weight: fromMetricWeight(p.weight, u),
           heightUnit: hu,
           heightFeet: ft.feet,
