@@ -106,6 +106,7 @@ function Profile() {
           <UnitToggle value={units} onChange={updateUnits} />
         </div>
 
+        <Section title="Training">
           <Row icon={Dumbbell} label="Current program" value={program?.name ?? "—"} />
           <Row icon={Heart} label="Days per week" value={`${p.days_per_week ?? 4}`} />
         </Section>
