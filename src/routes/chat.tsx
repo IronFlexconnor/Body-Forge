@@ -135,8 +135,13 @@ function Chat() {
         body: { exercise: "workout", frames, storage_path: path },
       });
       toast.dismiss("analyze");
+      const d: any = data;
+      if (d?.error === "limit_reached" && d?.code === "video_monthly_limit") {
+        setPaywall({ open: true, reason: d.message, recommend: "elite" });
+        return;
+      }
       if (error) throw error;
-      const a = (data as any)?.analysis ?? {};
+      const a = d?.analysis ?? {};
       const summary = `📹 **Form check complete** — score **${a.score ?? "—"}/100**\n\n**Verdict:** ${a.summary ?? ""}\n\n**Top fixes:**\n${(a.fixes ?? []).map((f: string) => `- ${f}`).join("\n")}\n\n**Cues for next time:**\n${(a.cues ?? []).map((c: string) => `- ${c}`).join("\n")}`;
       // Persist as a system message so coach has it
       await supabase.from("chat_messages").insert({ user_id: user.id, role: "user", content: "[Uploaded a workout video for form check]" });
