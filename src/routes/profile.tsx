@@ -25,6 +25,14 @@ function Profile() {
   const [regen, setRegen] = useState(false);
   const [portalBusy, setPortalBusy] = useState(false);
   const { sub, isActive, tier, isTrialing } = useSubscription();
+  const [units, setUnits] = useState<Units>(DEFAULT_UNITS);
+
+  const updateUnits = async (next: Units) => {
+    setUnits(next);
+    if (!user) return;
+    const { error } = await supabase.from("profiles").update({ units: next }).eq("user_id", user.id);
+    if (error) toast.error("Could not save unit preference");
+  };
 
   const openPortal = async () => {
     setPortalBusy(true);
