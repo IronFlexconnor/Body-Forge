@@ -193,7 +193,7 @@ function Onboarding() {
         injuries: data.injuries,
         units,
         weight: toMetricWeight(data.weight ?? "", units),
-        height: toMetricHeight(data.height ?? "", units),
+        height: data.heightFeet != null && data.heightInches != null ? ftInToCm(data.heightFeet, data.heightInches) : null,
         onboarded: true,
       }).eq("user_id", user.id);
       if (error) throw error;
