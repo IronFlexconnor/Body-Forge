@@ -38,7 +38,8 @@ const diets = ["No Preference", "High Protein", "Vegetarian", "Vegan", "Keto", "
 type Data = {
   name?: string; age?: string; gender?: string; level?: string; goal?: string;
   daysPerWeek?: number; sessionLength?: number; equipment?: string[];
-  diet?: string; injuries?: string; weight?: string; height?: string;
+  diet?: string; injuries?: string; weight?: string;
+  heightFeet?: number | null; heightInches?: number | null;
 };
 
 function Onboarding() {
