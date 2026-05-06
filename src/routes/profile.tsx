@@ -97,6 +97,49 @@ function Profile() {
           <Row icon={Apple} label="Diet preference" value={p.diet || "Not set"} />
         </Section>
 
+        <Section title="Subscription">
+          {isActive && sub ? (
+            <>
+              <Row
+                icon={Crown}
+                label={`${tier === "elite" ? "Elite AI Coach" : "Pro Coach"}${isTrialing ? " · Trial" : ""}`}
+                value={
+                  sub.cancel_at_period_end
+                    ? `Ends ${sub.current_period_end ? new Date(sub.current_period_end).toLocaleDateString() : ""}`
+                    : sub.current_period_end
+                      ? `Renews ${new Date(sub.current_period_end).toLocaleDateString()}`
+                      : "Active"
+                }
+              />
+              <button
+                onClick={openPortal}
+                disabled={portalBusy}
+                className="flex w-full items-center gap-3 border-b border-border/40 px-4 py-3.5 text-left last:border-0 hover:bg-surface/60 disabled:opacity-50"
+              >
+                <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary">
+                  {portalBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+                </div>
+                <div className="flex-1 text-sm font-medium">Manage subscription</div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => navigate({ to: "/pricing" })}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-left hover:bg-surface/60"
+            >
+              <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-primary text-primary-foreground shadow-glow">
+                <Crown className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-semibold">Upgrade to Pro Coach</div>
+                <div className="text-[11px] text-muted-foreground">7-day free trial · Cancel anytime</div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+          )}
+        </Section>
+
         <Button onClick={regenerate} disabled={regen} className="mb-3 h-12 w-full rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow">
           {regen ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
           Regenerate program with AI
