@@ -140,6 +140,19 @@ function Profile() {
           />
         </div>
 
+        <div className="mb-6 rounded-3xl border border-border/60 bg-gradient-card p-5 shadow-card">
+          <InjuryAssessment
+            value={parseInjuries(p.injuries)}
+            onChange={async (v) => {
+              if (!user) return;
+              const serialized = serializeInjuries(v);
+              const { error } = await supabase.from("profiles").update({ injuries: serialized }).eq("user_id", user.id);
+              if (error) { toast.error("Could not save injuries"); return; }
+              setP({ ...p, injuries: serialized });
+            }}
+          />
+        </div>
+
         <Section title="Training">
           <Row icon={Dumbbell} label="Current program" value={program?.name ?? "—"} />
           <Row icon={Heart} label="Days per week" value={`${p.days_per_week ?? 4}`} />
