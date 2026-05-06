@@ -116,6 +116,19 @@ function Onboarding() {
           />
         ),
       },
+      {
+        title: "What is your height?",
+        subtitle: "Used to personalize your program and bodyweight scaling.",
+        valid: data.heightFeet != null && data.heightInches != null,
+        body: (
+          <HeightPicker
+            feet={data.heightFeet ?? null}
+            inches={data.heightInches ?? null}
+            onChange={(f, i) => setData((d) => ({ ...d, heightFeet: f, heightInches: i }))}
+            compact
+          />
+        ),
+      },
       { title: "What should your coach call you?", subtitle: "Let's make this personal.", valid: !!data.name?.trim(),
         body: <Input autoFocus placeholder="Your name" value={data.name ?? ""} onChange={(e) => update("name", e.target.value)} className="h-14 text-lg" /> },
       { title: "Tell us about you", subtitle: "Helps us calibrate intensity & recovery.", valid: !!data.age && !!data.gender,
@@ -123,10 +136,7 @@ function Onboarding() {
           <div className="space-y-4">
             <Input type="number" placeholder="Age" value={data.age ?? ""} onChange={(e) => update("age", e.target.value)} className="h-14 text-lg" />
             <Chips options={genders} value={data.gender} onSelect={(v) => update("gender", v)} />
-            <div className="grid grid-cols-2 gap-3">
-              <Input inputMode="decimal" placeholder={`Weight (${weightLabel(units)})`} value={data.weight ?? ""} onChange={(e) => update("weight", e.target.value)} className="h-14" />
-              <Input inputMode="decimal" placeholder={`Height (${heightLabel(units)})`} value={data.height ?? ""} onChange={(e) => update("height", e.target.value)} className="h-14" />
-            </div>
+            <Input inputMode="decimal" placeholder={`Weight (${weightLabel(units)})`} value={data.weight ?? ""} onChange={(e) => update("weight", e.target.value)} className="h-14" />
           </div>
         ) },
       { title: "Your experience level", subtitle: "Be honest — your coach adapts every week.", valid: !!data.level,
