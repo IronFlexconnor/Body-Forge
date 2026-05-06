@@ -48,6 +48,22 @@ Deno.serve(async (req) => {
     const { message, attachments } = await req.json();
     if (!message?.trim()) return new Response(JSON.stringify({ error: "Empty message" }), { status: 400, headers: cors });
 
+    // --- Plan & free-tier limits ---
+    const { getPlanTier, countUsage, logUsage, FREE_LIMITS } = await import("../_shared/entitlements.ts");
+    const tier = await getPlanTier(user.id);
+    if (tier === "free") {
+      const since = new Date(); since.setHours(0, 0, 0, 0);
+      const used = await countUsage(user.id, "chat", since);
+      if (used >= FREE_LIMITS.chat_per_day) {
+        return new Response(JSON.stringify({
+          error: "limit_reached",
+          code: "chat_daily_limit",
+          message: `You've used your ${FREE_LIMITS.chat_per_day} free coach messages today. Upgrade to Pro Coach for unlimited coaching — start a 7-day free trial.`,
+        }), { status: 402, headers: { ...cors, "Content-Type": "application/json" } });
+      }
+      await logUsage(user.id, "chat");
+    }
+
     // Persist user message
     await supabase.from("chat_messages").insert({ user_id: user.id, role: "user", content: message, attachments: attachments ?? null });
 

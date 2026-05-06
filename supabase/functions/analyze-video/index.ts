@@ -41,6 +41,27 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "No frames provided" }), { status: 400, headers: cors });
     }
 
+    // --- Plan limits ---
+    const { getPlanTier, countUsage, logUsage, FREE_LIMITS } = await import("../_shared/entitlements.ts");
+    const tier = await getPlanTier(user.id);
+    if (tier === "free") {
+      const since = new Date(); since.setDate(since.getDate() - 30);
+      const used = await countUsage(user.id, "video", since);
+      if (used >= FREE_LIMITS.video_per_month) {
+        return new Response(JSON.stringify({
+          error: "limit_reached",
+          code: "video_monthly_limit",
+          message: `You've used your ${FREE_LIMITS.video_per_month} free video form analyses this month. Upgrade to Elite AI Coach for unlimited form checks.`,
+        }), { status: 402, headers: { ...cors, "Content-Type": "application/json" } });
+      }
+    } else if (tier === "pro") {
+      // Pro tier still gets unlimited video; only free is limited.
+    }
+    if (tier !== "elite" && tier !== "pro") {
+      // free path already gated above
+    }
+    await logUsage(user.id, "video");
+
     // Insert pending row
     const { data: row } = await supabase.from("video_uploads").insert({
       user_id: user.id,
