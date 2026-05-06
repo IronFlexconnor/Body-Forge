@@ -9,8 +9,8 @@ import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { createPortalSession } from "@/utils/payments.functions";
 import { getStripeEnvironment, PLAN_BY_PRICE } from "@/lib/stripe";
-import { UnitToggle } from "@/components/UnitToggle";
-import { DEFAULT_UNITS, type Units, displayHeight, displayWeight } from "@/lib/units";
+import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
+import { DEFAULT_UNITS, type Units, displayHeight, displayWeight, unitsToWeightUnit } from "@/lib/units";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — Body Forge" }] }),
@@ -101,9 +101,11 @@ function Profile() {
           </div>
         </div>
 
-        <div className="mb-6">
-          <h3 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Units</h3>
-          <UnitToggle value={units} onChange={updateUnits} />
+        <div className="mb-6 rounded-3xl border border-border/60 bg-gradient-card p-5 shadow-card">
+          <MeasurementSystemPicker
+            value={unitsToWeightUnit(units)}
+            onChange={(w) => updateUnits(w === "lbs" ? "imperial" : "metric")}
+          />
         </div>
 
         <Section title="Training">

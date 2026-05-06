@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { DEFAULT_WEIGHT_UNIT, unitsToWeightUnit, type WeightUnit } from "@/lib/units";
 
 export const Route = createFileRoute("/workouts")({
   head: () => ({ meta: [{ title: "Workouts — Body Forge" }] }),
@@ -95,9 +96,15 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
   const [startedAt] = useState(() => Date.now());
   const [logs, setLogs] = useState<Record<string, { reps: string; weight: string; rpe: string; done: boolean }[]>>({});
   const [finishing, setFinishing] = useState(false);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_WEIGHT_UNIT);
 
   useEffect(() => {
     if (!user) return;
+    supabase.from("profiles").select("units").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+      if (data?.units === "metric" || data?.units === "imperial") {
+        setWeightUnit(unitsToWeightUnit(data.units));
+      }
+    });
     supabase.from("workout_logs").insert({ user_id: user.id, workout_id: workout.id }).select().single().then(({ data }) => {
       if (data) setLogId(data.id);
     });
@@ -122,6 +129,7 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
         user_id: user.id, workout_log_id: logId, exercise_name: ex, set_number: idx + 1,
         reps: set.reps ? parseInt(set.reps) : null,
         weight: set.weight ? parseFloat(set.weight) : null,
+        weight_unit: weightUnit,
         rpe: set.rpe ? parseFloat(set.rpe) : null,
         completed: true,
       });
@@ -170,12 +178,12 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
             </div>
             <div className="space-y-2">
               <div className="grid grid-cols-[24px_1fr_1fr_1fr_36px] items-center gap-2 px-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                <div>#</div><div>Weight</div><div>Reps</div><div>RPE</div><div></div>
+                <div>#</div><div>Weight ({weightUnit})</div><div>Reps</div><div>RPE</div><div></div>
               </div>
               {logs[ex.name]?.map((s, i) => (
                 <div key={i} className={cn("grid grid-cols-[24px_1fr_1fr_1fr_36px] items-center gap-2 rounded-lg p-1 transition-colors", s.done && "bg-primary/10")}>
                   <div className="text-center text-xs font-semibold text-muted-foreground">{i + 1}</div>
-                  <Input inputMode="decimal" value={s.weight} onChange={(e) => updateSet(ex.name, i, "weight", e.target.value)} placeholder="kg" className="h-9 text-sm" />
+                  <Input inputMode="decimal" value={s.weight} onChange={(e) => updateSet(ex.name, i, "weight", e.target.value)} placeholder={weightUnit} className="h-9 text-sm" />
                   <Input inputMode="numeric" value={s.reps} onChange={(e) => updateSet(ex.name, i, "reps", e.target.value)} placeholder={ex.reps} className="h-9 text-sm" />
                   <Input inputMode="decimal" value={s.rpe} onChange={(e) => updateSet(ex.name, i, "rpe", e.target.value)} placeholder="—" className="h-9 text-sm" />
                   <button onClick={() => toggleDone(ex.name, i)}

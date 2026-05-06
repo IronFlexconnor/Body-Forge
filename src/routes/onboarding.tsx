@@ -8,13 +8,14 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UnitToggle } from "@/components/UnitToggle";
+import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
 import {
   DEFAULT_UNITS,
   type Units,
   fromMetricHeight,
   fromMetricWeight,
   heightLabel,
+  unitsToWeightUnit,
   weightLabel,
   toMetricHeight,
   toMetricWeight,
@@ -105,6 +106,18 @@ function Onboarding() {
 
   const steps = useMemo(
     () => [
+      {
+        title: "Measurement System",
+        subtitle: "Preferred Measurement System for Tracking Exercises",
+        valid: true,
+        body: (
+          <MeasurementSystemPicker
+            value={unitsToWeightUnit(units)}
+            onChange={(w) => switchUnits(w === "lbs" ? "imperial" : "metric")}
+            compact
+          />
+        ),
+      },
       { title: "What should your coach call you?", subtitle: "Let's make this personal.", valid: !!data.name?.trim(),
         body: <Input autoFocus placeholder="Your name" value={data.name ?? ""} onChange={(e) => update("name", e.target.value)} className="h-14 text-lg" /> },
       { title: "Tell us about you", subtitle: "Helps us calibrate intensity & recovery.", valid: !!data.age && !!data.gender,
@@ -112,7 +125,6 @@ function Onboarding() {
           <div className="space-y-4">
             <Input type="number" placeholder="Age" value={data.age ?? ""} onChange={(e) => update("age", e.target.value)} className="h-14 text-lg" />
             <Chips options={genders} value={data.gender} onSelect={(v) => update("gender", v)} />
-            <UnitToggle value={units} onChange={switchUnits} />
             <div className="grid grid-cols-2 gap-3">
               <Input inputMode="decimal" placeholder={`Weight (${weightLabel(units)})`} value={data.weight ?? ""} onChange={(e) => update("weight", e.target.value)} className="h-14" />
               <Input inputMode="decimal" placeholder={`Height (${heightLabel(units)})`} value={data.height ?? ""} onChange={(e) => update("height", e.target.value)} className="h-14" />
