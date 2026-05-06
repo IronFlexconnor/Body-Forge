@@ -112,9 +112,10 @@ function Onboarding() {
           <div className="space-y-4">
             <Input type="number" placeholder="Age" value={data.age ?? ""} onChange={(e) => update("age", e.target.value)} className="h-14 text-lg" />
             <Chips options={genders} value={data.gender} onSelect={(v) => update("gender", v)} />
+            <UnitToggle value={units} onChange={switchUnits} />
             <div className="grid grid-cols-2 gap-3">
-              <Input placeholder="Weight (kg)" value={data.weight ?? ""} onChange={(e) => update("weight", e.target.value)} className="h-14" />
-              <Input placeholder="Height (cm)" value={data.height ?? ""} onChange={(e) => update("height", e.target.value)} className="h-14" />
+              <Input inputMode="decimal" placeholder={`Weight (${weightLabel(units)})`} value={data.weight ?? ""} onChange={(e) => update("weight", e.target.value)} className="h-14" />
+              <Input inputMode="decimal" placeholder={`Height (${heightLabel(units)})`} value={data.height ?? ""} onChange={(e) => update("height", e.target.value)} className="h-14" />
             </div>
           </div>
         ) },
