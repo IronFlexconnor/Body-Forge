@@ -9,15 +9,13 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
+import { HeightPicker, cmToFtIn, ftInToCm } from "@/components/HeightPicker";
 import {
   DEFAULT_UNITS,
   type Units,
-  fromMetricHeight,
   fromMetricWeight,
-  heightLabel,
   unitsToWeightUnit,
   weightLabel,
-  toMetricHeight,
   toMetricWeight,
 } from "@/lib/units";
 
