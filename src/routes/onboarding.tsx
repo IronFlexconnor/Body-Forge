@@ -143,6 +143,18 @@ function Onboarding() {
           />
         ),
       },
+      {
+        title: "Any Injuries or Limitations?",
+        subtitle: "Do you have any current or past injuries, pain, or limitations the AI coach should work around or progress safely?",
+        valid: (data.injurySelected?.length ?? 0) > 0 || !!data.injuryNotes?.trim(),
+        body: (
+          <InjuryAssessment
+            value={{ selected: data.injurySelected ?? [], notes: data.injuryNotes ?? "" }}
+            onChange={(v) => setData((d) => ({ ...d, injurySelected: v.selected, injuryNotes: v.notes }))}
+            compact
+          />
+        ),
+      },
       { title: "What should your coach call you?", subtitle: "Let's make this personal.", valid: !!data.name?.trim(),
         body: <Input autoFocus placeholder="Your name" value={data.name ?? ""} onChange={(e) => update("name", e.target.value)} className="h-14 text-lg" /> },
       { title: "Tell us about you", subtitle: "Helps us calibrate intensity & recovery.", valid: !!data.age && !!data.gender,
