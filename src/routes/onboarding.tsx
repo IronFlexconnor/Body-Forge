@@ -80,6 +80,7 @@ function Onboarding() {
           injuries: p.injuries ?? "",
           injurySelected: parseInjuries(p.injuries).selected,
           injuryNotes: parseInjuries(p.injuries).notes,
+          agreedToDisclaimer: !!(p as any).agreed_to_disclaimer,
           weight: fromMetricWeight(p.weight, u),
           heightUnit: hu,
           heightFeet: ft.feet,
