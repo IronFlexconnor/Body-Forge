@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, Video, Loader2 } from "lucide-react";
+import { Send, Sparkles, Video, Loader2, Crown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { extractFrames } from "@/lib/videoFrames";
 import { toast } from "sonner";
+import { PaywallModal } from "@/components/PaywallModal";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "Coach Chat — Body Forge" }] }),
@@ -25,10 +27,12 @@ const suggestions = [
 function Chat() {
   const navigate = useNavigate();
   const { user, loading, session } = useAuth();
+  const { isPro, isElite } = useSubscription();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [paywall, setPaywall] = useState<{ open: boolean; reason?: string; recommend?: "pro" | "elite" }>({ open: false });
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
