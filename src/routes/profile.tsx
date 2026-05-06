@@ -10,7 +10,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { createPortalSession } from "@/utils/payments.functions";
 import { getStripeEnvironment, PLAN_BY_PRICE } from "@/lib/stripe";
 import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
-import { DEFAULT_UNITS, type Units, displayHeight, displayWeight, unitsToWeightUnit } from "@/lib/units";
+import { HeightPicker, ftInToCm, cmToFtIn, formatFtIn } from "@/components/HeightPicker";
+import { DEFAULT_UNITS, type Units, displayWeight, unitsToWeightUnit } from "@/lib/units";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — Body Forge" }] }),
@@ -97,7 +98,7 @@ function Profile() {
           <div className="mt-5 grid grid-cols-3 divide-x divide-border/60 rounded-2xl bg-background/40 py-3 text-center">
             <Mini label="Age" value={p.age ?? "—"} />
             <Mini label="Weight" value={displayWeight(p.weight, units)} />
-            <Mini label="Height" value={displayHeight(p.height, units)} />
+            <Mini label="Height" value={formatFtIn(p.height)} />
           </div>
         </div>
 
@@ -105,6 +106,21 @@ function Profile() {
           <MeasurementSystemPicker
             value={unitsToWeightUnit(units)}
             onChange={(w) => updateUnits(w === "lbs" ? "imperial" : "metric")}
+          />
+        </div>
+
+        <div className="mb-6 rounded-3xl border border-border/60 bg-gradient-card p-5 shadow-card">
+          <HeightPicker
+            feet={cmToFtIn(p.height).feet}
+            inches={cmToFtIn(p.height).inches}
+            onChange={async (f, i) => {
+              if (f == null || i == null || !user) return;
+              const cm = ftInToCm(f, i);
+              const { error } = await supabase.from("profiles").update({ height: cm }).eq("user_id", user.id);
+              if (error) { toast.error("Could not save height"); return; }
+              setP({ ...p, height: cm });
+              toast.success("Height updated");
+            }}
           />
         </div>
 

@@ -9,15 +9,13 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
+import { HeightPicker, cmToFtIn, ftInToCm } from "@/components/HeightPicker";
 import {
   DEFAULT_UNITS,
   type Units,
-  fromMetricHeight,
   fromMetricWeight,
-  heightLabel,
   unitsToWeightUnit,
   weightLabel,
-  toMetricHeight,
   toMetricWeight,
 } from "@/lib/units";
 
@@ -40,7 +38,8 @@ const diets = ["No Preference", "High Protein", "Vegetarian", "Vegan", "Keto", "
 type Data = {
   name?: string; age?: string; gender?: string; level?: string; goal?: string;
   daysPerWeek?: number; sessionLength?: number; equipment?: string[];
-  diet?: string; injuries?: string; weight?: string; height?: string;
+  diet?: string; injuries?: string; weight?: string;
+  heightFeet?: number | null; heightInches?: number | null;
 };
 
 function Onboarding() {
@@ -62,6 +61,7 @@ function Onboarding() {
       if (p) {
         const u: Units = (p.units === "metric" ? "metric" : "imperial");
         setUnits(u);
+        const ft = cmToFtIn(p.height);
         setData({
           name: p.name ?? "",
           age: p.age?.toString() ?? "",
@@ -74,7 +74,8 @@ function Onboarding() {
           diet: p.diet ?? undefined,
           injuries: p.injuries ?? "",
           weight: fromMetricWeight(p.weight, u),
-          height: fromMetricHeight(p.height, u),
+          heightFeet: ft.feet,
+          heightInches: ft.inches,
         });
         if (p.onboarded) navigate({ to: "/" });
       }
@@ -83,14 +84,11 @@ function Onboarding() {
 
   const switchUnits = (next: Units) => {
     if (next === units) return;
-    // Convert current entered values between units so user's input is preserved.
     setData((d) => {
       const wKg = toMetricWeight(d.weight ?? "", units);
-      const hCm = toMetricHeight(d.height ?? "", units);
       return {
         ...d,
         weight: wKg != null ? fromMetricWeight(wKg, next) : d.weight,
-        height: hCm != null ? fromMetricHeight(hCm, next) : d.height,
       };
     });
     setUnits(next);
@@ -118,6 +116,19 @@ function Onboarding() {
           />
         ),
       },
+      {
+        title: "What is your height?",
+        subtitle: "Used to personalize your program and bodyweight scaling.",
+        valid: data.heightFeet != null && data.heightInches != null,
+        body: (
+          <HeightPicker
+            feet={data.heightFeet ?? null}
+            inches={data.heightInches ?? null}
+            onChange={(f, i) => setData((d) => ({ ...d, heightFeet: f, heightInches: i }))}
+            compact
+          />
+        ),
+      },
       { title: "What should your coach call you?", subtitle: "Let's make this personal.", valid: !!data.name?.trim(),
         body: <Input autoFocus placeholder="Your name" value={data.name ?? ""} onChange={(e) => update("name", e.target.value)} className="h-14 text-lg" /> },
       { title: "Tell us about you", subtitle: "Helps us calibrate intensity & recovery.", valid: !!data.age && !!data.gender,
@@ -125,10 +136,7 @@ function Onboarding() {
           <div className="space-y-4">
             <Input type="number" placeholder="Age" value={data.age ?? ""} onChange={(e) => update("age", e.target.value)} className="h-14 text-lg" />
             <Chips options={genders} value={data.gender} onSelect={(v) => update("gender", v)} />
-            <div className="grid grid-cols-2 gap-3">
-              <Input inputMode="decimal" placeholder={`Weight (${weightLabel(units)})`} value={data.weight ?? ""} onChange={(e) => update("weight", e.target.value)} className="h-14" />
-              <Input inputMode="decimal" placeholder={`Height (${heightLabel(units)})`} value={data.height ?? ""} onChange={(e) => update("height", e.target.value)} className="h-14" />
-            </div>
+            <Input inputMode="decimal" placeholder={`Weight (${weightLabel(units)})`} value={data.weight ?? ""} onChange={(e) => update("weight", e.target.value)} className="h-14" />
           </div>
         ) },
       { title: "Your experience level", subtitle: "Be honest — your coach adapts every week.", valid: !!data.level,
@@ -185,7 +193,7 @@ function Onboarding() {
         injuries: data.injuries,
         units,
         weight: toMetricWeight(data.weight ?? "", units),
-        height: toMetricHeight(data.height ?? "", units),
+        height: data.heightFeet != null && data.heightInches != null ? ftInToCm(data.heightFeet, data.heightInches) : null,
         onboarded: true,
       }).eq("user_id", user.id);
       if (error) throw error;
