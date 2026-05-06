@@ -11,6 +11,7 @@ import { createPortalSession } from "@/utils/payments.functions";
 import { getStripeEnvironment, PLAN_BY_PRICE } from "@/lib/stripe";
 import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
 import { HeightPicker, ftInToCm, cmToFtIn, formatHeight, type HeightUnit } from "@/components/HeightPicker";
+import { InjuryAssessment, parseInjuries, serializeInjuries } from "@/components/InjuryAssessment";
 import { DEFAULT_UNITS, type Units, displayWeight, unitsToWeightUnit } from "@/lib/units";
 
 export const Route = createFileRoute("/profile")({
@@ -136,6 +137,19 @@ function Profile() {
               if (error) { toast.error("Could not save height"); return; }
               setP({ ...p, height: cm });
               toast.success("Height updated");
+            }}
+          />
+        </div>
+
+        <div className="mb-6 rounded-3xl border border-border/60 bg-gradient-card p-5 shadow-card">
+          <InjuryAssessment
+            value={parseInjuries(p.injuries)}
+            onChange={async (v) => {
+              if (!user) return;
+              const serialized = serializeInjuries(v);
+              const { error } = await supabase.from("profiles").update({ injuries: serialized }).eq("user_id", user.id);
+              if (error) { toast.error("Could not save injuries"); return; }
+              setP({ ...p, injuries: serialized });
             }}
           />
         </div>

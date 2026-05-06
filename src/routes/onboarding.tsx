@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
 import { HeightPicker, cmToFtIn, ftInToCm, type HeightUnit } from "@/components/HeightPicker";
+import { InjuryAssessment, parseInjuries, serializeInjuries } from "@/components/InjuryAssessment";
 import {
   DEFAULT_UNITS,
   type Units,
@@ -41,6 +42,7 @@ type Data = {
   diet?: string; injuries?: string; weight?: string;
   heightUnit?: HeightUnit;
   heightFeet?: number | null; heightInches?: number | null; heightCm?: number | null;
+  injurySelected?: string[]; injuryNotes?: string;
 };
 
 function Onboarding() {
@@ -75,6 +77,8 @@ function Onboarding() {
           equipment: p.equipment ?? [],
           diet: p.diet ?? undefined,
           injuries: p.injuries ?? "",
+          injurySelected: parseInjuries(p.injuries).selected,
+          injuryNotes: parseInjuries(p.injuries).notes,
           weight: fromMetricWeight(p.weight, u),
           heightUnit: hu,
           heightFeet: ft.feet,
@@ -139,6 +143,18 @@ function Onboarding() {
           />
         ),
       },
+      {
+        title: "Any Injuries or Limitations?",
+        subtitle: "Do you have any current or past injuries, pain, or limitations the AI coach should work around or progress safely?",
+        valid: (data.injurySelected?.length ?? 0) > 0 || !!data.injuryNotes?.trim(),
+        body: (
+          <InjuryAssessment
+            value={{ selected: data.injurySelected ?? [], notes: data.injuryNotes ?? "" }}
+            onChange={(v) => setData((d) => ({ ...d, injurySelected: v.selected, injuryNotes: v.notes }))}
+            compact
+          />
+        ),
+      },
       { title: "What should your coach call you?", subtitle: "Let's make this personal.", valid: !!data.name?.trim(),
         body: <Input autoFocus placeholder="Your name" value={data.name ?? ""} onChange={(e) => update("name", e.target.value)} className="h-14 text-lg" /> },
       { title: "Tell us about you", subtitle: "Helps us calibrate intensity & recovery.", valid: !!data.age && !!data.gender,
@@ -177,8 +193,6 @@ function Onboarding() {
         ) },
       { title: "Diet preference", subtitle: "Used for nutrition & meal suggestions.", valid: !!data.diet,
         body: <ChipsLarge options={diets} value={data.diet} onSelect={(v) => update("diet", v)} /> },
-      { title: "Any injuries or limitations?", subtitle: "Optional — but it helps us keep you safe.", valid: true,
-        body: <Textarea placeholder="e.g. Lower back tightness, left knee surgery 2022..." value={data.injuries ?? ""} onChange={(e) => update("injuries", e.target.value)} rows={5} className="text-base" /> },
     ], [data, units],
   );
 
@@ -200,7 +214,7 @@ function Onboarding() {
         session_length: data.sessionLength,
         equipment: data.equipment ?? [],
         diet: data.diet,
-        injuries: data.injuries,
+        injuries: serializeInjuries({ selected: data.injurySelected ?? [], notes: data.injuryNotes ?? "" }),
         units,
         weight: toMetricWeight(data.weight ?? "", units),
         height_unit: data.heightUnit ?? "imperial",

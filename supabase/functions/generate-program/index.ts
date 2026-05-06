@@ -32,11 +32,19 @@ Return ONLY a JSON object that EXACTLY matches this schema, no prose:
 }
 
 RULES:
-- Match user's days_per_week, session_length, equipment, level, goal, and respect injuries.
-- Provide sessions for ALL weeks (weeks * days_per_week). Be exhaustive.
+- Match user's days_per_week, session_length, equipment, level, goal.
+- INJURY HANDLING (NON-NEGOTIABLE): Read profile.injuries carefully. You are an expert at building programs that work AROUND injuries and progress them safely.
+  • Modify or swap any movement that commonly aggravates the listed injuries (e.g. shoulder issues → swap barbell bench for dumbbell floor press or landmine press; lower back → no conventional deadlift, use trap bar or hip hinge regressions; knee pain → reduce ROM, avoid deep loaded knee flexion, prefer split squats over heavy back squat).
+  • Provide scaled / alternative movements as the primary prescription — do NOT just add a note.
+  • Include a 5–10 min warm-up + targeted mobility addressing the listed injuries each session.
+  • For "progressing" injuries, include a gradual loading plan (start at low intensity, slow weekly progression, deload more often).
+  • NEVER recommend movements that commonly aggravate the listed injuries. If unsure, pick the safer alternative.
+  • Mention the injury accommodation explicitly in exercise notes (e.g. "Floor press to protect shoulder ROM").
 - Use exercises only from the user's available equipment.
-- Progressive overload week-to-week (small load/volume increases, deload at appropriate week).
-- For mobility/recovery/HIIT goals, adapt structure accordingly — don't force a strength template.`;
+- Use the user's chosen weight unit (profile.units: "imperial" → lbs, "metric" → kg) for all weight prescriptions and notes. Never mix units.
+- Provide sessions for ALL weeks (weeks * days_per_week).
+- Progressive overload week-to-week with appropriate deload.
+- For mobility/recovery/HIIT goals, adapt structure accordingly.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
