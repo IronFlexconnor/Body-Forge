@@ -21,6 +21,22 @@ function Profile() {
   const [p, setP] = useState<any>(null);
   const [program, setProgram] = useState<any>(null);
   const [regen, setRegen] = useState(false);
+  const [portalBusy, setPortalBusy] = useState(false);
+  const { sub, isActive, tier, isTrialing } = useSubscription();
+
+  const openPortal = async () => {
+    setPortalBusy(true);
+    try {
+      const url = await createPortalSession({
+        data: { environment: getStripeEnvironment(), returnUrl: window.location.href },
+      });
+      window.open(url, "_blank");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not open billing portal");
+    } finally {
+      setPortalBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (loading) return;
