@@ -122,13 +122,19 @@ function Onboarding() {
       },
       {
         title: "What is your height?",
-        subtitle: "Used to personalize your program and bodyweight scaling.",
-        valid: data.heightFeet != null && data.heightInches != null,
+        subtitle: "Pick your preferred format and enter your height.",
+        valid:
+          (data.heightUnit ?? "imperial") === "imperial"
+            ? data.heightFeet != null && data.heightInches != null
+            : data.heightCm != null && data.heightCm >= 100 && data.heightCm <= 250,
         body: (
           <HeightPicker
+            unit={data.heightUnit ?? "imperial"}
+            onUnitChange={(u) => setData((d) => ({ ...d, heightUnit: u }))}
             feet={data.heightFeet ?? null}
             inches={data.heightInches ?? null}
-            onChange={(f, i) => setData((d) => ({ ...d, heightFeet: f, heightInches: i }))}
+            cm={data.heightCm ?? null}
+            onChange={(v) => setData((d) => ({ ...d, heightFeet: v.feet, heightInches: v.inches, heightCm: v.cm }))}
             compact
           />
         ),
