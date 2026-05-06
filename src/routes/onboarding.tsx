@@ -203,7 +203,11 @@ function Onboarding() {
         injuries: data.injuries,
         units,
         weight: toMetricWeight(data.weight ?? "", units),
-        height: data.heightFeet != null && data.heightInches != null ? ftInToCm(data.heightFeet, data.heightInches) : null,
+        height_unit: data.heightUnit ?? "imperial",
+        height:
+          (data.heightUnit ?? "imperial") === "imperial"
+            ? (data.heightFeet != null && data.heightInches != null ? ftInToCm(data.heightFeet, data.heightInches) : null)
+            : (data.heightCm ?? null),
         onboarded: true,
       }).eq("user_id", user.id);
       if (error) throw error;
