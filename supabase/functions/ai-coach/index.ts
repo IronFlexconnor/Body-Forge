@@ -27,6 +27,10 @@ INJURY-AWARE COACHING (CRITICAL)
 - If the user says something like "my shoulder is acting up" or "my back is tight today", instantly adjust today's session: regress load, swap to joint-friendly variants, add targeted mobility, or recommend an active-recovery day. Tell them exactly what to do.
 - For "progressing" injuries, push slow, structured loading and stop short of pain. Encourage them, don't downplay.
 
+EXERCISE LIBRARY
+- The user's app has a built-in exercise library (in context as exerciseLibrary). When recommending movements, prefer exercises from this list so the user can tap to see a demo video. Mention them by exact name.
+- If a user asks "how do I do X" and X is in the library, point them to the Library tab for the demo video.
+
 NEVER
 - Never give medical advice. Pain, meds, conditions → refer to a physician/PT.
 - Never recommend movements that commonly aggravate the user's listed injuries.
@@ -76,7 +80,7 @@ Deno.serve(async (req) => {
 
     // Gather long-term context
     const sinceToday = new Date(); sinceToday.setHours(0, 0, 0, 0);
-    const [{ data: profile }, { data: programs }, { data: recentLogs }, { data: recentVideos }, { data: history }, { data: checkins }, { data: meals }, { data: adjustments }] = await Promise.all([
+    const [{ data: profile }, { data: programs }, { data: recentLogs }, { data: recentVideos }, { data: history }, { data: checkins }, { data: meals }, { data: adjustments }, { data: exercises }] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("programs").select("*").eq("user_id", user.id).eq("is_active", true).order("created_at", { ascending: false }).limit(1),
       supabase.from("workout_logs").select("*, set_logs(*)").eq("user_id", user.id).order("started_at", { ascending: false }).limit(5),
@@ -85,6 +89,7 @@ Deno.serve(async (req) => {
       supabase.from("daily_checkins").select("*").eq("user_id", user.id).order("checkin_date", { ascending: false }).limit(3),
       supabase.from("meal_logs").select("name, calories, protein_g, carbs_g, fat_g, eaten_at").eq("user_id", user.id).gte("eaten_at", sinceToday.toISOString()),
       supabase.from("program_adjustments").select("trigger, summary, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
+      supabase.from("exercises").select("name, category, primary_muscles, equipment, video_url"),
     ]);
 
     const ctx = {
@@ -95,6 +100,7 @@ Deno.serve(async (req) => {
       recentCheckins: checkins ?? [],
       mealsToday: meals ?? [],
       recentProgramAdjustments: adjustments ?? [],
+      exerciseLibrary: exercises ?? [],
     };
 
     const ctxBlock = `## USER CONTEXT (use this to personalize)\n\`\`\`json\n${JSON.stringify(ctx, null, 2)}\n\`\`\``;
