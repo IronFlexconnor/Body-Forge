@@ -214,7 +214,7 @@ function Onboarding() {
         session_length: data.sessionLength,
         equipment: data.equipment ?? [],
         diet: data.diet,
-        injuries: data.injuries,
+        injuries: serializeInjuries({ selected: data.injurySelected ?? [], notes: data.injuryNotes ?? "" }),
         units,
         weight: toMetricWeight(data.weight ?? "", units),
         height_unit: data.heightUnit ?? "imperial",
