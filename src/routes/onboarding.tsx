@@ -193,8 +193,6 @@ function Onboarding() {
         ) },
       { title: "Diet preference", subtitle: "Used for nutrition & meal suggestions.", valid: !!data.diet,
         body: <ChipsLarge options={diets} value={data.diet} onSelect={(v) => update("diet", v)} /> },
-      { title: "Any injuries or limitations?", subtitle: "Optional — but it helps us keep you safe.", valid: true,
-        body: <Textarea placeholder="e.g. Lower back tightness, left knee surgery 2022..." value={data.injuries ?? ""} onChange={(e) => update("injuries", e.target.value)} rows={5} className="text-base" /> },
     ], [data, units],
   );
 
