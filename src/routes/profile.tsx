@@ -109,6 +109,21 @@ function Profile() {
           />
         </div>
 
+        <div className="mb-6 rounded-3xl border border-border/60 bg-gradient-card p-5 shadow-card">
+          <HeightPicker
+            feet={cmToFtIn(p.height).feet}
+            inches={cmToFtIn(p.height).inches}
+            onChange={async (f, i) => {
+              if (f == null || i == null || !user) return;
+              const cm = ftInToCm(f, i);
+              const { error } = await supabase.from("profiles").update({ height: cm }).eq("user_id", user.id);
+              if (error) { toast.error("Could not save height"); return; }
+              setP({ ...p, height: cm });
+              toast.success("Height updated");
+            }}
+          />
+        </div>
+
         <Section title="Training">
           <Row icon={Dumbbell} label="Current program" value={program?.name ?? "—"} />
           <Row icon={Heart} label="Days per week" value={`${p.days_per_week ?? 4}`} />
