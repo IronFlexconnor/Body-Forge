@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, Video, Loader2, Crown } from "lucide-react";
+import { Send, Sparkles, Video, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
