@@ -63,9 +63,19 @@ function Chat() {
         body: JSON.stringify({ message: text }),
       });
       if (!resp.ok || !resp.body) {
-        if (resp.status === 429) toast.error("Rate limit hit — try again in a moment.");
-        else if (resp.status === 402) toast.error("AI credits exhausted. Add funds in Settings → Workspace → Usage.");
-        else toast.error("Coach is unavailable. Try again.");
+        if (resp.status === 402) {
+          let payload: any = null;
+          try { payload = await resp.json(); } catch {}
+          if (payload?.code === "chat_daily_limit") {
+            setPaywall({ open: true, reason: payload.message, recommend: "pro" });
+          } else {
+            toast.error(payload?.message ?? "Coach unavailable. Try again.");
+          }
+        } else if (resp.status === 429) {
+          toast.error("Rate limit hit — try again in a moment.");
+        } else {
+          toast.error("Coach is unavailable. Try again.");
+        }
         setMessages((m) => m.slice(0, -1));
         return;
       }
