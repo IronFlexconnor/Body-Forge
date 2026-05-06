@@ -63,7 +63,7 @@ function Progress() {
         <div className="mb-6 grid grid-cols-2 gap-3">
           <BigStat icon={Flame} value={`${stats.workouts}`} label="Workouts" sub="Logged sessions" />
           <BigStat icon={Award} value={`${stats.prs}`} label="Tracked lifts" sub="In rotation" />
-          <BigStat icon={Activity} value={`${(stats.volume / 1000).toFixed(1)}k`} label="Total volume" sub="kg lifted" />
+          <BigStat icon={Activity} value={`${(displayVolume(stats.volume, units) / 1000).toFixed(1)}k`} label="Total volume" sub={`${weightLabel(units)} lifted`} />
           <BigStat icon={TrendingUp} value={`${stats.sessions}`} label="Completed" sub="On schedule" />
         </div>
 
