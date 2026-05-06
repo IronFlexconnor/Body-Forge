@@ -171,8 +171,10 @@ function Onboarding() {
         equipment: data.equipment ?? [],
         diet: data.diet,
         injuries: data.injuries,
-        weight: data.weight ? parseFloat(data.weight) : null,
-        height: data.height ? parseFloat(data.height) : null,
+        units,
+        weight: toMetricWeight(data.weight ?? "", units),
+        height: toMetricHeight(data.height ?? "", units),
+        onboarded: true,
       }).eq("user_id", user.id);
       if (error) throw error;
 
