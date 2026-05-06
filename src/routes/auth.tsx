@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordStrengthMeter } from "@/components/PasswordStrengthMeter";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
