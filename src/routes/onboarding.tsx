@@ -61,6 +61,7 @@ function Onboarding() {
       if (p) {
         const u: Units = (p.units === "metric" ? "metric" : "imperial");
         setUnits(u);
+        const ft = cmToFtIn(p.height);
         setData({
           name: p.name ?? "",
           age: p.age?.toString() ?? "",
@@ -73,7 +74,8 @@ function Onboarding() {
           diet: p.diet ?? undefined,
           injuries: p.injuries ?? "",
           weight: fromMetricWeight(p.weight, u),
-          height: fromMetricHeight(p.height, u),
+          heightFeet: ft.feet,
+          heightInches: ft.inches,
         });
         if (p.onboarded) navigate({ to: "/" });
       }
@@ -82,14 +84,11 @@ function Onboarding() {
 
   const switchUnits = (next: Units) => {
     if (next === units) return;
-    // Convert current entered values between units so user's input is preserved.
     setData((d) => {
       const wKg = toMetricWeight(d.weight ?? "", units);
-      const hCm = toMetricHeight(d.height ?? "", units);
       return {
         ...d,
         weight: wKg != null ? fromMetricWeight(wKg, next) : d.weight,
-        height: hCm != null ? fromMetricHeight(hCm, next) : d.height,
       };
     });
     setUnits(next);
