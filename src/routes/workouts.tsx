@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { DEFAULT_WEIGHT_UNIT, unitsToWeightUnit, type WeightUnit } from "@/lib/units";
 
 export const Route = createFileRoute("/workouts")({
   head: () => ({ meta: [{ title: "Workouts — Body Forge" }] }),
