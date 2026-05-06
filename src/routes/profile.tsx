@@ -83,8 +83,8 @@ function Profile() {
           </div>
           <div className="mt-5 grid grid-cols-3 divide-x divide-border/60 rounded-2xl bg-background/40 py-3 text-center">
             <Mini label="Age" value={p.age ?? "—"} />
-            <Mini label="Weight" value={p.weight ? `${p.weight}kg` : "—"} />
-            <Mini label="Height" value={p.height ? `${p.height}cm` : "—"} />
+            <Mini label="Weight" value={displayWeight(p.weight, units)} />
+            <Mini label="Height" value={displayHeight(p.height, units)} />
           </div>
         </div>
 
