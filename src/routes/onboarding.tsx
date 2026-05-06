@@ -48,6 +48,7 @@ function Onboarding() {
   const [step, setStep] = useState(0);
   const [building, setBuilding] = useState(false);
   const [data, setData] = useState<Data>({ daysPerWeek: 4, sessionLength: 45, equipment: [] });
+  const [units, setUnits] = useState<Units>(DEFAULT_UNITS);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
