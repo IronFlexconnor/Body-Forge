@@ -3,8 +3,13 @@
 // The user's preferred display unit is stored in profiles.units.
 
 export type Units = "imperial" | "metric";
+export type WeightUnit = "lbs" | "kg";
 
 export const DEFAULT_UNITS: Units = "imperial";
+export const DEFAULT_WEIGHT_UNIT: WeightUnit = "lbs";
+
+export const unitsToWeightUnit = (u: Units): WeightUnit => (u === "imperial" ? "lbs" : "kg");
+export const weightUnitToUnits = (w: WeightUnit): Units => (w === "lbs" ? "imperial" : "metric");
 
 export const KG_PER_LB = 0.45359237;
 export const CM_PER_IN = 2.54;
