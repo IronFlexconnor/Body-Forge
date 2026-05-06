@@ -63,6 +63,7 @@ function Onboarding() {
         const u: Units = (p.units === "metric" ? "metric" : "imperial");
         setUnits(u);
         const ft = cmToFtIn(p.height);
+        const hu: HeightUnit = (p as any).height_unit === "metric" ? "metric" : "imperial";
         setData({
           name: p.name ?? "",
           age: p.age?.toString() ?? "",
@@ -75,8 +76,10 @@ function Onboarding() {
           diet: p.diet ?? undefined,
           injuries: p.injuries ?? "",
           weight: fromMetricWeight(p.weight, u),
+          heightUnit: hu,
           heightFeet: ft.feet,
           heightInches: ft.inches,
+          heightCm: p.height != null ? Math.round(Number(p.height)) : null,
         });
         if (p.onboarded) navigate({ to: "/" });
       }
