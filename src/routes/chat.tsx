@@ -9,6 +9,7 @@ import { extractFrames } from "@/lib/videoFrames";
 import { toast } from "sonner";
 import { PaywallModal } from "@/components/PaywallModal";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useUsage } from "@/hooks/useUsage";
 
 export const Route = createFileRoute("/chat")({
   head: () => ({ meta: [{ title: "Coach Chat — Body Forge" }] }),
@@ -27,7 +28,9 @@ const suggestions = [
 function Chat() {
   const navigate = useNavigate();
   const { user, loading, session } = useAuth();
-  const { isPro, isElite } = useSubscription();
+  const { isPro } = useSubscription();
+  const chatUsage = useUsage("chat");
+  const videoUsage = useUsage("video");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -225,8 +228,22 @@ function Chat() {
               <Send className="h-4 w-4" />
             </button>
           </form>
+          {!isPro && (chatUsage.showWarning || videoUsage.showWarning) && (
+            <p className="mt-2 text-center text-[11px] text-muted-foreground">
+              {chatUsage.showWarning && `${chatUsage.remaining} coach message left today. `}
+              {videoUsage.showWarning && `${videoUsage.remaining} video form check left this month. `}
+              <button onClick={() => setPaywall({ open: true, reason: "Unlock unlimited coaching.", recommend: "pro" })}
+                className="font-semibold text-primary underline-offset-2 hover:underline">Upgrade</button>
+            </p>
+          )}
         </div>
       </div>
+      <PaywallModal
+        open={paywall.open}
+        onClose={() => setPaywall({ open: false })}
+        reason={paywall.reason}
+        recommend={paywall.recommend ?? "pro"}
+      />
     </AppShell>
   );
 }
