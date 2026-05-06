@@ -17,6 +17,7 @@ function Progress() {
   const [stats, setStats] = useState({ workouts: 0, prs: 0, volume: 0, sessions: 0 });
   const [lifts, setLifts] = useState<{ name: string; current: number; trend: number[] }[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [units, setUnits] = useState<Units>(DEFAULT_UNITS);
 
   useEffect(() => {
     if (loading) return;
