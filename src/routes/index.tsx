@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Flame, Play, MessageCircle, TrendingUp, Activity, Heart, Zap, ChevronRight, Loader2, Apple, Check } from "lucide-react";
+import { Flame, Play, MessageCircle, TrendingUp, Activity, Heart, Zap, ChevronRight, Loader2, Apple, Check, Crown } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/")({
 function Home() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { isActive, isTrialing } = useSubscription();
   const [profile, setProfile] = useState<any>(null);
   const [todayWorkout, setTodayWorkout] = useState<any>(null);
   const [stats, setStats] = useState({ workouts: 0, streak: 0, weekDone: 0, weekTotal: 0 });
