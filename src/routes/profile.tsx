@@ -51,7 +51,10 @@ function Profile() {
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate({ to: "/welcome" }); return; }
-    supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle().then(({ data }) => setP(data));
+    supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+      setP(data);
+      if (data?.units === "metric" || data?.units === "imperial") setUnits(data.units);
+    });
     supabase.from("programs").select("*").eq("user_id", user.id).eq("is_active", true).order("created_at", { ascending: false }).limit(1).maybeSingle().then(({ data }) => setProgram(data));
   }, [user, loading, navigate]);
 
