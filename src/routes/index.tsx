@@ -89,10 +89,14 @@ function Home() {
         </div>
 
         <div className="mb-5 flex gap-3">
-          <Stat icon={Heart} value="86" label="Readiness" />
+          <Stat icon={Heart} value={readiness ? `${readiness}` : "—"} label="Readiness" />
           <Stat icon={Flame} value={`${stats.workouts}`} label="Total sessions" />
           <Stat icon={Activity} value={`${stats.weekDone}/${stats.weekTotal}`} label="This week" />
         </div>
+
+        {!checkin && (
+          <CheckinCard onSaved={(c) => setCheckin(c)} />
+        )}
 
         {todayWorkout ? (
           <Link to="/workouts" className="group relative mb-6 block overflow-hidden rounded-3xl border border-primary/20 bg-gradient-card p-6 shadow-card">
