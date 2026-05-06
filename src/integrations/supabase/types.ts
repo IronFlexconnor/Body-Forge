@@ -371,6 +371,7 @@ export type Database = {
           set_number: number
           user_id: string
           weight: number | null
+          weight_unit: string | null
           workout_log_id: string | null
         }
         Insert: {
@@ -384,6 +385,7 @@ export type Database = {
           set_number: number
           user_id: string
           weight?: number | null
+          weight_unit?: string | null
           workout_log_id?: string | null
         }
         Update: {
@@ -397,6 +399,7 @@ export type Database = {
           set_number?: number
           user_id?: string
           weight?: number | null
+          weight_unit?: string | null
           workout_log_id?: string | null
         }
         Relationships: [
