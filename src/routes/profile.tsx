@@ -10,7 +10,8 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { createPortalSession } from "@/utils/payments.functions";
 import { getStripeEnvironment, PLAN_BY_PRICE } from "@/lib/stripe";
 import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
-import { DEFAULT_UNITS, type Units, displayHeight, displayWeight, unitsToWeightUnit } from "@/lib/units";
+import { HeightPicker, ftInToCm, cmToFtIn, formatFtIn } from "@/components/HeightPicker";
+import { DEFAULT_UNITS, type Units, displayWeight, unitsToWeightUnit } from "@/lib/units";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — Body Forge" }] }),
