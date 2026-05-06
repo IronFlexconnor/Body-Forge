@@ -137,11 +137,74 @@ function Home() {
           <Link to="/progress" className="text-sm font-medium text-primary">See progress</Link>
         </div>
         <div className="grid grid-cols-2 gap-3">
+          <Link to="/nutrition" className="rounded-2xl border border-border/60 bg-gradient-card p-4 shadow-card hover:border-primary/40">
+            <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground"><Apple className="h-3.5 w-3.5" /> Nutrition</div>
+            <div className="text-xl font-bold text-gradient-primary">{profile?.macro_targets?.calories ?? "Set"}</div>
+            <div className="mt-1 text-xs text-muted-foreground">Daily target</div>
+          </Link>
           <Card icon={TrendingUp} title="Adherence" value={`${Math.round(((stats.weekDone) / Math.max(1, stats.weekTotal)) * 100)}%`} sub="This week" />
-          <Card icon={Activity} title="Program" value={profile?.goal ?? "—"} sub="Active goal" />
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function CheckinCard({ onSaved }: { onSaved: (c: any) => void }) {
+  const { user } = useAuth();
+  const [energy, setEnergy] = useState(7);
+  const [soreness, setSoreness] = useState(3);
+  const [stress, setStress] = useState(4);
+  const [sleep, setSleep] = useState(7.5);
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    if (!user) return;
+    setSaving(true);
+    const today = new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabase.from("daily_checkins").insert({
+      user_id: user.id, checkin_date: today, energy, soreness, stress, sleep_hours: sleep,
+    }).select().single();
+    if (error) { toast.error(error.message); setSaving(false); return; }
+    toast.success("Check-in saved — Coach will tune today's session");
+    onSaved(data);
+    // Trigger auto-adjust based on readiness
+    supabase.functions.invoke("auto-adjust", { body: { trigger: "checkin" } })
+      .then(({ data: a }) => {
+        const d = a as any;
+        if (d?.should_adjust && d?.summary) toast.success(`Plan tuned — ${d.summary}`, { duration: 6000 });
+      }).catch(() => {});
+    setSaving(false);
+  };
+
+  return (
+    <div className="mb-5 rounded-3xl border border-primary/20 bg-gradient-card p-5 shadow-card">
+      <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+        Daily check-in
+      </div>
+      <p className="mb-3 text-sm text-muted-foreground">30 seconds — helps Coach tune today's session.</p>
+      <div className="space-y-3">
+        <Slider label="Energy" value={energy} setValue={setEnergy} max={10} suffix="/10" />
+        <Slider label="Muscle soreness" value={soreness} setValue={setSoreness} max={10} suffix="/10" />
+        <Slider label="Stress" value={stress} setValue={setStress} max={10} suffix="/10" />
+        <Slider label="Sleep" value={sleep} setValue={setSleep} max={12} step={0.5} suffix=" h" />
+      </div>
+      <Button onClick={save} disabled={saving} className="mt-4 h-11 w-full rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow">
+        {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />} Save check-in
+      </Button>
+    </div>
+  );
+}
+
+function Slider({ label, value, setValue, max, step = 1, suffix }: { label: string; value: number; setValue: (n: number) => void; max: number; step?: number; suffix?: string }) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className="font-semibold tabular-nums">{value}{suffix ?? ""}</span>
+      </div>
+      <input type="range" min={0} max={max} step={step} value={value} onChange={(e) => setValue(parseFloat(e.target.value))}
+        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-border accent-primary" />
+    </div>
   );
 }
 
