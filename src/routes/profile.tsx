@@ -1,11 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ChevronRight, Settings, Bell, Heart, Dumbbell, Apple, Shield, LogOut, Sparkles, Loader2 } from "lucide-react";
+import { ChevronRight, Settings, Bell, Heart, Dumbbell, Apple, Shield, LogOut, Sparkles, Loader2, Crown, CreditCard } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSubscription } from "@/hooks/useSubscription";
+import { createPortalSession } from "@/utils/payments.functions";
+import { getStripeEnvironment, PLAN_BY_PRICE } from "@/lib/stripe";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — Body Forge" }] }),
