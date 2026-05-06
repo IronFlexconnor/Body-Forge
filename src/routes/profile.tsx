@@ -10,7 +10,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { createPortalSession } from "@/utils/payments.functions";
 import { getStripeEnvironment, PLAN_BY_PRICE } from "@/lib/stripe";
 import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
-import { HeightPicker, ftInToCm, cmToFtIn, formatFtIn } from "@/components/HeightPicker";
+import { HeightPicker, ftInToCm, cmToFtIn, formatHeight, type HeightUnit } from "@/components/HeightPicker";
 import { DEFAULT_UNITS, type Units, displayWeight, unitsToWeightUnit } from "@/lib/units";
 
 export const Route = createFileRoute("/profile")({
@@ -98,7 +98,7 @@ function Profile() {
           <div className="mt-5 grid grid-cols-3 divide-x divide-border/60 rounded-2xl bg-background/40 py-3 text-center">
             <Mini label="Age" value={p.age ?? "—"} />
             <Mini label="Weight" value={displayWeight(p.weight, units)} />
-            <Mini label="Height" value={formatFtIn(p.height)} />
+            <Mini label="Height" value={formatHeight(p.height, (p.height_unit === "metric" ? "metric" : "imperial"))} />
           </div>
         </div>
 
@@ -111,11 +111,27 @@ function Profile() {
 
         <div className="mb-6 rounded-3xl border border-border/60 bg-gradient-card p-5 shadow-card">
           <HeightPicker
+            unit={(p.height_unit === "metric" ? "metric" : "imperial") as HeightUnit}
+            onUnitChange={async (u) => {
+              if (!user) return;
+              const { error } = await supabase.from("profiles").update({ height_unit: u }).eq("user_id", user.id);
+              if (error) { toast.error("Could not save height format"); return; }
+              setP({ ...p, height_unit: u });
+            }}
             feet={cmToFtIn(p.height).feet}
             inches={cmToFtIn(p.height).inches}
-            onChange={async (f, i) => {
-              if (f == null || i == null || !user) return;
-              const cm = ftInToCm(f, i);
+            cm={p.height != null ? Math.round(Number(p.height)) : null}
+            onChange={async (v) => {
+              if (!user) return;
+              let cm: number | null = null;
+              const hu: HeightUnit = p.height_unit === "metric" ? "metric" : "imperial";
+              if (hu === "imperial") {
+                if (v.feet == null || v.inches == null) return;
+                cm = ftInToCm(v.feet, v.inches);
+              } else {
+                if (v.cm == null || v.cm < 100 || v.cm > 250) return;
+                cm = v.cm;
+              }
               const { error } = await supabase.from("profiles").update({ height: cm }).eq("user_id", user.id);
               if (error) { toast.error("Could not save height"); return; }
               setP({ ...p, height: cm });

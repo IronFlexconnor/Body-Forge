@@ -195,6 +195,7 @@ export type Database = {
           gender: string | null
           goal: string | null
           height: number | null
+          height_unit: string | null
           id: string
           injuries: string | null
           level: string | null
@@ -217,6 +218,7 @@ export type Database = {
           gender?: string | null
           goal?: string | null
           height?: number | null
+          height_unit?: string | null
           id?: string
           injuries?: string | null
           level?: string | null
@@ -239,6 +241,7 @@ export type Database = {
           gender?: string | null
           goal?: string | null
           height?: number | null
+          height_unit?: string | null
           id?: string
           injuries?: string | null
           level?: string | null

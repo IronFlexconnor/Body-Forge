@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
-import { HeightPicker, cmToFtIn, ftInToCm } from "@/components/HeightPicker";
+import { HeightPicker, cmToFtIn, ftInToCm, type HeightUnit } from "@/components/HeightPicker";
 import {
   DEFAULT_UNITS,
   type Units,
@@ -39,7 +39,8 @@ type Data = {
   name?: string; age?: string; gender?: string; level?: string; goal?: string;
   daysPerWeek?: number; sessionLength?: number; equipment?: string[];
   diet?: string; injuries?: string; weight?: string;
-  heightFeet?: number | null; heightInches?: number | null;
+  heightUnit?: HeightUnit;
+  heightFeet?: number | null; heightInches?: number | null; heightCm?: number | null;
 };
 
 function Onboarding() {
@@ -47,7 +48,7 @@ function Onboarding() {
   const { user, loading } = useAuth();
   const [step, setStep] = useState(0);
   const [building, setBuilding] = useState(false);
-  const [data, setData] = useState<Data>({ daysPerWeek: 4, sessionLength: 45, equipment: [] });
+  const [data, setData] = useState<Data>({ daysPerWeek: 4, sessionLength: 45, equipment: [], heightUnit: "imperial" });
   const [units, setUnits] = useState<Units>(DEFAULT_UNITS);
 
   useEffect(() => {
@@ -62,6 +63,7 @@ function Onboarding() {
         const u: Units = (p.units === "metric" ? "metric" : "imperial");
         setUnits(u);
         const ft = cmToFtIn(p.height);
+        const hu: HeightUnit = (p as any).height_unit === "metric" ? "metric" : "imperial";
         setData({
           name: p.name ?? "",
           age: p.age?.toString() ?? "",
@@ -74,8 +76,10 @@ function Onboarding() {
           diet: p.diet ?? undefined,
           injuries: p.injuries ?? "",
           weight: fromMetricWeight(p.weight, u),
+          heightUnit: hu,
           heightFeet: ft.feet,
           heightInches: ft.inches,
+          heightCm: p.height != null ? Math.round(Number(p.height)) : null,
         });
         if (p.onboarded) navigate({ to: "/" });
       }
@@ -118,13 +122,19 @@ function Onboarding() {
       },
       {
         title: "What is your height?",
-        subtitle: "Used to personalize your program and bodyweight scaling.",
-        valid: data.heightFeet != null && data.heightInches != null,
+        subtitle: "Pick your preferred format and enter your height.",
+        valid:
+          (data.heightUnit ?? "imperial") === "imperial"
+            ? data.heightFeet != null && data.heightInches != null
+            : data.heightCm != null && data.heightCm >= 100 && data.heightCm <= 250,
         body: (
           <HeightPicker
+            unit={data.heightUnit ?? "imperial"}
+            onUnitChange={(u) => setData((d) => ({ ...d, heightUnit: u }))}
             feet={data.heightFeet ?? null}
             inches={data.heightInches ?? null}
-            onChange={(f, i) => setData((d) => ({ ...d, heightFeet: f, heightInches: i }))}
+            cm={data.heightCm ?? null}
+            onChange={(v) => setData((d) => ({ ...d, heightFeet: v.feet, heightInches: v.inches, heightCm: v.cm }))}
             compact
           />
         ),
@@ -193,7 +203,11 @@ function Onboarding() {
         injuries: data.injuries,
         units,
         weight: toMetricWeight(data.weight ?? "", units),
-        height: data.heightFeet != null && data.heightInches != null ? ftInToCm(data.heightFeet, data.heightInches) : null,
+        height_unit: data.heightUnit ?? "imperial",
+        height:
+          (data.heightUnit ?? "imperial") === "imperial"
+            ? (data.heightFeet != null && data.heightInches != null ? ftInToCm(data.heightFeet, data.heightInches) : null)
+            : (data.heightCm ?? null),
         onboarded: true,
       }).eq("user_id", user.id);
       if (error) throw error;
