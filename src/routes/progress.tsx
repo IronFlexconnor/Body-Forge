@@ -92,7 +92,7 @@ function Progress() {
               <div className="mb-3 flex items-baseline justify-between">
                 <div>
                   <div className="font-semibold">{lift.name}</div>
-                  <div className="text-2xl font-bold tabular-nums">{lift.current}kg</div>
+                  <div className="text-2xl font-bold tabular-nums">{displayLift(lift.current, units)}{weightLabel(units)}</div>
                 </div>
                 <div className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary">{lift.trend.length} sets</div>
               </div>
