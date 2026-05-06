@@ -59,6 +59,8 @@ function Onboarding() {
     if (!user) return;
     supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle().then(({ data: p }) => {
       if (p) {
+        const u: Units = (p.units === "metric" ? "metric" : "imperial");
+        setUnits(u);
         setData({
           name: p.name ?? "",
           age: p.age?.toString() ?? "",
@@ -70,13 +72,28 @@ function Onboarding() {
           equipment: p.equipment ?? [],
           diet: p.diet ?? undefined,
           injuries: p.injuries ?? "",
-          weight: p.weight?.toString() ?? "",
-          height: p.height?.toString() ?? "",
+          weight: fromMetricWeight(p.weight, u),
+          height: fromMetricHeight(p.height, u),
         });
         if (p.onboarded) navigate({ to: "/" });
       }
     });
   }, [user, navigate]);
+
+  const switchUnits = (next: Units) => {
+    if (next === units) return;
+    // Convert current entered values between units so user's input is preserved.
+    setData((d) => {
+      const wKg = toMetricWeight(d.weight ?? "", units);
+      const hCm = toMetricHeight(d.height ?? "", units);
+      return {
+        ...d,
+        weight: wKg != null ? fromMetricWeight(wKg, next) : d.weight,
+        height: hCm != null ? fromMetricHeight(hCm, next) : d.height,
+      };
+    });
+    setUnits(next);
+  };
 
   const update = <K extends keyof Data>(k: K, v: Data[K]) => setData((d) => ({ ...d, [k]: v }));
 
