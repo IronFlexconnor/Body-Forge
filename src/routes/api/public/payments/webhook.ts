@@ -99,11 +99,12 @@ async function upsertSubscription(sub: Stripe.Subscription, env: StripeEnv) {
     current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
     cancel_at_period_end: sub.cancel_at_period_end ?? false,
     trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
-    metadata: (sub.metadata ?? {}) as Record<string, unknown>,
+    metadata: (sub.metadata ?? {}) as Record<string, string>,
   };
 
   const { error } = await supabaseAdmin
     .from("subscriptions")
-    .upsert(row, { onConflict: "stripe_subscription_id" });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .upsert(row as any, { onConflict: "stripe_subscription_id" });
   if (error) throw error;
 }
