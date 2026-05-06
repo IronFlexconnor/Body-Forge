@@ -4,6 +4,7 @@ import { TrendingUp, Award, Flame, Activity, Sparkles, Loader2 } from "lucide-re
 import { AppShell } from "@/components/AppShell";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_UNITS, type Units, kgToLb, weightLabel } from "@/lib/units";
 
 export const Route = createFileRoute("/progress")({
   head: () => ({ meta: [{ title: "Progress — Body Forge" }] }),
