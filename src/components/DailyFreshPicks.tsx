@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Play, Sparkles, ChevronRight, Loader2, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { thumbForRecipe } from "@/lib/mealVideos";
+import { thumbForRecipe, thumbFallbackForRecipe } from "@/lib/mealVideos";
 import { useFavorites } from "@/lib/favorites";
 import { toast } from "sonner";
 
