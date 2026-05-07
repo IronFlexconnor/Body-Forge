@@ -53,7 +53,7 @@ function Onboarding() {
   const { user, loading } = useAuth();
   const [step, setStep] = useState(0);
   const [building, setBuilding] = useState(false);
-  const [data, setData] = useState<Data>({ daysPerWeek: 4, sessionLength: 45, equipment: [], heightUnit: "imperial" });
+  const [data, setData] = useState<Data>({ daysPerWeek: 4, sessionLength: 45, equipment: [], heightUnit: "imperial", nutrition: DEFAULT_NUTRITION });
   const [units, setUnits] = useState<Units>(DEFAULT_UNITS);
 
   useEffect(() => {
