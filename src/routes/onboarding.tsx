@@ -200,8 +200,8 @@ function Onboarding() {
         body: <ChipsLarge options={diets} value={data.diet} onSelect={(v) => update("diet", v)} /> },
       {
         title: "Tell us about your nutrition needs",
-        subtitle: "Allergies, dietary restrictions, and meal timing — your AI nutrition coach uses this to plan meals that match your training.",
-        valid: true,
+        subtitle: "Allergies, dietary restrictions, and bodyweight goal — your AI nutrition coach uses this to plan meals that match your training.",
+        valid: !!data.nutrition?.bodyweightGoal,
         body: (
           <NutritionPreferencesForm
             value={data.nutrition ?? DEFAULT_NUTRITION}
