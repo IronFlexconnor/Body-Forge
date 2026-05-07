@@ -451,6 +451,14 @@ function FreshMealsPage() {
             setSeedOffset((n) => n + 1);
             setRegenOpen(false);
             toast.success("New daily plan generated for your picks");
+            const bits: string[] = [];
+            if (p.cuisines.length) bits.push(`cuisines: ${p.cuisines.join(", ")}`);
+            if (p.prepTime !== "any") bits.push(`prep: ${PREP_TIMES.find((x) => x.key === p.prepTime)?.label}`);
+            if (p.dietary.length) bits.push(`dietary: ${p.dietary.join(", ")}`);
+            if (p.mood) bits.push(`mood: ${MOODS.find((m) => m.key === p.mood)?.label}`);
+            logPlanChangeToCoach(
+              `Regenerated today's meal plan with preferences — ${bits.length ? bits.join(" · ") : "no specific filters"}. Macros kept aligned with current targets.`,
+            );
           }}
         />
       )}
