@@ -168,6 +168,8 @@ function Home() {
 
         <AdjustmentsCard />
 
+        <GoalCarousel currentGoal={profile?.goal} onBuilt={() => navigate({ to: "/workouts" })} />
+
         <DailyFreshPicks />
 
         <InsightsCarousel />
