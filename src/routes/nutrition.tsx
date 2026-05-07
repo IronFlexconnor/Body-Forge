@@ -31,6 +31,11 @@ function Nutrition() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [form, setForm] = useState({ name: "", calories: "", protein_g: "", carbs_g: "", fat_g: "" });
   const [paywall, setPaywall] = useState<{ open: boolean; reason?: string; recommend?: "pro" | "elite" }>({ open: false });
+  const [planning, setPlanning] = useState(false);
+  const [plan, setPlan] = useState<any>(null);
+  const [planPrompt, setPlanPrompt] = useState("");
+  const [openDay, setOpenDay] = useState<number | null>(0);
+  const [openPrep, setOpenPrep] = useState<string | null>(null);
 
   useEffect(() => {
     if (loading) return;
