@@ -64,6 +64,10 @@ function Nutrition() {
   const [openPrep, setOpenPrep] = useState<string | null>(null);
   const [libCat, setLibCat] = useState<"Breakfast" | "Lunch" | "Dinner" | "Snack">("Breakfast");
   const [libOpen, setLibOpen] = useState<string | null>(null);
+  const [regenOpen, setRegenOpen] = useState(false);
+  const [regenPrompt, setRegenPrompt] = useState<string | undefined>();
+
+  const openRegen = (prompt?: string) => { setRegenPrompt(prompt); setRegenOpen(true); };
 
   useEffect(() => {
     if (loading) return;
