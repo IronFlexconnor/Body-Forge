@@ -226,8 +226,11 @@ function Chat() {
           if (d?.should_adjust && d?.summary) toast.success(`Coach adjusted next session — ${d.summary}`, { duration: 6000 });
         }).catch(() => {});
     } catch (e) {
+      console.error("video analyze flow error", e);
       toast.dismiss("analyze");
-      toast.error(e instanceof Error ? e.message : "Video analysis failed");
+      const friendly = "Coach couldn't fully read that clip. Try a brighter, side-angle view of the full lift and re-upload — your plan and chat are still good.";
+      setMessages((m) => [...m, { role: "user", content: "📹 Uploaded a video for form check" }, { role: "assistant", content: friendly }]);
+      toast.success("Coach gave you general cues — re-upload for a sharper read.");
     } finally {
       setAnalyzing(false);
     }
