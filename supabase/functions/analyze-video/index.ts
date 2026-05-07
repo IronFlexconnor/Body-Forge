@@ -292,11 +292,18 @@ Deno.serve(async (req) => {
       }).eq("id", row.id);
     }
 
-    // Sync a brief summary into AI Coach chat history so the assistant sees it
+    // Sync a rich summary into AI Coach chat history so the assistant has full biomechanics context
     try {
       const subs = analysis.sub_scores || {};
-      const top = (analysis.fixes || [])[0] || analysis.next_session_adjustment || "";
-      const note = `[Form check] ${analysis.exercise_detected} — ${analysis.score}/100 (posture ${subs.posture}, alignment ${subs.joint_alignment}, tempo ${subs.tempo}, symmetry ${subs.symmetry}, injury-safety ${subs.injury_risk}). Top fix: ${top}`;
+      const findings = (analysis.findings || []).slice(0, 3)
+        .map((f: any) => `• [${f.severity}] ${f.title} — ${f.problem}`).join("\n");
+      const tempoStr = analysis.tempo
+        ? `tempo ${analysis.tempo.eccentric_s}-${analysis.tempo.pause_s}-${analysis.tempo.concentric_s} (ideal ${analysis.tempo.ideal})`
+        : "";
+      const note = `[Form check] ${analysis.exercise_detected} — ${analysis.score}/100\n` +
+        `Sub-scores: posture ${subs.posture}, alignment ${subs.joint_alignment}, tempo ${subs.tempo}, symmetry ${subs.symmetry}, stability ${subs.stability}, ROM ${subs.range_of_motion}, safety ${subs.injury_risk}. ${tempoStr}\n` +
+        (findings ? `Top findings:\n${findings}\n` : "") +
+        `Next set: ${analysis.next_session_adjustment || ""}`;
       await supabase.from("chat_messages").insert({ user_id: user.id, role: "user", content: note });
     } catch (e) { console.warn("coach sync failed", e); }
 
