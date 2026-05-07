@@ -74,31 +74,40 @@ Deno.serve(async (req) => {
 
     const userMsg = `Build my program. Profile:\n${JSON.stringify({ ...profile, goal: goalLabel ?? profile.goal }, null, 2)}\n\nPRIMARY GOAL FOCUS (build the entire program around this — include dedicated specialty days where appropriate, e.g. a true Glute Day for glute growth):\n${effectiveGoal}`;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: `${SYS}\n\n${EXPERT_KNOWLEDGE}` },
-          { role: "user", content: userMsg },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
-
-    if (!aiResp.ok) {
-      if (aiResp.status === 429) return new Response(JSON.stringify({ error: "Rate limit — try again shortly." }), { status: 429, headers: cors });
-      if (aiResp.status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: cors });
-      const t = await aiResp.text();
-      console.error("gen-program ai error", aiResp.status, t);
-      return new Response(JSON.stringify({ error: "AI error" }), { status: 500, headers: cors });
+    let plan: any = null;
+    try {
+      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: `${SYS}\n\n${EXPERT_KNOWLEDGE}` },
+            { role: "user", content: userMsg },
+          ],
+          response_format: { type: "json_object" },
+        }),
+      });
+      if (aiResp.ok) {
+        const aiJson = await aiResp.json();
+        const raw = aiJson.choices?.[0]?.message?.content ?? "{}";
+        try { plan = JSON.parse(raw); } catch { plan = null; }
+      } else {
+        console.warn("gen-program ai non-ok", aiResp.status);
+      }
+    } catch (err) {
+      console.warn("gen-program ai threw", err);
     }
 
-    const aiJson = await aiResp.json();
-    const raw = aiJson.choices?.[0]?.message?.content ?? "{}";
-    let plan: any;
-    try { plan = JSON.parse(raw); } catch { plan = { name: "My Program", style: "Hybrid", weeks: 8, sessions: [] }; }
+    // Fallback / safety net: ensure we always return a goal-specific program
+    if (!plan || !Array.isArray(plan.sessions) || plan.sessions.length === 0) {
+      plan = buildTemplateProgram({
+        goalLabel: goalLabel ?? profile.goal,
+        goalPrompt: effectiveGoal,
+        daysPerWeek: profile.days_per_week ?? 4,
+        weeks: 8,
+      });
+    }
 
     // Deactivate old programs
     await supabase.from("programs").update({ is_active: false }).eq("user_id", user.id);
