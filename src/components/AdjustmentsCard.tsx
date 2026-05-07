@@ -69,6 +69,7 @@ export function AdjustmentsCard() {
     const tChanges: string[] = d?.training?.changes ?? [];
     const nChanges: string[] = d?.nutrition?.changes ?? [];
     const all = [...tChanges, ...nChanges].slice(0, 4);
+    celebrate();
     toast.success(d.summary ?? "Plan tuned ✨", {
       description: all.length
         ? `Here's what I just tuned for you:\n• ${all.join("\n• ")}`
