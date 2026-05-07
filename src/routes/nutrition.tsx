@@ -27,6 +27,16 @@ function nutritionErrorMessage(error: unknown, fallback: string) {
   return message.includes("non-2xx") || message.includes("FunctionsHttpError") ? fallback : message || fallback;
 }
 
+async function invokeNutritionCoach(body: Record<string, unknown>) {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  const { data, error } = await supabase.functions.invoke("nutrition-coach", {
+    body,
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  return { data, error };
+}
+
 function Nutrition() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
@@ -70,7 +80,7 @@ function Nutrition() {
   const calcMacros = async () => {
     setCalcing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "calc_macros" } });
+      const { data, error } = await invokeNutritionCoach({ action: "calc_macros" });
       if (error) throw error;
       const { data: p } = await supabase.from("profiles").select("*").eq("user_id", user!.id).maybeSingle();
       setProfile(p);
@@ -81,7 +91,7 @@ function Nutrition() {
   const suggestMeals = async (preset?: string) => {
     setSuggesting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "suggest_meals", prompt: preset } });
+      const { data, error } = await invokeNutritionCoach({ action: "suggest_meals", prompt: preset });
       const d: any = data;
       if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
         setPaywall({ open: true, reason: d?.message || "Personalized meal suggestions are part of Pro Coach.", recommend: "pro" });
@@ -102,7 +112,7 @@ function Nutrition() {
     try {
       if (!activeProfile?.macro_targets) {
         toast.loading("Calculating your macro targets…", { id: "macros" });
-        const { data: mData, error: mErr } = await supabase.functions.invoke("nutrition-coach", { body: { action: "calc_macros" } });
+        const { data: mData, error: mErr } = await invokeNutritionCoach({ action: "calc_macros" });
         toast.dismiss("macros");
         if (mErr) throw mErr;
         if (isNutritionLimit(mData)) {
@@ -113,9 +123,7 @@ function Nutrition() {
         setProfile(p);
         activeProfile = p;
       }
-      const { data, error } = await supabase.functions.invoke("nutrition-coach", {
-        body: { action: "meal_plan", prompt: overridePrompt || planPrompt || undefined },
-      });
+      const { data, error } = await invokeNutritionCoach({ action: "meal_plan", prompt: overridePrompt || planPrompt || undefined });
       const d: any = data;
       if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
         setPaywall({ open: true, reason: d?.message || "Personalized meal plans are part of Pro Coach.", recommend: "pro" });
@@ -143,7 +151,7 @@ function Nutrition() {
   const reviewDay = async () => {
     setReviewing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "review_day" } });
+      const { data, error } = await invokeNutritionCoach({ action: "review_day" });
       const d: any = data;
       if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
         setPaywall({ open: true, reason: d?.message || "Nutrition coaching reviews are part of Pro Coach.", recommend: "pro" });
