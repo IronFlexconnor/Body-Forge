@@ -65,6 +65,14 @@ Deno.serve(async (req) => {
     const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
     if (!profile) return new Response(JSON.stringify({ error: "Complete your profile first" }), { status: 400, headers: cors });
 
+    let body: any = {};
+    try { body = await req.json(); } catch {}
+    const goalOverride: string | undefined = body?.goal_override;
+    const goalLabel: string | undefined = body?.goal_label;
+    const effectiveGoal = goalOverride || profile.goal;
+
+    const userMsg = `Build my program. Profile:\n${JSON.stringify({ ...profile, goal: goalLabel ?? profile.goal }, null, 2)}\n\nPRIMARY GOAL FOCUS (build the entire program around this — include dedicated specialty days where appropriate, e.g. a true Glute Day for glute growth):\n${effectiveGoal}`;
+
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
@@ -72,7 +80,7 @@ Deno.serve(async (req) => {
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: `${SYS}\n\n${EXPERT_KNOWLEDGE}` },
-          { role: "user", content: `Build my program. Profile:\n${JSON.stringify(profile, null, 2)}` },
+          { role: "user", content: userMsg },
         ],
         response_format: { type: "json_object" },
       }),
