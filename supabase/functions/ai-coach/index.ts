@@ -1,5 +1,6 @@
 // AI Coach: streaming chat with full user context (profile, program, recent workouts, video analyses)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { EXPERT_KNOWLEDGE } from "../_shared/expert.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
