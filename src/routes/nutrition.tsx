@@ -668,12 +668,12 @@ function Nutrition() {
   );
 }
 
-function MacroBar({ label, value, target, color }: { label: string; value: number; target: number; color: string }) {
+function MacroBar({ label, value, target, color, unit = "g" }: { label: string; value: number; target: number; color: string; unit?: string }) {
   const pct = Math.min(100, Math.round((value / Math.max(1, target)) * 100));
   return (
     <div className="rounded-xl border border-border/60 bg-surface p-2.5">
       <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className="text-sm font-bold tabular-nums">{value}<span className="text-xs font-normal text-muted-foreground">/{target}g</span></div>
+      <div className="text-sm font-bold tabular-nums">{value}<span className="text-xs font-normal text-muted-foreground">/{target}{unit}</span></div>
       <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-border/60">
         <div className={`h-full ${color} transition-all`} style={{ width: `${pct}%` }} />
       </div>
