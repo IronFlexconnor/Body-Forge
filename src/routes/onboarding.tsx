@@ -20,6 +20,7 @@ import {
   weightLabel,
   toMetricWeight,
 } from "@/lib/units";
+import { GOAL_CARDS } from "@/components/GoalSelector";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
