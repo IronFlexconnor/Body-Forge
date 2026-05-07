@@ -88,8 +88,12 @@ function Chat() {
     setMessages((m) => [...m, { role: "user", content: text }, { role: "assistant", content: "" }]);
     setStreaming(true);
 
-    try {
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-coach`;
+    // Real-time plan adjustment (fires in parallel with streaming reply)
+    if (isAdjustIntent(text)) {
+      toast.loading("Coach is updating your plan…", { id: "adjust" });
+      triggerAdjust(text).finally(() => toast.dismiss("adjust"));
+    }
+
       const resp = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
