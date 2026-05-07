@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Apple, Loader2, Plus, Sparkles, Trash2, ArrowLeft, Target } from "lucide-react";
+import { Apple, Loader2, Plus, Sparkles, Trash2, ArrowLeft, Target, ChefHat, ChevronDown, ShoppingCart, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
