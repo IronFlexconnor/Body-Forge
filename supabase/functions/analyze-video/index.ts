@@ -22,6 +22,15 @@ precision level of a professional movement analyst.
 User context:
 - Reported injuries / limitations: ${injuries?.trim() ? injuries : "none reported"}
 - Preferred weight unit: ${wu}
+- Primary training goal: ${goal}
+- Experience level: ${level}
+
+Tailor optimal tempo + load guidance to the goal:
+- hypertrophy → 3-1-2 to 4-0-1, RIR 1-3
+- strength → 2-1-1 to 3-0-X, heavier loads, longer rests
+- power / athletic → 2-0-X explosive concentric
+- rehabilitation / return-to-lift → 4-2-3, sub-maximal, pain-free ROM
+- fat loss / general → 2-1-2 to 3-0-2, controlled
 
 FIRST: silently identify the EXACT exercise being performed (e.g. "Barbell Back Squat",
 "Conventional Deadlift", "Standard Push-up", "Dumbbell Bench Press"). Use the user's
