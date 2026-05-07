@@ -1,8 +1,8 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, Search, Sparkles, Heart, Play, Loader2, RefreshCcw, Shuffle,
-  Filter, Clock, Flame, Leaf, Utensils, ChevronRight, Plus, X, Check,
+  Clock, Flame, Leaf, Utensils, Plus, X, Sunrise, Sun, Moon, Coffee, Cookie, Apple,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,9 +14,9 @@ export const Route = createFileRoute("/fresh-meals")({
   head: () => ({
     meta: [
       { title: "Today's Fresh Meals — Body Forge" },
-      { name: "description", content: "5,000+ chef-tested meals with prep videos, smart filters, and one-tap save & swap." },
+      { name: "description", content: "Your daily plan: breakfast to evening snack with prep videos, smart filters, and macro-preserving swaps." },
       { property: "og:title", content: "Today's Fresh Meals — Body Forge" },
-      { property: "og:description", content: "Big videos. Mouth-watering picks. Filters, swaps, and saves in one tap." },
+      { property: "og:description", content: "Big videos. Mouth-watering picks. One-tap save & swap." },
     ],
   }),
   component: FreshMealsPage,
@@ -40,19 +40,37 @@ type Recipe = {
 };
 
 type FilterKey =
-  | "all" | "high-protein" | "low-carb" | "quick" | "vegetarian"
-  | "vegan" | "senior" | "budget" | "family";
+  | "all" | "high-protein" | "low-carb" | "quick" | "low-inflammation"
+  | "gluten-free" | "dairy-free" | "keto" | "paleo" | "vegan" | "vegetarian"
+  | "pescatarian" | "low-fodmap" | "senior" | "budget" | "family";
 
 const FILTERS: { key: FilterKey; label: string; icon: any }[] = [
   { key: "all", label: "All", icon: Sparkles },
   { key: "high-protein", label: "High protein", icon: Flame },
-  { key: "low-carb", label: "Low carb", icon: Leaf },
+  { key: "low-inflammation", label: "Low inflammation", icon: Leaf },
   { key: "quick", label: "Under 15 min", icon: Clock },
-  { key: "vegetarian", label: "Vegetarian", icon: Leaf },
+  { key: "low-carb", label: "Low carb", icon: Leaf },
+  { key: "keto", label: "Keto", icon: Leaf },
+  { key: "paleo", label: "Paleo", icon: Leaf },
   { key: "vegan", label: "Vegan", icon: Leaf },
+  { key: "vegetarian", label: "Vegetarian", icon: Leaf },
+  { key: "pescatarian", label: "Pescatarian", icon: Leaf },
+  { key: "gluten-free", label: "Gluten-free", icon: Leaf },
+  { key: "dairy-free", label: "Dairy-free", icon: Leaf },
+  { key: "low-fodmap", label: "Low FODMAP", icon: Leaf },
   { key: "senior", label: "Senior-friendly", icon: Heart },
   { key: "budget", label: "Budget", icon: Utensils },
   { key: "family", label: "Family", icon: Utensils },
+];
+
+type SlotKey = "breakfast" | "mid_morning" | "lunch" | "afternoon" | "dinner" | "evening";
+const SLOTS: { key: SlotKey; label: string; sub: string; mealType: string; isSnack: boolean; icon: any }[] = [
+  { key: "breakfast",   label: "Breakfast",          sub: "Start strong",          mealType: "breakfast", isSnack: false, icon: Sunrise },
+  { key: "mid_morning", label: "Mid-morning snack",  sub: "Gentle energy",         mealType: "snack",     isSnack: true,  icon: Coffee },
+  { key: "lunch",       label: "Lunch",              sub: "Refuel for the day",    mealType: "lunch",     isSnack: false, icon: Sun },
+  { key: "afternoon",   label: "Afternoon snack",    sub: "Beat the slump",        mealType: "snack",     isSnack: true,  icon: Apple },
+  { key: "dinner",      label: "Dinner",             sub: "Recover & repair",      mealType: "dinner",    isSnack: false, icon: Moon },
+  { key: "evening",     label: "Evening snack",      sub: "Optional wind-down",    mealType: "snack",     isSnack: true,  icon: Cookie },
 ];
 
 function todayKey() { return new Date().toISOString().slice(0, 10); }
@@ -71,18 +89,27 @@ function seededShuffle<T>(arr: T[], seed: number): T[] {
   return out;
 }
 
+function tagsOf(r: Recipe) { return (r.dietary_tags || []).map((t) => t.toLowerCase()); }
 function tagMatches(r: Recipe, key: FilterKey): boolean {
-  const tags = (r.dietary_tags || []).map((t) => t.toLowerCase());
+  const tags = tagsOf(r);
+  const has = (...needles: string[]) => tags.some((t) => needles.some((n) => t.includes(n)));
   switch (key) {
     case "all": return true;
     case "high-protein": return Number(r.protein_g) >= 30;
     case "low-carb": return Number(r.carbs_g) <= 30;
     case "quick": return (r.prep_minutes + r.cook_minutes) <= 15;
-    case "vegetarian": return tags.some((t) => t.includes("vegetarian") || t.includes("veg"));
-    case "vegan": return tags.some((t) => t.includes("vegan") || t.includes("plant"));
-    case "senior": return tags.some((t) => t.includes("senior") || t.includes("geriatric") || t.includes("soft") || t.includes("gentle")) || r.difficulty === "easy";
-    case "budget": return tags.some((t) => t.includes("budget") || t.includes("cheap") || t.includes("pantry"));
-    case "family": return tags.some((t) => t.includes("family") || t.includes("kid"));
+    case "low-inflammation": return has("anti-inflammatory", "low-inflammation", "mediterranean", "omega");
+    case "gluten-free": return has("gluten-free", "gf");
+    case "dairy-free": return has("dairy-free", "lactose-free");
+    case "keto": return has("keto") || (Number(r.carbs_g) <= 20 && Number(r.fat_g) >= 20);
+    case "paleo": return has("paleo");
+    case "vegan": return has("vegan", "plant-based");
+    case "vegetarian": return has("vegetarian", "vegan", "plant-based");
+    case "pescatarian": return has("pescatarian", "fish", "seafood", "salmon", "tuna");
+    case "low-fodmap": return has("low-fodmap", "fodmap");
+    case "senior": return has("senior", "geriatric", "soft", "gentle") || r.difficulty === "easy";
+    case "budget": return has("budget", "cheap", "pantry");
+    case "family": return has("family", "kid");
   }
 }
 
@@ -101,17 +128,16 @@ function FreshMealsPage() {
       const { data } = await supabase
         .from("recipes")
         .select("id,slug,title,description,meal_type,cuisine,dietary_tags,calories,protein_g,carbs_g,fat_g,prep_minutes,cook_minutes,difficulty")
-        .limit(600);
+        .limit(1000);
       if (cancelled || !data) return;
       setAll(data as Recipe[]);
     })();
     return () => { cancelled = true; };
   }, []);
 
-  const filtered = useMemo(() => {
+  const baseFiltered = useMemo(() => {
     if (!all) return null;
-    const seed = hash(todayKey()) + seedOffset * 9973;
-    let list = seededShuffle(all, seed);
+    let list = all.slice();
     if (query.trim()) {
       const q = query.trim().toLowerCase();
       list = list.filter((r) =>
@@ -122,25 +148,48 @@ function FreshMealsPage() {
     }
     if (filter !== "all") list = list.filter((r) => tagMatches(r, filter));
     return list;
-  }, [all, seedOffset, filter, query]);
+  }, [all, filter, query]);
 
-  const carousels = useMemo(() => {
-    if (!filtered) return null;
-    const pick = (k: FilterKey, n = 10) => filtered.filter((r) => tagMatches(r, k)).slice(0, n);
-    return {
-      hero: filtered.slice(0, 6),
-      protein: pick("high-protein"),
-      quick: pick("quick"),
-      senior: pick("senior"),
-      budget: pick("budget"),
-      family: pick("family"),
-      surprise: seededShuffle(filtered, hash(todayKey() + ":" + seedOffset)).slice(0, 10),
-    };
-  }, [filtered, seedOffset]);
+  // Build the daily plan: pick one recipe per slot, deterministic per day+seedOffset
+  const slotPicks = useMemo(() => {
+    if (!baseFiltered) return null;
+    const seed = hash(todayKey() + ":" + seedOffset);
+    const shuffled = seededShuffle(baseFiltered, seed);
+    const picks: Record<SlotKey, { primary: Recipe | null; alts: Recipe[] }> = {} as any;
+    const used = new Set<string>();
+    for (const slot of SLOTS) {
+      const pool = shuffled.filter((r) => {
+        const mt = (r.meal_type || "").toLowerCase();
+        if (slot.isSnack) return mt.includes("snack");
+        return mt === slot.mealType;
+      });
+      // Fallback: if no specific match (e.g. snack pool empty), allow any not used
+      const eligible = (pool.length ? pool : shuffled).filter((r) => !used.has(r.id));
+      const primary = eligible[0] ?? null;
+      if (primary) used.add(primary.id);
+      const alts = eligible.slice(1, 7);
+      picks[slot.key] = { primary, alts };
+    }
+    return picks;
+  }, [baseFiltered, seedOffset]);
+
+  const totals = useMemo(() => {
+    if (!slotPicks) return null;
+    let kcal = 0, p = 0, c = 0, f = 0;
+    for (const slot of SLOTS) {
+      const r = slotPicks[slot.key].primary;
+      if (!r) continue;
+      kcal += r.calories || 0;
+      p += Number(r.protein_g) || 0;
+      c += Number(r.carbs_g) || 0;
+      f += Number(r.fat_g) || 0;
+    }
+    return { kcal: Math.round(kcal), p: Math.round(p), c: Math.round(c), f: Math.round(f) };
+  }, [slotPicks]);
 
   const regenAll = () => {
     setSeedOffset((n) => n + 1);
-    toast.success("Fresh batch served — same macros, brand-new variety");
+    toast.success("Fresh plan served — same macro shape, brand-new variety");
   };
 
   const swapIntoPlan = (r: Recipe) => {
@@ -169,15 +218,25 @@ function FreshMealsPage() {
           </button>
           <div className="flex-1">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-              <Sparkles className="h-3 w-3" /> Fresh today
+              <Sparkles className="h-3 w-3" /> Today's plan
             </div>
             <h1 className="mt-1 text-2xl font-bold leading-tight">Today's Fresh Meals</h1>
-            <p className="text-xs text-muted-foreground">Chef-tested · prep videos · macro-smart swaps</p>
+            <p className="text-xs text-muted-foreground">Breakfast → evening snack · macro-smart swaps</p>
           </div>
           <button onClick={regenAll} aria-label="Regenerate" className="grid h-10 w-10 place-items-center rounded-full bg-gradient-primary text-primary-foreground shadow-glow hover:scale-105 transition">
             <RefreshCcw className="h-4 w-4" />
           </button>
         </div>
+
+        {/* Daily totals */}
+        {totals && (
+          <div className="mb-4 grid grid-cols-4 gap-2 rounded-2xl border border-border/60 bg-gradient-card p-3 shadow-card">
+            <Stat label="kcal" value={totals.kcal} />
+            <Stat label="protein" value={`${totals.p}g`} />
+            <Stat label="carbs" value={`${totals.c}g`} />
+            <Stat label="fat" value={`${totals.f}g`} />
+          </div>
+        )}
 
         {/* Search */}
         <div className="relative mb-3">
@@ -200,14 +259,14 @@ function FreshMealsPage() {
         <div className="-mx-5 mb-5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex gap-2 w-max">
             {FILTERS.map((f) => {
-              const active = filter === f.key;
+              const isActive = filter === f.key;
               const Icon = f.icon;
               return (
                 <button
                   key={f.key}
                   onClick={() => setFilter(f.key)}
                   className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition ${
-                    active
+                    isActive
                       ? "border-primary bg-gradient-primary text-primary-foreground shadow-glow"
                       : "border-border/60 bg-card text-muted-foreground hover:border-primary/40"
                   }`}
@@ -219,51 +278,36 @@ function FreshMealsPage() {
           </div>
         </div>
 
-        {!carousels ? (
+        {!slotPicks ? (
           <div className="grid h-64 place-items-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
-        ) : carousels.hero.length === 0 ? (
-          <div className="rounded-2xl border border-border/60 bg-card p-8 text-center">
-            <p className="text-sm text-muted-foreground">No meals match your search. Try clearing filters.</p>
-          </div>
         ) : (
           <>
-            {/* Hero card */}
-            <HeroCard recipe={carousels.hero[0]} onOpen={setActive} onSave={(r) => {
-              const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type });
-              toast.success(added ? "Saved to favorites" : "Removed from favorites");
-            }} isFav={isFav(carousels.hero[0].id)} onSwap={swapIntoPlan} />
+            {SLOTS.map((slot) => (
+              <SlotSection
+                key={slot.key}
+                slot={slot}
+                primary={slotPicks[slot.key].primary}
+                alts={slotPicks[slot.key].alts}
+                onOpen={setActive}
+                onSwap={swapIntoPlan}
+                onSave={(r) => {
+                  const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type });
+                  toast.success(added ? "Saved to favorites" : "Removed from favorites");
+                }}
+                isFav={isFav}
+              />
+            ))}
 
-            <Row title="Today's hero picks" subtitle="Hand-picked for your goals" items={carousels.hero.slice(1)} onOpen={setActive} onSave={(r) => { const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type }); toast.success(added ? "Saved" : "Removed"); }} isFav={isFav} />
-            <Row title="High-protein picks" subtitle="30g+ protein per serving" items={carousels.protein} onOpen={setActive} onSave={(r) => { const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type }); toast.success(added ? "Saved" : "Removed"); }} isFav={isFav} />
-            <Row title="Quick & easy" subtitle="Under 15 minutes" items={carousels.quick} onOpen={setActive} onSave={(r) => { const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type }); toast.success(added ? "Saved" : "Removed"); }} isFav={isFav} />
-            <Row title="Senior-friendly" subtitle="Gentle, soft, easy on joints" items={carousels.senior} onOpen={setActive} onSave={(r) => { const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type }); toast.success(added ? "Saved" : "Removed"); }} isFav={isFav} />
-            <Row title="Budget meals" subtitle="Under $5 per serving" items={carousels.budget} onOpen={setActive} onSave={(r) => { const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type }); toast.success(added ? "Saved" : "Removed"); }} isFav={isFav} />
-            <Row title="Family favorites" subtitle="Crowd pleasers" items={carousels.family} onOpen={setActive} onSave={(r) => { const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type }); toast.success(added ? "Saved" : "Removed"); }} isFav={isFav} />
-
-            {/* Surprise me */}
-            <div className="mb-3 mt-2 flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold leading-tight">Surprise me</h2>
-                <p className="text-xs text-muted-foreground">A random twist on today's macros</p>
-              </div>
-              <button onClick={regenAll} className="flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/15">
-                <Shuffle className="h-3.5 w-3.5" /> Shuffle
-              </button>
-            </div>
-            <Row title="" subtitle="" items={carousels.surprise} onOpen={setActive} onSave={(r) => { const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type }); toast.success(added ? "Saved" : "Removed"); }} isFav={isFav} />
-
-            {/* Regenerate footer */}
             <button
               onClick={regenAll}
               className="mb-8 mt-2 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-gradient-primary p-4 font-semibold text-primary-foreground shadow-glow hover:scale-[1.01] transition"
             >
-              <RefreshCcw className="h-4 w-4" /> Regenerate all fresh meals
+              <Shuffle className="h-4 w-4" /> Surprise me — regenerate plan
             </button>
           </>
         )}
       </div>
 
-      {/* Detail sheet */}
       {active && (
         <DetailSheet
           recipe={active}
@@ -281,108 +325,117 @@ function FreshMealsPage() {
   );
 }
 
-function HeroCard({ recipe, onOpen, onSave, isFav, onSwap }: {
-  recipe: Recipe; onOpen: (r: Recipe) => void; onSave: (r: Recipe) => void; isFav: boolean; onSwap: (r: Recipe) => void;
+function SlotSection({
+  slot, primary, alts, onOpen, onSwap, onSave, isFav,
+}: {
+  slot: { key: SlotKey; label: string; sub: string; icon: any };
+  primary: Recipe | null;
+  alts: Recipe[];
+  onOpen: (r: Recipe) => void;
+  onSwap: (r: Recipe) => void;
+  onSave: (r: Recipe) => void;
+  isFav: (id: string) => boolean;
 }) {
-  return (
-    <div className="mb-6 overflow-hidden rounded-3xl border border-primary/30 bg-gradient-card shadow-card">
-      <button onClick={() => onOpen(recipe)} className="block w-full text-left">
-        <div className="relative aspect-[16/10] overflow-hidden bg-muted">
-          <img
-            src={thumbForRecipe(recipe)}
-            alt={recipe.title}
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-            onError={(e) => { const img = e.currentTarget; const fb = thumbFallbackForRecipe(recipe); if (img.src !== fb) img.src = fb; }}
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
-          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md ring-1 ring-white/30">
-            <Play className="h-3 w-3 fill-current" /> Prep video
-          </div>
-          <div className="absolute left-3 top-3 rounded-full bg-primary/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-glow">
-            Fresh hero
-          </div>
-          <div className="absolute bottom-3 left-3 right-3 text-white">
-            <div className="text-[10px] font-semibold uppercase tracking-wider opacity-90">{recipe.meal_type} · {recipe.prep_minutes + recipe.cook_minutes} min</div>
-            <div className="text-xl font-bold leading-tight drop-shadow">{recipe.title}</div>
-            <div className="mt-0.5 text-xs opacity-90">{recipe.calories} kcal · {Math.round(recipe.protein_g)}g protein</div>
-          </div>
-        </div>
-      </button>
-      <div className="flex gap-2 p-3">
-        <button onClick={() => onSwap(recipe)} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
-          <RefreshCcw className="h-4 w-4" /> Swap into today
-        </button>
-        <button onClick={() => onSave(recipe)} aria-label="Save" className={`grid h-10 w-10 place-items-center rounded-xl border ${isFav ? "border-primary bg-primary/10" : "border-border/60 bg-card"}`}>
-          <Heart className={`h-4 w-4 ${isFav ? "fill-primary text-primary" : "text-muted-foreground"}`} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Row({ title, subtitle, items, onOpen, onSave, isFav }: {
-  title: string; subtitle: string; items: Recipe[];
-  onOpen: (r: Recipe) => void; onSave: (r: Recipe) => void; isFav: (id: string) => boolean;
-}) {
-  if (!items.length) return null;
+  const Icon = slot.icon;
+  if (!primary) return null;
+  const fav = isFav(primary.id);
   return (
     <section className="mb-6">
-      {title && (
-        <div className="mb-3">
-          <h2 className="text-lg font-semibold leading-tight">{title}</h2>
-          {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+      <div className="mb-3 flex items-center gap-2">
+        <div className="grid h-8 w-8 place-items-center rounded-full bg-primary/15 text-primary">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="flex-1">
+          <h2 className="text-base font-semibold leading-tight">{slot.label}</h2>
+          <p className="text-[11px] text-muted-foreground">{slot.sub}</p>
+        </div>
+      </div>
+
+      {/* Primary big card */}
+      <div className="overflow-hidden rounded-3xl border border-border/60 bg-gradient-card shadow-card">
+        <button onClick={() => onOpen(primary)} className="block w-full text-left">
+          <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+            <img
+              src={thumbForRecipe(primary)}
+              alt={primary.title}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              onError={(e) => { const img = e.currentTarget; const fb = thumbFallbackForRecipe(primary); if (img.src !== fb) img.src = fb; }}
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md ring-1 ring-white/30">
+              <Play className="h-3 w-3 fill-current" /> Prep video
+            </div>
+            <div className="absolute bottom-3 left-3 right-3 text-white">
+              <div className="text-[10px] font-semibold uppercase tracking-wider opacity-90">{primary.prep_minutes + primary.cook_minutes} min · {primary.difficulty}</div>
+              <div className="text-xl font-bold leading-tight drop-shadow">{primary.title}</div>
+              <div className="mt-0.5 text-xs opacity-90">{primary.calories} kcal · {Math.round(primary.protein_g)}g protein · {Math.round(primary.carbs_g)}g carbs · {Math.round(primary.fat_g)}g fat</div>
+            </div>
+          </div>
+        </button>
+        <div className="flex gap-2 p-3">
+          <button onClick={() => onSwap(primary)} className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-primary px-3 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
+            <RefreshCcw className="h-4 w-4" /> Swap into plan
+          </button>
+          <button onClick={() => onSave(primary)} aria-label="Save" className={`grid h-10 w-10 place-items-center rounded-xl border ${fav ? "border-primary bg-primary/10" : "border-border/60 bg-card"}`}>
+            <Heart className={`h-4 w-4 ${fav ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* Alternatives carousel */}
+      {alts.length > 0 && (
+        <div className="mt-3">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">More options · macro-similar</p>
+          <div className="-mx-5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <ul className="flex gap-3 snap-x snap-mandatory">
+              {alts.map((r) => {
+                const f = isFav(r.id);
+                return (
+                  <li key={r.id} className="snap-start shrink-0 w-[68%] sm:w-[42%] lg:w-[28%]">
+                    <div className="group relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-card shadow-card transition hover:border-primary/50">
+                      <button onClick={() => onOpen(r)} className="block w-full text-left">
+                        <div className="relative aspect-video overflow-hidden bg-muted">
+                          <img
+                            src={thumbForRecipe(r)}
+                            alt={r.title}
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => { const img = e.currentTarget; const fb = thumbFallbackForRecipe(r); if (img.src !== fb) img.src = fb; }}
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                          <div className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md ring-1 ring-white/25">
+                            <Play className="h-3 w-3 fill-current" /> Prep video
+                          </div>
+                          <div className="absolute right-2 top-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground shadow-glow">
+                            {r.prep_minutes + r.cook_minutes}m
+                          </div>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={f ? "Remove favorite" : "Save meal"}
+                        onClick={(e) => { e.stopPropagation(); onSave(r); }}
+                        className="absolute right-2 top-2 z-10 grid h-9 w-9 place-items-center rounded-full bg-background/90 shadow-card backdrop-blur transition hover:scale-110"
+                        style={{ top: "auto", bottom: "60px" }}
+                      >
+                        <Heart className={`h-4 w-4 ${f ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                      </button>
+                      <button onClick={() => onOpen(r)} className="block w-full p-3 text-left">
+                        <div className="line-clamp-1 text-sm font-semibold">{r.title}</div>
+                        <div className="mt-1 text-[11px] text-muted-foreground">{r.calories} kcal · {Math.round(r.protein_g)}g protein</div>
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </div>
       )}
-      <div className="-mx-5 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <ul className="flex gap-3 snap-x snap-mandatory">
-          {items.map((r) => {
-            const fav = isFav(r.id);
-            return (
-              <li key={r.id} className="snap-start shrink-0 w-[78%] sm:w-[48%] lg:w-[32%]">
-                <div className="group relative w-full overflow-hidden rounded-2xl border border-border/60 bg-gradient-card shadow-card transition hover:border-primary/50">
-                  <button onClick={() => onOpen(r)} className="block w-full text-left active:scale-[0.99]">
-                    <div className="relative aspect-video overflow-hidden bg-muted">
-                      <img
-                        src={thumbForRecipe(r)}
-                        alt={r.title}
-                        loading="lazy"
-                        decoding="async"
-                        onError={(e) => { const img = e.currentTarget; const fb = thumbFallbackForRecipe(r); if (img.src !== fb) img.src = fb; }}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/15 to-transparent" />
-                      <div className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur">
-                        {r.meal_type}
-                      </div>
-                      <div className="absolute right-2 top-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary-foreground shadow-glow">
-                        {(r.prep_minutes + r.cook_minutes)}m
-                      </div>
-                      <div className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md ring-1 ring-white/25">
-                        <Play className="h-3 w-3 fill-current" /> Prep video
-                      </div>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={fav ? "Remove favorite" : "Save meal"}
-                    onClick={(e) => { e.stopPropagation(); onSave(r); }}
-                    className="absolute right-2 bottom-[60px] z-10 grid h-9 w-9 place-items-center rounded-full bg-background/90 shadow-card backdrop-blur transition hover:scale-110"
-                  >
-                    <Heart className={`h-4 w-4 ${fav ? "fill-primary text-primary" : "text-muted-foreground"}`} />
-                  </button>
-                  <button onClick={() => onOpen(r)} className="block w-full p-3 text-left">
-                    <div className="line-clamp-1 text-sm font-semibold">{r.title}</div>
-                    <div className="mt-1 text-[11px] text-muted-foreground">{r.calories} kcal · {Math.round(r.protein_g)}g protein</div>
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
     </section>
   );
 }
