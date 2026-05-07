@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Play, Calendar, Plus, Minus, Check, Loader2, X, Sparkles, Target } from "lucide-react";
+import { Play, Calendar, Plus, Minus, Check, Loader2, X, Sparkles, Target, Video } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,6 +123,7 @@ function Workouts() {
 
 function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onClose: () => void; onComplete: () => void }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [logId, setLogId] = useState<string | null>(null);
   const [startedAt] = useState(() => Date.now());
   const [logs, setLogs] = useState<Record<string, { reps: string; weight: string; rpe: string; done: boolean }[]>>({});
@@ -170,6 +171,11 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
   const addSet = (ex: string) => setLogs((l) => ({ ...l, [ex]: [...l[ex], { reps: "", weight: "", rpe: "", done: false }] }));
   const removeSet = (ex: string, idx: number) => setLogs((l) => ({ ...l, [ex]: l[ex].filter((_, i) => i !== idx) }));
 
+  const analyzeExercise = (name: string) => {
+    window.sessionStorage.setItem("bodyforge-form-exercise", name);
+    navigate({ to: "/form" });
+  };
+
   const finish = async () => {
     if (!user || !logId) return;
     setFinishing(true);
@@ -206,6 +212,9 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
                 <div className="font-semibold">{ex.name}</div>
                 <div className="text-xs text-muted-foreground">Target: {ex.sets} × {ex.reps}{ex.rpe ? ` · RPE ${ex.rpe}` : ""}</div>
               </div>
+              <button onClick={() => analyzeExercise(ex.name)} className="ml-3 grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-primary/30 bg-primary/10 text-primary transition-colors hover:border-primary" aria-label={`Analyze ${ex.name} form`}>
+                <Video className="h-4 w-4" />
+              </button>
             </div>
             <div className="space-y-2">
               <div className="grid grid-cols-[24px_1fr_1fr_1fr_36px] items-center gap-2 px-1 text-[10px] uppercase tracking-wider text-muted-foreground">
