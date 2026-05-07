@@ -184,26 +184,44 @@ function FormAnalysis() {
 
   const applyFix = async () => {
     if (!user || !result?.analysis) return;
-    const adj = result.analysis.next_session_adjustment;
-    if (!adj) { toast.message("No specific adjustment to apply."); return; }
-    // Append a coach note onto the next scheduled workout
+    const a = result.analysis;
+    const adj = a.next_session_adjustment;
+    const planChanges = a.plan_adjustments ?? [];
     const today = new Date().toISOString().slice(0, 10);
-    const { data: w } = await supabase
+    const { data: workouts } = await supabase
       .from("workouts")
-      .select("id, exercises")
+      .select("id, exercises, scheduled_date")
       .eq("user_id", user.id).gte("scheduled_date", today).neq("status", "completed")
-      .order("scheduled_date").limit(1).maybeSingle();
-    if (!w) { toast.message("No upcoming workout — Coach saved the cue for later."); return; }
-    const exs = (w.exercises as any[]) ?? [];
-    const target = exercise.toLowerCase();
-    const updated = exs.map((ex) => {
-      if (!target || ex.name?.toLowerCase().includes(target)) {
-        return { ...ex, notes: [ex.notes, `Coach: ${adj}`].filter(Boolean).join(" — ") };
-      }
-      return ex;
-    });
-    await supabase.from("workouts").update({ exercises: updated }).eq("id", w.id);
-    toast.success("Applied to your next session 🔥");
+      .order("scheduled_date").limit(7);
+    const target = (a.exercise_detected || exercise || "").toLowerCase();
+    const cueLine = [adj, ...planChanges.map((p) => `${p.type}: ${p.change}`)].filter(Boolean).join(" — ");
+    let touched = 0;
+    for (const w of (workouts ?? [])) {
+      const exs = (w.exercises as any[]) ?? [];
+      const updated = exs.map((ex) => {
+        const name = (ex.name || "").toLowerCase();
+        if (!target || name.includes(target.split(" ")[0]) || target.includes(name.split(" ")[0])) {
+          touched += 1;
+          return { ...ex, notes: [ex.notes, `Coach: ${cueLine}`].filter(Boolean).join(" — ") };
+        }
+        return ex;
+      });
+      await supabase.from("workouts").update({ exercises: updated }).eq("id", w.id);
+    }
+    // Log the deeper plan adjustment so AI Coach + Insights see it
+    try {
+      await supabase.from("program_adjustments").insert({
+        user_id: user.id,
+        trigger: "form_analysis",
+        scope: "training",
+        status: "approved",
+        summary: `Form check on ${a.exercise_detected || exercise || "movement"} — ${a.score ?? 0}/100. Applied ${planChanges.length || 1} change(s) across ${touched || 0} upcoming workout slots.`,
+        changes: planChanges,
+        coach_note: a.encouragement || null,
+      });
+    } catch {}
+    if (touched > 0) toast.success(`Applied to ${touched} upcoming workout slot${touched > 1 ? "s" : ""} 🔥`);
+    else toast.message("No matching upcoming workout — Coach saved the cue for later.");
   };
 
   return (
