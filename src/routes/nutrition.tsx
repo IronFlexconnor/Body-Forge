@@ -591,17 +591,39 @@ function MacroBar({ label, value, target, color }: { label: string; value: numbe
   );
 }
 
-function MealPrepVideo({ video, title }: { video: { url: string; title?: string; duration_seconds?: number; description?: string }; title: string }) {
+function MealPrepVideo({ video, title }: { video: { url?: string; title?: string; duration_seconds?: number; description?: string }; title: string }) {
+  const [playing, setPlaying] = useState(false);
+  const yt = videoForRecipe({ slug: title, title });
+  const thumb = `https://img.youtube.com/vi/${yt.id}/hqdefault.jpg`;
   return (
     <div className="overflow-hidden rounded-xl border border-primary/20 bg-primary/5">
       <div className="flex items-center justify-between gap-2 border-b border-primary/10 px-3 py-2 text-[11px] font-semibold text-primary">
-        <span className="inline-flex items-center gap-1.5"><PlayCircle className="h-3.5 w-3.5" /> Meal-making video</span>
-        <span>{video.duration_seconds ?? 9}s</span>
+        <span className="inline-flex items-center gap-1.5"><PlayCircle className="h-3.5 w-3.5" /> Meal-prep video</span>
+        <a href={yt.watchUrl} target="_blank" rel="noreferrer" className="underline">Watch full</a>
       </div>
-      <video controls preload="metadata" playsInline className="aspect-video w-full bg-background" aria-label={`${title} meal-making video`}>
-        <source src={video.url} type="video/mp4" />
-      </video>
-      <p className="px-3 py-2 text-[11px] text-muted-foreground">{video.title || video.description || `Short prep demo for ${title}`}</p>
+      <div className="relative aspect-video w-full bg-black">
+        {playing ? (
+          <iframe
+            src={`${yt.embedUrl}&autoplay=1`}
+            title={`${title} prep video`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 h-full w-full"
+          />
+        ) : (
+          <button onClick={() => setPlaying(true)} className="group absolute inset-0 h-full w-full">
+            <img src={thumb} alt={`${title} prep video thumbnail`} className="h-full w-full object-cover" loading="lazy" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+            <div className="absolute inset-0 grid place-items-center">
+              <div className="grid h-12 w-12 place-items-center rounded-full bg-primary/90 text-primary-foreground shadow-glow transition-transform group-hover:scale-110">
+                <PlayCircle className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="absolute bottom-2 left-3 right-3 text-left text-xs font-semibold text-white drop-shadow">{title}</div>
+          </button>
+        )}
+      </div>
+      <p className="px-3 py-2 text-[11px] text-muted-foreground">Tap to autoplay · short prep demo for {title}</p>
     </div>
   );
 }
