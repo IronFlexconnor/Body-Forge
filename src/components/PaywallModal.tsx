@@ -108,7 +108,7 @@ export function PaywallModal({ open, onClose, reason, recommend = "elite" }: Pay
             </p>
 
             <div className="mt-6 space-y-3">
-              {(Object.keys(TIERS) as Tier[]).map((key) => {
+              {(["elite", "pro"] as Tier[]).map((key) => {
                 const t = TIERS[key];
                 const Icon = t.icon;
                 const isRec = key === recommend;
