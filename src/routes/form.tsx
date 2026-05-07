@@ -437,10 +437,58 @@ function ResultCard({ result, exercise, onReset, onApplyFix }:
             {score}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Form Score</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {a.exercise_detected ? `Detected: ${a.exercise_detected}` : "Form Score"}
+              {typeof a.confidence === "number" && <span className="ml-1 text-muted-foreground/70">· {a.confidence}% conf.</span>}
+            </div>
             <div className="text-sm font-medium leading-snug">{a.summary ?? "Analysis complete."}</div>
           </div>
         </div>
+
+        {a.sub_scores && <SubScoreGrid scores={a.sub_scores} />}
+
+        {a.tempo && (a.tempo.eccentric_s || a.tempo.concentric_s) ? (
+          <Section title="Tempo analysis">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <TempoCell label="Eccentric" value={`${a.tempo.eccentric_s}s`} />
+              <TempoCell label="Pause" value={`${a.tempo.pause_s}s`} />
+              <TempoCell label="Concentric" value={`${a.tempo.concentric_s}s`} />
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              Ideal: <span className="font-semibold text-foreground">{a.tempo.ideal}</span> — {a.tempo.verdict}
+            </div>
+          </Section>
+        ) : null}
+
+        {!!a.joint_angles?.length && (
+          <Section title="Joint angles">
+            <div className="space-y-1.5">
+              {a.joint_angles.map((j, i) => (
+                <div key={i} className="flex items-center justify-between rounded-lg border border-border/60 bg-surface px-3 py-1.5 text-xs">
+                  <span className="font-semibold capitalize">{j.joint} <span className="text-muted-foreground font-normal">· {j.phase}</span></span>
+                  <span className="tabular-nums"><span className="font-bold text-primary">{j.angle_deg}°</span> <span className="text-muted-foreground">/ {j.ideal_range}</span> · {j.verdict}</span>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {!!a.compensation_patterns?.length && (
+          <Section title="Compensation patterns">
+            <div className="flex flex-wrap gap-1.5">
+              {a.compensation_patterns.map((c, i) => (
+                <span key={i} className="rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning">{c}</span>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {(a.symmetry_notes || a.rom_notes) && (
+          <Section title="Movement quality">
+            {a.symmetry_notes && <div className="text-sm"><span className="font-semibold">Symmetry: </span>{a.symmetry_notes}</div>}
+            {a.rom_notes && <div className="mt-1 text-sm"><span className="font-semibold">Range of motion: </span>{a.rom_notes}</div>}
+          </Section>
+        )}
 
         {!!a.safety_flags?.length && (
           <div className="mb-3 flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm">
