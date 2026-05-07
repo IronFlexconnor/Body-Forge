@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
 import { HeightPicker, cmToFtIn, ftInToCm, type HeightUnit } from "@/components/HeightPicker";
 import { InjuryAssessment, parseInjuries, serializeInjuries } from "@/components/InjuryAssessment";
+import { NutritionPreferencesForm, DEFAULT_NUTRITION, type NutritionPrefs } from "@/components/NutritionPreferences";
 import {
   DEFAULT_UNITS,
   type Units,
