@@ -190,38 +190,69 @@ function FormAnalysis() {
     const today = new Date().toISOString().slice(0, 10);
     const { data: workouts } = await supabase
       .from("workouts")
-      .select("id, exercises, scheduled_date")
+      .select("id, title, exercises, scheduled_date")
       .eq("user_id", user.id).gte("scheduled_date", today).neq("status", "completed")
       .order("scheduled_date").limit(7);
     const target = (a.exercise_detected || exercise || "").toLowerCase();
     const cueLine = [adj, ...planChanges.map((p) => `${p.type}: ${p.change}`)].filter(Boolean).join(" — ");
-    let touched = 0;
+    const touchedWorkouts: { date: string; title: string }[] = [];
     for (const w of (workouts ?? [])) {
       const exs = (w.exercises as any[]) ?? [];
+      let didTouch = false;
       const updated = exs.map((ex) => {
         const name = (ex.name || "").toLowerCase();
         if (!target || name.includes(target.split(" ")[0]) || target.includes(name.split(" ")[0])) {
-          touched += 1;
+          didTouch = true;
           return { ...ex, notes: [ex.notes, `Coach: ${cueLine}`].filter(Boolean).join(" — ") };
         }
         return ex;
       });
-      await supabase.from("workouts").update({ exercises: updated }).eq("id", w.id);
+      if (didTouch) {
+        await supabase.from("workouts").update({ exercises: updated }).eq("id", w.id);
+        touchedWorkouts.push({ date: w.scheduled_date as string, title: (w as any).title || "Workout" });
+      }
     }
-    // Log the deeper plan adjustment so AI Coach + Insights see it
+
+    // Build a rich "what changed and why" summary
+    const exName = a.exercise_detected || exercise || "movement";
+    const scope = touchedWorkouts.length
+      ? touchedWorkouts.map((t) => `${new Date(t.date).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · ${t.title}`).join("; ")
+      : "saved as a cue for your next session";
+    const changesLines = planChanges.length
+      ? planChanges.map((p, i) => `${i + 1}. **${p.type}** — ${p.change}\n   • Why: ${p.reason}\n   • Benefit: ${p.expected_benefit}`).join("\n")
+      : (adj ? `1. **next set** — ${adj}` : "");
+    const coachSummary = `**Form check synced — ${exName} · ${a.score ?? 0}/100**\n\n` +
+      (a.summary ? `${a.summary}\n\n` : "") +
+      `**What changed in your plan:**\n${changesLines || "No specific edits applied."}\n\n` +
+      `**Where it's applied:** ${scope}` +
+      (a.encouragement ? `\n\n_${a.encouragement}_` : "");
+
+    setChangeSummary(coachSummary);
+
+    // Sync into AI Coach chat history so the assistant has full context next chat
+    try {
+      await supabase.from("chat_messages").insert({
+        user_id: user.id,
+        role: "user",
+        content: `[Form analysis applied] ${coachSummary}`,
+      });
+    } catch {}
+
+    // Log deeper plan adjustment so Insights/Optimize see it
     try {
       await supabase.from("program_adjustments").insert({
         user_id: user.id,
         trigger: "form_analysis",
         scope: "training",
         status: "approved",
-        summary: `Form check on ${a.exercise_detected || exercise || "movement"} — ${a.score ?? 0}/100. Applied ${planChanges.length || 1} change(s) across ${touched || 0} upcoming workout slots.`,
+        summary: `Form check on ${exName} — ${a.score ?? 0}/100. Applied ${planChanges.length || 1} change(s) across ${touchedWorkouts.length} upcoming workout${touchedWorkouts.length === 1 ? "" : "s"}.`,
         changes: planChanges,
         coach_note: a.encouragement || null,
       });
     } catch {}
-    if (touched > 0) toast.success(`Applied to ${touched} upcoming workout slot${touched > 1 ? "s" : ""} 🔥`);
-    else toast.message("No matching upcoming workout — Coach saved the cue for later.");
+
+    if (touchedWorkouts.length > 0) toast.success(`Applied to ${touchedWorkouts.length} upcoming workout${touchedWorkouts.length > 1 ? "s" : ""} 🔥 Synced with Coach.`);
+    else toast.message("Saved cue for later — synced with Coach.");
   };
 
   return (
