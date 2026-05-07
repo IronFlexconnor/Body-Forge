@@ -297,11 +297,9 @@ function HeroCard({ recipe, onOpen, onSave, isFav, onSwap }: {
             onError={(e) => { const img = e.currentTarget; const fb = thumbFallbackForRecipe(recipe); if (img.src !== fb) img.src = fb; }}
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-          <div className="absolute inset-0 grid place-items-center">
-            <span className="grid h-16 w-16 place-items-center rounded-full bg-white/95 text-foreground shadow-glow">
-              <Play className="h-7 w-7 fill-current" />
-            </span>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-md ring-1 ring-white/30">
+            <Play className="h-3 w-3 fill-current" /> Prep video
           </div>
           <div className="absolute left-3 top-3 rounded-full bg-primary/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-glow">
             Fresh hero
