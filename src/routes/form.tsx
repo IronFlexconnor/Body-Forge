@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Camera, Video as VideoIcon, ImageIcon, Loader2, Sparkles, ShieldAlert,
-  TrendingUp, Check, RefreshCw, Send, ChevronRight, AlertTriangle,
+  TrendingUp, Check, RefreshCw, Send, ChevronRight, AlertTriangle, Activity, Heart, Zap, Target,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -17,8 +17,17 @@ import { useSubscription } from "@/hooks/useSubscription";
 const FRIENDLY_ANALYSIS_ERROR = "Coach couldn't read that clip. Try a clear 5–15 second video or a still photo in good lighting.";
 
 const fallbackAnalysis = (kind: "video" | "photo", movement: string): Analysis => ({
+  exercise_detected: movement || "Workout movement",
+  confidence: 60,
   score: 78,
   summary: `Coach reviewed your ${kind === "photo" ? "photo" : "clip"} for ${movement || "this movement"}. Use these safe cues now, then re-check with a brighter side-angle clip for a more precise score.`,
+  sub_scores: { posture: 78, joint_alignment: 76, tempo: 75, symmetry: 80, stability: 78, range_of_motion: 76, power_transfer: 75, injury_risk: 80, efficiency: 76, effectiveness: 76 },
+  joint_angles: [],
+  tempo: { eccentric_s: 0, pause_s: 0, concentric_s: 0, ideal: "3-1-1", verdict: "Re-record with side angle for tempo read" },
+  symmetry_notes: "",
+  rom_notes: "",
+  compensation_patterns: [],
+  muscle_activation: [],
   good: ["You completed the upload flow successfully", "The movement is ready for coach follow-up"],
   fixes: ["Film from a 45° front-side angle so hips, knees, and torso are visible", "Keep the full body in frame from setup through lockout", "Move with a controlled 2–3 second lowering phase", "Stop the set if pain changes your mechanics"],
   cues: ["Full body in frame", "Brace before each rep", "Control the lowering", "Smooth lockout"],
@@ -26,6 +35,8 @@ const fallbackAnalysis = (kind: "video" | "photo", movement: string): Analysis =
   weight_delta: { value: 0, unit: "lbs", direction: "hold" },
   safety_flags: [],
   alternative_exercise: null,
+  plan_adjustments: [],
+  encouragement: "Solid effort — let's sharpen the details and you'll level up fast.",
 });
 
 export const Route = createFileRoute("/form")({
@@ -33,9 +44,22 @@ export const Route = createFileRoute("/form")({
   component: FormAnalysis,
 });
 
+type SubScores = { posture: number; joint_alignment: number; tempo: number; symmetry: number; stability: number; range_of_motion: number; power_transfer: number; injury_risk: number; efficiency: number; effectiveness: number };
+type JointAngle = { joint: string; phase: string; angle_deg: number; ideal_range: string; verdict: string };
+type TempoBlock = { eccentric_s: number; pause_s: number; concentric_s: number; ideal: string; verdict: string };
+type PlanAdjustment = { type: string; change: string; reason: string; expected_benefit: string };
 type Analysis = {
+  exercise_detected?: string;
+  confidence?: number;
   score?: number;
   summary?: string;
+  sub_scores?: SubScores;
+  joint_angles?: JointAngle[];
+  tempo?: TempoBlock;
+  symmetry_notes?: string;
+  rom_notes?: string;
+  compensation_patterns?: string[];
+  muscle_activation?: string[];
   good?: string[];
   fixes?: string[];
   cues?: string[];
@@ -43,6 +67,8 @@ type Analysis = {
   weight_delta?: { value: number; unit: string; direction: "increase" | "decrease" | "hold" };
   safety_flags?: string[];
   alternative_exercise?: string | null;
+  plan_adjustments?: PlanAdjustment[];
+  encouragement?: string;
 };
 
 type Upload = {
@@ -158,26 +184,44 @@ function FormAnalysis() {
 
   const applyFix = async () => {
     if (!user || !result?.analysis) return;
-    const adj = result.analysis.next_session_adjustment;
-    if (!adj) { toast.message("No specific adjustment to apply."); return; }
-    // Append a coach note onto the next scheduled workout
+    const a = result.analysis;
+    const adj = a.next_session_adjustment;
+    const planChanges = a.plan_adjustments ?? [];
     const today = new Date().toISOString().slice(0, 10);
-    const { data: w } = await supabase
+    const { data: workouts } = await supabase
       .from("workouts")
-      .select("id, exercises")
+      .select("id, exercises, scheduled_date")
       .eq("user_id", user.id).gte("scheduled_date", today).neq("status", "completed")
-      .order("scheduled_date").limit(1).maybeSingle();
-    if (!w) { toast.message("No upcoming workout — Coach saved the cue for later."); return; }
-    const exs = (w.exercises as any[]) ?? [];
-    const target = exercise.toLowerCase();
-    const updated = exs.map((ex) => {
-      if (!target || ex.name?.toLowerCase().includes(target)) {
-        return { ...ex, notes: [ex.notes, `Coach: ${adj}`].filter(Boolean).join(" — ") };
-      }
-      return ex;
-    });
-    await supabase.from("workouts").update({ exercises: updated }).eq("id", w.id);
-    toast.success("Applied to your next session 🔥");
+      .order("scheduled_date").limit(7);
+    const target = (a.exercise_detected || exercise || "").toLowerCase();
+    const cueLine = [adj, ...planChanges.map((p) => `${p.type}: ${p.change}`)].filter(Boolean).join(" — ");
+    let touched = 0;
+    for (const w of (workouts ?? [])) {
+      const exs = (w.exercises as any[]) ?? [];
+      const updated = exs.map((ex) => {
+        const name = (ex.name || "").toLowerCase();
+        if (!target || name.includes(target.split(" ")[0]) || target.includes(name.split(" ")[0])) {
+          touched += 1;
+          return { ...ex, notes: [ex.notes, `Coach: ${cueLine}`].filter(Boolean).join(" — ") };
+        }
+        return ex;
+      });
+      await supabase.from("workouts").update({ exercises: updated }).eq("id", w.id);
+    }
+    // Log the deeper plan adjustment so AI Coach + Insights see it
+    try {
+      await supabase.from("program_adjustments").insert({
+        user_id: user.id,
+        trigger: "form_analysis",
+        scope: "training",
+        status: "approved",
+        summary: `Form check on ${a.exercise_detected || exercise || "movement"} — ${a.score ?? 0}/100. Applied ${planChanges.length || 1} change(s) across ${touched || 0} upcoming workout slots.`,
+        changes: planChanges,
+        coach_note: a.encouragement || null,
+      });
+    } catch {}
+    if (touched > 0) toast.success(`Applied to ${touched} upcoming workout slot${touched > 1 ? "s" : ""} 🔥`);
+    else toast.message("No matching upcoming workout — Coach saved the cue for later.");
   };
 
   return (
@@ -393,10 +437,58 @@ function ResultCard({ result, exercise, onReset, onApplyFix }:
             {score}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Form Score</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {a.exercise_detected ? `Detected: ${a.exercise_detected}` : "Form Score"}
+              {typeof a.confidence === "number" && <span className="ml-1 text-muted-foreground/70">· {a.confidence}% conf.</span>}
+            </div>
             <div className="text-sm font-medium leading-snug">{a.summary ?? "Analysis complete."}</div>
           </div>
         </div>
+
+        {a.sub_scores && <SubScoreGrid scores={a.sub_scores} />}
+
+        {a.tempo && (a.tempo.eccentric_s || a.tempo.concentric_s) ? (
+          <Section title="Tempo analysis">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <TempoCell label="Eccentric" value={`${a.tempo.eccentric_s}s`} />
+              <TempoCell label="Pause" value={`${a.tempo.pause_s}s`} />
+              <TempoCell label="Concentric" value={`${a.tempo.concentric_s}s`} />
+            </div>
+            <div className="mt-2 text-xs text-muted-foreground">
+              Ideal: <span className="font-semibold text-foreground">{a.tempo.ideal}</span> — {a.tempo.verdict}
+            </div>
+          </Section>
+        ) : null}
+
+        {!!a.joint_angles?.length && (
+          <Section title="Joint angles">
+            <div className="space-y-1.5">
+              {a.joint_angles.map((j, i) => (
+                <div key={i} className="flex items-center justify-between rounded-lg border border-border/60 bg-surface px-3 py-1.5 text-xs">
+                  <span className="font-semibold capitalize">{j.joint} <span className="text-muted-foreground font-normal">· {j.phase}</span></span>
+                  <span className="tabular-nums"><span className="font-bold text-primary">{j.angle_deg}°</span> <span className="text-muted-foreground">/ {j.ideal_range}</span> · {j.verdict}</span>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {!!a.compensation_patterns?.length && (
+          <Section title="Compensation patterns">
+            <div className="flex flex-wrap gap-1.5">
+              {a.compensation_patterns.map((c, i) => (
+                <span key={i} className="rounded-full border border-warning/40 bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning">{c}</span>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {(a.symmetry_notes || a.rom_notes) && (
+          <Section title="Movement quality">
+            {a.symmetry_notes && <div className="text-sm"><span className="font-semibold">Symmetry: </span>{a.symmetry_notes}</div>}
+            {a.rom_notes && <div className="mt-1 text-sm"><span className="font-semibold">Range of motion: </span>{a.rom_notes}</div>}
+          </Section>
+        )}
 
         {!!a.safety_flags?.length && (
           <div className="mb-3 flex items-start gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm">
@@ -453,15 +545,39 @@ function ResultCard({ result, exercise, onReset, onApplyFix }:
           </Section>
         )}
 
-        {a.next_session_adjustment && (
+        {!!a.plan_adjustments?.length && (
+          <Section title="Plan adjustments Coach is making" tone="primary">
+            <div className="space-y-2">
+              {a.plan_adjustments.map((p, i) => (
+                <div key={i} className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+                  <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                    <Zap className="h-3 w-3" /> {p.type}
+                  </div>
+                  <div className="text-sm font-semibold">{p.change}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground"><span className="font-semibold text-foreground/80">Why:</span> {p.reason}</div>
+                  {p.expected_benefit && <div className="mt-0.5 text-xs text-muted-foreground"><span className="font-semibold text-foreground/80">Benefit:</span> {p.expected_benefit}</div>}
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {(a.next_session_adjustment || a.plan_adjustments?.length) && (
           <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4">
             <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
               <TrendingUp className="h-3.5 w-3.5" /> Next session
             </div>
-            <p className="text-sm">{a.next_session_adjustment}</p>
+            {a.next_session_adjustment && <p className="text-sm">{a.next_session_adjustment}</p>}
             <Button onClick={onApplyFix} className="mt-3 h-11 w-full rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow">
-              <Check className="mr-2 h-4 w-4" /> Apply this fix to today's workout
+              <Check className="mr-2 h-4 w-4" /> Apply across upcoming workouts
             </Button>
+          </div>
+        )}
+
+        {a.encouragement && (
+          <div className="mt-3 flex items-start gap-2 rounded-2xl border border-success/30 bg-success/5 p-3 text-sm">
+            <Heart className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+            <span>{a.encouragement}</span>
           </div>
         )}
       </div>
@@ -498,6 +614,50 @@ function Section({ title, children, tone }: { title: string; children: React.Rea
         {title}
       </div>
       {children}
+    </div>
+  );
+}
+
+function SubScoreGrid({ scores }: { scores: SubScores }) {
+  const items: { key: keyof SubScores; label: string; icon: any }[] = [
+    { key: "posture", label: "Posture", icon: Activity },
+    { key: "joint_alignment", label: "Alignment", icon: Target },
+    { key: "tempo", label: "Tempo", icon: Activity },
+    { key: "symmetry", label: "Symmetry", icon: Activity },
+    { key: "stability", label: "Stability", icon: Activity },
+    { key: "range_of_motion", label: "ROM", icon: Activity },
+    { key: "power_transfer", label: "Power", icon: Zap },
+    { key: "injury_risk", label: "Safety", icon: ShieldAlert },
+    { key: "efficiency", label: "Efficiency", icon: Zap },
+    { key: "effectiveness", label: "Effectiveness", icon: Target },
+  ];
+  return (
+    <div className="mb-1 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {items.map(({ key, label, icon: Icon }) => {
+        const v = scores[key] ?? 0;
+        const tone = v >= 85 ? "text-success" : v >= 70 ? "text-primary" : "text-warning";
+        const barColor = v >= 85 ? "bg-success" : v >= 70 ? "bg-primary" : "bg-warning";
+        return (
+          <div key={key} className="rounded-xl border border-border/60 bg-surface p-2.5">
+            <div className="mb-1 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="flex items-center gap-1"><Icon className="h-3 w-3" />{label}</span>
+              <span className={cn("tabular-nums text-sm font-bold", tone)}>{v}</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-border/60">
+              <div className={cn("h-full transition-all", barColor)} style={{ width: `${v}%` }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function TempoCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-surface p-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-base font-bold tabular-nums text-primary">{value}</div>
     </div>
   );
 }
