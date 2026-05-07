@@ -307,3 +307,17 @@ function Card({ icon: Icon, title, value, sub }: { icon: typeof TrendingUp; titl
     </div>
   );
 }
+
+function QuickAction({ to, onClick, icon: Icon, label }: { to?: string; onClick?: () => void; icon: typeof Heart; label: string }) {
+  const inner = (
+    <>
+      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="text-[11px] font-semibold leading-tight text-center">{label}</span>
+    </>
+  );
+  const cls = "flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-gradient-card p-2.5 shadow-card hover:border-primary/40 active:scale-95 transition";
+  if (to) return <Link to={to} className={cls}>{inner}</Link>;
+  return <button onClick={onClick} className={cls}>{inner}</button>;
+}
