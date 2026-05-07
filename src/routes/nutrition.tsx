@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { PaywallModal } from "@/components/PaywallModal";
-import { buildMealPlan, calculateMacroTargets } from "../../supabase/functions/nutrition-coach/planner";
+import { buildMealPlan, calculateMacroTargets, reviewLoggedMeals } from "../../supabase/functions/nutrition-coach/planner";
 
 export const Route = createFileRoute("/nutrition")({
   head: () => ({ meta: [{ title: "Nutrition — Body Forge" }] }),
@@ -18,24 +17,9 @@ export const Route = createFileRoute("/nutrition")({
 type Macros = { calories: number; protein_g: number; carbs_g: number; fat_g: number };
 type Meal = { id: string; name: string; calories: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null; eaten_at: string };
 
-function isNutritionLimit(data: unknown) {
-  const d = data as { error?: string; code?: string } | null;
-  return d?.error === "limit_reached" || d?.code === "nutrition_pro_only";
-}
-
 function nutritionErrorMessage(error: unknown, fallback: string) {
   const message = error instanceof Error ? error.message : String(error ?? "");
   return message.includes("non-2xx") || message.includes("FunctionsHttpError") ? fallback : message || fallback;
-}
-
-async function invokeNutritionCoach(body: Record<string, unknown>) {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData.session?.access_token;
-  const { data, error } = await supabase.functions.invoke("nutrition-coach", {
-    body,
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  });
-  return { data, error };
 }
 
 function suggestedMealsFromPlan(plan: any, preset?: string) {
