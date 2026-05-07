@@ -322,6 +322,7 @@ export type Database = {
           id: string
           macro_changes: Json
           meal_changes: Json
+          previous_state: Json | null
           program_id: string | null
           reviewed_at: string | null
           scope: string
@@ -338,6 +339,7 @@ export type Database = {
           id?: string
           macro_changes?: Json
           meal_changes?: Json
+          previous_state?: Json | null
           program_id?: string | null
           reviewed_at?: string | null
           scope?: string
@@ -354,6 +356,7 @@ export type Database = {
           id?: string
           macro_changes?: Json
           meal_changes?: Json
+          previous_state?: Json | null
           program_id?: string | null
           reviewed_at?: string | null
           scope?: string
