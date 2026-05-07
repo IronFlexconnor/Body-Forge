@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { AdjustmentsCard } from "@/components/AdjustmentsCard";
 import { DailyFreshPicks } from "@/components/DailyFreshPicks";
+import { InsightsCarousel } from "@/components/InsightsCarousel";
 import { celebrate } from "@/lib/celebrate";
 
 export const Route = createFileRoute("/")({
@@ -167,6 +168,8 @@ function Home() {
         <AdjustmentsCard />
 
         <DailyFreshPicks />
+
+        <InsightsCarousel />
 
         <Link to="/form" className="mb-3 flex items-center gap-4 rounded-2xl border border-primary/30 bg-gradient-card p-4 shadow-card hover:border-primary/60">
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">

@@ -17,6 +17,7 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as FormRouteImport } from './routes/form'
 import { Route as ChatRouteImport } from './routes/chat'
 import { Route as BodyRouteImport } from './routes/body'
@@ -64,6 +65,11 @@ const NutritionRoute = NutritionRouteImport.update({
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FormRoute = FormRouteImport.update({
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/body': typeof BodyRoute
   '/chat': typeof ChatRoute
   '/form': typeof FormRoute
+  '/insights': typeof InsightsRoute
   '/library': typeof LibraryRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/body': typeof BodyRoute
   '/chat': typeof ChatRoute
   '/form': typeof FormRoute
+  '/insights': typeof InsightsRoute
   '/library': typeof LibraryRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/body': typeof BodyRoute
   '/chat': typeof ChatRoute
   '/form': typeof FormRoute
+  '/insights': typeof InsightsRoute
   '/library': typeof LibraryRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/body'
     | '/chat'
     | '/form'
+    | '/insights'
     | '/library'
     | '/nutrition'
     | '/onboarding'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/body'
     | '/chat'
     | '/form'
+    | '/insights'
     | '/library'
     | '/nutrition'
     | '/onboarding'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/body'
     | '/chat'
     | '/form'
+    | '/insights'
     | '/library'
     | '/nutrition'
     | '/onboarding'
@@ -226,6 +238,7 @@ export interface RootRouteChildren {
   BodyRoute: typeof BodyRoute
   ChatRoute: typeof ChatRoute
   FormRoute: typeof FormRoute
+  InsightsRoute: typeof InsightsRoute
   LibraryRoute: typeof LibraryRoute
   NutritionRoute: typeof NutritionRoute
   OnboardingRoute: typeof OnboardingRoute
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/form': {
       id: '/form'
       path: '/form'
@@ -362,6 +382,7 @@ const rootRouteChildren: RootRouteChildren = {
   BodyRoute: BodyRoute,
   ChatRoute: ChatRoute,
   FormRoute: FormRoute,
+  InsightsRoute: InsightsRoute,
   LibraryRoute: LibraryRoute,
   NutritionRoute: NutritionRoute,
   OnboardingRoute: OnboardingRoute,

@@ -155,6 +155,27 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_insights: {
+        Row: {
+          cards: Json
+          created_at: string
+          id: string
+          insight_date: string
+        }
+        Insert: {
+          cards?: Json
+          created_at?: string
+          id?: string
+          insight_date: string
+        }
+        Update: {
+          cards?: Json
+          created_at?: string
+          id?: string
+          insight_date?: string
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           category: string | null
