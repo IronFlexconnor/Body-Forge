@@ -291,7 +291,7 @@ function ScoreBadge({ score }: { score: number | null | undefined }) {
 }
 
 function ResultCard({ result, exercise, onReset, onApplyFix }:
-  { result: { id?: string; analysis: Analysis; mediaUrl?: string }; exercise: string; onReset: () => void; onApplyFix: () => void }) {
+  { result: { id?: string; analysis: Analysis; mediaUrl?: string; mediaKind?: "video" | "photo" }; exercise: string; onReset: () => void; onApplyFix: () => void }) {
   const a = result.analysis;
   const score = a.score ?? 0;
   const tone = score >= 85 ? "text-success" : score >= 70 ? "text-primary" : "text-warning";
