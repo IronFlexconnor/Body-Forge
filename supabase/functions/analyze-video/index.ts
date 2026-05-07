@@ -1,6 +1,7 @@
 // Analyze a workout video/photo for form. Receives base64 frames + exercise name.
 // Returns score + cues, tied to user's injuries and preferred units.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { EXPERT_KNOWLEDGE } from "../_shared/expert.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
