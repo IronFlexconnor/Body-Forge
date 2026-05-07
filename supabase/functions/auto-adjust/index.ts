@@ -2,6 +2,7 @@
 // Triggered after workouts, video analyses, check-ins, chat requests, or manually.
 // Stores each adjustment as `pending` (with full diff) so the user can Approve / Tweak / Reject.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { EXPERT_KNOWLEDGE } from "../_shared/expert.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
