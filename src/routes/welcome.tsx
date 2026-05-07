@@ -152,6 +152,24 @@ function Welcome() {
               </div>
             </div>
           </div>
+          {/* Testimonials */}
+          <div className="mt-6 grid grid-cols-1 gap-2.5 animate-fade-in">
+            {[
+              { name: "Sarah K.", role: "Lost 18 lbs in 12 weeks", quote: "Feels like having a coach in my pocket. The form feedback is unreal." },
+              { name: "Marcus T.", role: "Added 40 lbs to squat", quote: "Plans adapt to me. I've never been this consistent." },
+            ].map((t) => (
+              <div key={t.name} className="flex items-start gap-3 rounded-2xl border border-border/60 bg-gradient-card p-3.5 shadow-card">
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-primary text-xs font-bold text-primary-foreground shadow-glow">
+                  {t.name.slice(0, 1)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1 text-[11px] text-amber-400">{"★★★★★"}</div>
+                  <p className="mt-0.5 text-[13px] leading-snug text-foreground/90">"{t.quote}"</p>
+                  <div className="mt-1 text-[11px] text-muted-foreground">{t.name} · {t.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="mt-8 space-y-3">
@@ -163,6 +181,7 @@ function Welcome() {
             <Sparkles className="mr-2 h-5 w-5" />
             Start My Free 7-Day Trial
           </Button>
+          <p className="text-center text-[11px] text-muted-foreground">Then $14.99/mo · cancel anytime</p>
           <button
             onClick={() => setShowOnboarding(true)}
             className="flex w-full items-center justify-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
