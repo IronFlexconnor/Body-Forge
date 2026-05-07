@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
+export type BodyweightGoal = "lose_fat" | "build_muscle" | "maintain" | "recomp";
+
 export type NutritionPrefs = {
   diets: string[];
   allergies: string[];
@@ -11,7 +13,16 @@ export type NutritionPrefs = {
   calorieGoal?: number | null;
   mealsPerDay: number;
   mealTiming?: string;
+  bodyweightGoal?: BodyweightGoal | null;
+  targetWeight?: number | null;
 };
+
+export const BODYWEIGHT_GOALS: { id: BodyweightGoal; label: string; sub: string }[] = [
+  { id: "lose_fat", label: "Lose fat / cut", sub: "Calorie deficit, preserve muscle" },
+  { id: "build_muscle", label: "Build muscle / bulk", sub: "Lean surplus, hit protein every meal" },
+  { id: "maintain", label: "Maintain", sub: "Hold current weight & performance" },
+  { id: "recomp", label: "Recomp", sub: "Lose fat & gain muscle simultaneously" },
+];
 
 export const DIET_OPTIONS = [
   "No Preference", "Vegetarian", "Vegan", "Keto", "Low-Carb",
