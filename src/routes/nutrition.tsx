@@ -112,14 +112,15 @@ function Nutrition() {
   const suggestMeals = async (preset?: string) => {
     setSuggesting(true);
     try {
-      const { data, error } = await invokeNutritionCoach({ action: "suggest_meals", prompt: preset });
-      const d: any = data;
-      if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
-        setPaywall({ open: true, reason: d?.message || "Personalized meal suggestions are part of Pro Coach.", recommend: "pro" });
-        return;
+      const activeProfile = profile ?? {};
+      const nutritionPrefs = activeProfile?.nutrition_preferences ?? {};
+      const targets = activeProfile?.macro_targets ?? calculateMacroTargets(activeProfile, nutritionPrefs, null, []);
+      if (!activeProfile?.macro_targets && user) {
+        await supabase.from("profiles").update({ macro_targets: targets }).eq("user_id", user.id);
+        setProfile((p: any) => p ? { ...p, macro_targets: targets } : p);
       }
-      if (error) throw error;
-      const m = d?.meals ?? [];
+      const localPlan = buildMealPlan({ profile: { ...activeProfile, macro_targets: targets }, nutritionPrefs, program: null, upcoming: [], prompt: preset }, targets);
+      const m = suggestedMealsFromPlan(localPlan, preset);
       if (m.length === 0) { toast.error("No suggestions returned — try again."); return; }
       setSuggestions(m);
       toast.success(preset ? "Suggestion ready" : `${m.length} meal ideas ready`);
