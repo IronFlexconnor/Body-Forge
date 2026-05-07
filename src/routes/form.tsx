@@ -17,8 +17,17 @@ import { useSubscription } from "@/hooks/useSubscription";
 const FRIENDLY_ANALYSIS_ERROR = "Coach couldn't read that clip. Try a clear 5–15 second video or a still photo in good lighting.";
 
 const fallbackAnalysis = (kind: "video" | "photo", movement: string): Analysis => ({
+  exercise_detected: movement || "Workout movement",
+  confidence: 60,
   score: 78,
   summary: `Coach reviewed your ${kind === "photo" ? "photo" : "clip"} for ${movement || "this movement"}. Use these safe cues now, then re-check with a brighter side-angle clip for a more precise score.`,
+  sub_scores: { posture: 78, joint_alignment: 76, tempo: 75, symmetry: 80, stability: 78, range_of_motion: 76, power_transfer: 75, injury_risk: 80, efficiency: 76, effectiveness: 76 },
+  joint_angles: [],
+  tempo: { eccentric_s: 0, pause_s: 0, concentric_s: 0, ideal: "3-1-1", verdict: "Re-record with side angle for tempo read" },
+  symmetry_notes: "",
+  rom_notes: "",
+  compensation_patterns: [],
+  muscle_activation: [],
   good: ["You completed the upload flow successfully", "The movement is ready for coach follow-up"],
   fixes: ["Film from a 45° front-side angle so hips, knees, and torso are visible", "Keep the full body in frame from setup through lockout", "Move with a controlled 2–3 second lowering phase", "Stop the set if pain changes your mechanics"],
   cues: ["Full body in frame", "Brace before each rep", "Control the lowering", "Smooth lockout"],
@@ -26,6 +35,8 @@ const fallbackAnalysis = (kind: "video" | "photo", movement: string): Analysis =
   weight_delta: { value: 0, unit: "lbs", direction: "hold" },
   safety_flags: [],
   alternative_exercise: null,
+  plan_adjustments: [],
+  encouragement: "Solid effort — let's sharpen the details and you'll level up fast.",
 });
 
 export const Route = createFileRoute("/form")({
@@ -33,9 +44,22 @@ export const Route = createFileRoute("/form")({
   component: FormAnalysis,
 });
 
+type SubScores = { posture: number; joint_alignment: number; tempo: number; symmetry: number; stability: number; range_of_motion: number; power_transfer: number; injury_risk: number; efficiency: number; effectiveness: number };
+type JointAngle = { joint: string; phase: string; angle_deg: number; ideal_range: string; verdict: string };
+type TempoBlock = { eccentric_s: number; pause_s: number; concentric_s: number; ideal: string; verdict: string };
+type PlanAdjustment = { type: string; change: string; reason: string; expected_benefit: string };
 type Analysis = {
+  exercise_detected?: string;
+  confidence?: number;
   score?: number;
   summary?: string;
+  sub_scores?: SubScores;
+  joint_angles?: JointAngle[];
+  tempo?: TempoBlock;
+  symmetry_notes?: string;
+  rom_notes?: string;
+  compensation_patterns?: string[];
+  muscle_activation?: string[];
   good?: string[];
   fixes?: string[];
   cues?: string[];
@@ -43,6 +67,8 @@ type Analysis = {
   weight_delta?: { value: number; unit: string; direction: "increase" | "decrease" | "hold" };
   safety_flags?: string[];
   alternative_exercise?: string | null;
+  plan_adjustments?: PlanAdjustment[];
+  encouragement?: string;
 };
 
 type Upload = {
