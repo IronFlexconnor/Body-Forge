@@ -291,6 +291,7 @@ function FreshMealsPage() {
     setSeedOffset((n) => n + 1);
     setOverrides({});
     toast.success("Fresh plan served — same macro shape, brand-new variety");
+    logPlanChangeToCoach("Regenerated today's full meal plan (Surprise Me) — keeping macros aligned. Please factor this into future coaching.");
   };
 
   const swapIntoPlan = (r: Recipe) => {
@@ -301,6 +302,7 @@ function FreshMealsPage() {
       sessionStorage.setItem("forge:open-regen", `swap ${r.title} into today's plan with similar macros`);
     }
     toast.success(`${r.title} swapped in — shopping list updated`);
+    logPlanChangeToCoach(`Swapped ${slot?.label ?? "a meal"} to "${r.title}" (${r.calories} kcal · ${Math.round(r.protein_g)}P/${Math.round(r.carbs_g)}C/${Math.round(r.fat_g)}F). Shopping list updated.`);
   };
 
   const addToWeek = (r: Recipe) => {
@@ -308,6 +310,7 @@ function FreshMealsPage() {
       sessionStorage.setItem("forge:open-regen", `add ${r.title} to this week's meal plan`);
     }
     toast.success(`Added ${r.title} to this week`);
+    logPlanChangeToCoach(`Added "${r.title}" to this week's plan (${r.calories} kcal · ${Math.round(r.protein_g)}g protein).`);
     navigate({ to: "/nutrition" });
   };
 
