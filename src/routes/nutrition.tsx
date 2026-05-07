@@ -249,6 +249,28 @@ function Nutrition() {
           </div>
         )}
 
+        {/* Surprise Me hero */}
+        <button
+          onClick={() => openRegen("Surprise me with completely fresh meals for tonight that match my macros and dietary preferences.")}
+          className="group relative mb-4 block w-full overflow-hidden rounded-3xl border border-primary/30 bg-gradient-card p-5 text-left shadow-card transition hover:border-primary/60"
+        >
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/30 blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-accent/20 blur-3xl" />
+          <div className="relative flex items-center gap-4">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">
+              <Wand2 className="h-6 w-6" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                <Sparkles className="h-3 w-3" /> Surprise me tonight
+              </div>
+              <div className="text-base font-bold leading-tight">8 brand-new meals, picked for you</div>
+              <p className="text-xs text-muted-foreground">Macro-perfect · with prep videos · tap to swap</p>
+            </div>
+            <Zap className="h-5 w-5 text-primary transition-transform group-hover:scale-125" />
+          </div>
+        </button>
+
         <div className="mb-3 flex gap-2">
           <Button onClick={() => setAdding(true)} variant="outline" className="flex-1 h-11 rounded-xl border-border bg-surface"><Plus className="mr-1 h-4 w-4" /> Log meal</Button>
           <Button onClick={() => suggestMeals()} disabled={suggesting} variant="outline" className="flex-1 h-11 rounded-xl border-border bg-surface">
