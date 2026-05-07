@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { AdjustmentsCard } from "@/components/AdjustmentsCard";
+import { DailyFreshPicks } from "@/components/DailyFreshPicks";
+import { celebrate } from "@/lib/celebrate";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -164,6 +166,8 @@ function Home() {
 
         <AdjustmentsCard />
 
+        <DailyFreshPicks />
+
         <Link to="/form" className="mb-3 flex items-center gap-4 rounded-2xl border border-primary/30 bg-gradient-card p-4 shadow-card hover:border-primary/60">
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">
             <Sparkles className="h-5 w-5" />
@@ -252,6 +256,7 @@ function CheckinCard({ onSaved }: { onSaved: (c: any) => void }) {
     }).select().single();
     if (error) { toast.error(error.message); setSaving(false); return; }
     toast.success("Check-in saved — Coach will tune today's session");
+    celebrate();
     onSaved(data);
     // Trigger auto-adjust based on readiness
     supabase.functions.invoke("auto-adjust", { body: { trigger: "checkin", auto_apply: true } })
