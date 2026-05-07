@@ -19,36 +19,38 @@ const TIERS: Record<Tier, {
   icon: typeof Sparkles;
 }> = {
   pro: {
-    name: "Pro Coach",
+    name: "Starter Coach",
     price: "$14.99",
     priceId: PRICE_PRO,
-    tagline: "Your full-time AI personal trainer",
+    tagline: "The basics to stay on track",
     icon: Sparkles,
     highlight: false,
     perks: [
-      "Unlimited AI coach chat",
-      "Fully custom adaptive programs",
-      "Auto-adjustments after every session",
-      "5,000+ fresh goal-specific meals",
-      "Senior-safe geriatric programs",
-      "Video form-analysis fixes + feedback",
-      "Daily readiness insights",
+      "30 AI coach messages / day",
+      "Standard adaptive program",
+      "5 video form checks / month",
+      "Core meal library (1,500 recipes)",
+      "Weekly auto-adjustments",
+      "Basic readiness insights",
     ],
   },
   elite: {
     name: "Elite AI Coach",
     price: "$19.99",
     priceId: PRICE_ELITE,
-    tagline: "Everything in Pro — plus deep performance edge",
+    tagline: "Best value — your full-time elite trainer",
     icon: Crown,
     highlight: true,
     perks: [
-      "Everything in Pro Coach",
-      "Unlimited video form analysis",
-      "Advanced nutrition deep-dives",
-      "Priority coach responses",
-      "Exportable progress reports",
-      "Early access to new features",
+      "UNLIMITED AI coach chat 24/7",
+      "UNLIMITED video form analysis",
+      "Real-time program auto-adjustments",
+      "Full 5,000+ recipe vault + saved favorites",
+      "Senior-safe geriatric programs",
+      "Priority GPT-5 / Gemini Pro responses",
+      "Advanced nutrition deep-dives & macro coaching",
+      "Daily insights + exportable progress reports",
+      "Early access to every new feature",
     ],
   },
 };
@@ -58,11 +60,11 @@ interface PaywallProps {
   onClose: () => void;
   /** What feature triggered the paywall — shown in header copy */
   reason?: string;
-  /** Recommend Elite (e.g. for video features) */
+  /** Recommend tier (defaults to Elite — best value) */
   recommend?: Tier;
 }
 
-export function PaywallModal({ open, onClose, reason, recommend = "pro" }: PaywallProps) {
+export function PaywallModal({ open, onClose, reason, recommend = "elite" }: PaywallProps) {
   const { user } = useAuth();
   const [selected, setSelected] = useState<Tier | null>(null);
 
