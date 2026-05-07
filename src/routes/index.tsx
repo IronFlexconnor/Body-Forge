@@ -173,6 +173,16 @@ function Home() {
           </Link>
           <Card icon={TrendingUp} title="Adherence" value={`${Math.round(((stats.weekDone) / Math.max(1, stats.weekTotal)) * 100)}%`} sub="This week" />
         </div>
+
+        <Button
+          onClick={() => {
+            if (typeof window !== "undefined") sessionStorage.setItem("forge:autogen-plan", "1");
+            navigate({ to: "/nutrition" });
+          }}
+          className="mt-4 h-12 w-full rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow"
+        >
+          <Sparkles className="mr-2 h-4 w-4" /> Generate my meal plan
+        </Button>
       </div>
     </AppShell>
   );
