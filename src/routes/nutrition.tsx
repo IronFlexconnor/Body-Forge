@@ -78,11 +78,22 @@ function Nutrition() {
   };
 
   const generatePlan = async () => {
-    if (!profile?.macro_targets) {
-      toast.message("Set your macro targets first", { description: "Tap Calculate macros so your plan is built around your numbers." });
-      return;
-    }
     setPlanning(true);
+    let activeProfile = profile;
+    try {
+      if (!activeProfile?.macro_targets) {
+        toast.loading("Calculating your macro targets…", { id: "macros" });
+        const { data: mData, error: mErr } = await supabase.functions.invoke("nutrition-coach", { body: { action: "calc_macros" } });
+        toast.dismiss("macros");
+        if (mErr) throw mErr;
+        if ((mData as any)?.error === "limit_reached") {
+          setPaywall({ open: true, reason: (mData as any).message, recommend: "pro" });
+          return;
+        }
+        const { data: p } = await supabase.from("profiles").select("*").eq("user_id", user!.id).maybeSingle();
+        setProfile(p);
+        activeProfile = p;
+      }
     try {
       const { data, error } = await supabase.functions.invoke("nutrition-coach", {
         body: { action: "meal_plan", prompt: planPrompt || undefined },
