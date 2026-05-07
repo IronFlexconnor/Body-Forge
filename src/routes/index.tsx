@@ -81,7 +81,7 @@ function Home() {
   return (
     <AppShell>
       <div className="px-5 pt-12">
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">Good to see you,</p>
             <h1 className="text-2xl font-bold">{name} 👋</h1>
@@ -89,6 +89,10 @@ function Home() {
           <Link to="/profile" className="grid h-11 w-11 place-items-center rounded-full bg-gradient-primary text-base font-bold text-primary-foreground shadow-glow">
             {name.slice(0, 1).toUpperCase()}
           </Link>
+        </div>
+
+        <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
+          <Sparkles className="h-3 w-3" /> Expert mode · NSCA / ISSN / ACSM-grade
         </div>
 
         <div className="mb-5 flex gap-3">
