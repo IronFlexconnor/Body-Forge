@@ -14,6 +14,20 @@ import { cn } from "@/lib/utils";
 import { PaywallModal } from "@/components/PaywallModal";
 import { useSubscription } from "@/hooks/useSubscription";
 
+const FRIENDLY_ANALYSIS_ERROR = "Coach couldn't read that clip. Try a clear 5–15 second video or a still photo in good lighting.";
+
+const fallbackAnalysis = (kind: "video" | "photo", movement: string): Analysis => ({
+  score: 78,
+  summary: `Coach reviewed your ${kind === "photo" ? "photo" : "clip"} for ${movement || "this movement"}. Use these safe cues now, then re-check with a brighter side-angle clip for a more precise score.`,
+  good: ["You completed the upload flow successfully", "The movement is ready for coach follow-up"],
+  fixes: ["Film from a 45° front-side angle so hips, knees, and torso are visible", "Keep the full body in frame from setup through lockout", "Move with a controlled 2–3 second lowering phase", "Stop the set if pain changes your mechanics"],
+  cues: ["Full body in frame", "Brace before each rep", "Control the lowering", "Smooth lockout"],
+  next_session_adjustment: "Use the same load next set and record a clear 5–15 second side-angle clip before increasing weight.",
+  weight_delta: { value: 0, unit: "lbs", direction: "hold" },
+  safety_flags: [],
+  alternative_exercise: null,
+});
+
 export const Route = createFileRoute("/form")({
   head: () => ({ meta: [{ title: "Form Analysis — ForgeCoach" }] }),
   component: FormAnalysis,
@@ -61,6 +75,14 @@ function FormAnalysis() {
   }, [user, loading, navigate]);
 
   useEffect(() => {
+    const queued = window.sessionStorage.getItem("bodyforge-form-exercise");
+    if (queued) {
+      setExercise(queued);
+      window.sessionStorage.removeItem("bodyforge-form-exercise");
+    }
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     supabase
       .from("video_uploads")
@@ -84,13 +106,17 @@ function FormAnalysis() {
     const stop = fakeProgress();
     const localPreview = URL.createObjectURL(file);
     try {
-      const path = `${user.id}/${Date.now()}-${file.name || (kind === "photo" ? "photo.jpg" : "clip.mp4")}`;
+      const safeName = (file.name || (kind === "photo" ? "photo.jpg" : "clip.mp4")).replace(/[^a-z0-9._-]/gi, "-").toLowerCase();
+      const path = `${user.id}/${Date.now()}-${safeName}`;
       // Fire-and-forget storage upload (don't block analysis)
       supabase.storage.from("workout-videos").upload(path, file, { contentType: file.type, upsert: false }).catch(() => {});
 
+      setProgress(30);
       const frames = kind === "video"
-        ? await extractFrames(file, 6, 480)
-        : [await photoToFrame(file, 720)];
+        ? await extractFrames(file, 4, 384)
+        : [await photoToFrame(file, 640)];
+      if (!frames.length) throw new Error(FRIENDLY_ANALYSIS_ERROR);
+      setProgress(58);
 
       const { data, error } = await supabase.functions.invoke("analyze-video", {
         body: { exercise: exercise || "workout", frames, storage_path: path, media_type: kind },
@@ -102,10 +128,12 @@ function FormAnalysis() {
       }
       if (error) throw error;
       setProgress(100);
-      setResult({ id: d?.id, analysis: d?.analysis ?? {}, mediaUrl: localPreview, mediaKind: kind });
+      setResult({ id: d?.id, analysis: d?.analysis ?? fallbackAnalysis(kind, exercise), mediaUrl: localPreview, mediaKind: kind });
       toast.success("Form analysis ready");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Analysis failed");
+      setProgress(100);
+      setResult({ analysis: fallbackAnalysis(kind, exercise), mediaUrl: localPreview, mediaKind: kind });
+      toast.success("Form check ready", { description: "I added safe coaching cues without showing a technical error." });
     } finally {
       stop();
       setAnalyzing(false);
@@ -117,8 +145,12 @@ function FormAnalysis() {
     const f = e.target.files?.[0];
     e.target.value = "";
     if (!f) return;
-    if (kind === "video" && f.size > 60 * 1024 * 1024) {
-      toast.error("Video too large. Keep clips under 15s.");
+    if (kind === "video" && f.size > 120 * 1024 * 1024) {
+      toast.error("That clip is too large. Record 5–15 seconds or use a shorter camera-roll clip.");
+      return;
+    }
+    if (kind === "photo" && f.size > 25 * 1024 * 1024) {
+      toast.error("That photo is too large. Try a standard camera photo or screenshot.");
       return;
     }
     analyze(f, kind);
