@@ -102,6 +102,7 @@ export type MealVideoMeta = {
 };
 
 type RecipeLike = {
+  id?: string | null;
   slug?: string | null;
   title?: string | null;
   meal_type?: string | null;
