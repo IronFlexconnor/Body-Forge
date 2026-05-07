@@ -27,17 +27,6 @@ Deno.serve(async (req) => {
     const { action, prompt: userExtraPrompt } = await req.json();
     if (!ACTIONS.has(action)) return new Response(JSON.stringify({ error: "Unknown action" }), { status: 400, headers: cors });
 
-    const { getPlanTier } = await import("../_shared/entitlements.ts");
-    const tier = await getPlanTier(user.id);
-    const proOnly = ["suggest_meals", "review_day", "meal_plan", "meal_prep"];
-    if (tier === "free" && proOnly.includes(action)) {
-      return new Response(JSON.stringify({
-        error: "limit_reached",
-        code: "nutrition_pro_only",
-        message: "Personalized meal plans, recipes, and meal-prep videos are part of Pro Coach. Start your 7-day free trial to unlock the full nutrition planner synced with your training.",
-      }), { status: 200, headers: cors });
-    }
-
     const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
     if (!profile) return new Response(JSON.stringify({ error: "Complete your profile first" }), { status: 400, headers: cors });
 
