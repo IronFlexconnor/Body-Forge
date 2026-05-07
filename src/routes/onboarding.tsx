@@ -288,6 +288,8 @@ function Onboarding() {
       toast.dismiss("gen");
       if (genErr) throw genErr;
       if ((gen as any)?.error) throw new Error((gen as any).error);
+      // Auto-calc macro targets so the meal plan generator works instantly
+      try { await supabase.functions.invoke("nutrition-coach", { body: { action: "calc_macros" } }); } catch {}
       toast.success("Your program is ready 💪");
       navigate({ to: "/" });
     } catch (e) {
