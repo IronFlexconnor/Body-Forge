@@ -81,8 +81,7 @@ export function DailyFreshPicks() {
   }, []);
 
   const open = () => {
-    if (typeof window !== "undefined") sessionStorage.setItem("forge:open-regen", "1");
-    navigate({ to: "/nutrition" });
+    navigate({ to: "/fresh-meals" });
   };
 
   return (
