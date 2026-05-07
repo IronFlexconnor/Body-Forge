@@ -1,5 +1,6 @@
 // Generate a personalized 4-12 week training program from the user's profile
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { EXPERT_KNOWLEDGE } from "../_shared/expert.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -70,7 +71,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYS },
+          { role: "system", content: `${SYS}\n\n${EXPERT_KNOWLEDGE}` },
           { role: "user", content: `Build my program. Profile:\n${JSON.stringify(profile, null, 2)}` },
         ],
         response_format: { type: "json_object" },

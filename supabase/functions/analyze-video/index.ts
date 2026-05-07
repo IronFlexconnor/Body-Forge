@@ -1,6 +1,7 @@
 // Analyze a workout video/photo for form. Receives base64 frames + exercise name.
 // Returns score + cues, tied to user's injuries and preferred units.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { EXPERT_KNOWLEDGE } from "../_shared/expert.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -100,7 +101,7 @@ Deno.serve(async (req) => {
         // Fastest multimodal model on the gateway
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: buildSys(injuries, units) },
+          { role: "system", content: `${buildSys(injuries, units)}\n\n${EXPERT_KNOWLEDGE}` },
           { role: "user", content: userContent },
         ],
         response_format: { type: "json_object" },

@@ -1,5 +1,6 @@
 // AI Coach: streaming chat with full user context (profile, program, recent workouts, video analyses)
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { EXPERT_KNOWLEDGE } from "../_shared/expert.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -115,7 +116,7 @@ Deno.serve(async (req) => {
     const priorMessages = (history ?? []).reverse().slice(0, -1); // exclude the just-inserted user msg
 
     const messages = [
-      { role: "system", content: `${SYSTEM}\n\n${ctxBlock}` },
+      { role: "system", content: `${SYSTEM}\n\n${EXPERT_KNOWLEDGE}\n\n${ctxBlock}` },
       ...priorMessages.map((m: { role: string; content: string }) => ({ role: m.role, content: m.content })),
       { role: "user", content: message },
     ];
