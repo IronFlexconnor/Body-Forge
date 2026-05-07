@@ -203,6 +203,14 @@ function FreshMealsPage() {
       if (cancelled || !data) return;
       setAll(data as Recipe[]);
     })();
+    // Pre-apply a filter sent from the Nutrition page
+    if (typeof window !== "undefined") {
+      const f = sessionStorage.getItem("forge:fresh-filter");
+      if (f) {
+        sessionStorage.removeItem("forge:fresh-filter");
+        setFilter(f as FilterKey);
+      }
+    }
     return () => { cancelled = true; };
   }, []);
 
