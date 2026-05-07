@@ -1,32 +1,91 @@
-// Curated short cooking/meal-prep YouTube videos.
-// These are stable, embeddable, well-lit cooking shorts from public channels.
-// We deterministically pick one per recipe slug so each card always shows the same clip.
+// Curated, REAL embeddable YouTube meal-prep videos.
+// We deterministically pick the most relevant clip per recipe so every card
+// shows a working, on-topic video.
 
 const CURATED_VIDEOS: { id: string; title: string; tags: string[] }[] = [
-  { id: "0xMRBvgX9KE", title: "High-protein meal prep", tags: ["chicken", "rice", "high-protein", "bowl", "lunch", "dinner"] },
-  { id: "BHcyuzXRqLs", title: "Easy chicken meal prep", tags: ["chicken", "lunch", "dinner", "bowl"] },
-  { id: "jnnFYjg8DiU", title: "Salmon dinner prep", tags: ["salmon", "fish", "dinner", "seafood"] },
-  { id: "Rg9vP8hETVY", title: "Beef stir fry", tags: ["beef", "stir-fry", "dinner", "asian"] },
-  { id: "QoQbR9k_Iz4", title: "Turkey skillet", tags: ["turkey", "skillet", "lunch", "dinner"] },
-  { id: "tcRdfVLk9Aw", title: "Protein pancakes", tags: ["breakfast", "pancake", "oats", "protein"] },
-  { id: "ZbcRkR9JF6s", title: "Overnight oats", tags: ["breakfast", "oats", "yogurt"] },
-  { id: "DBTaPV-IRhU", title: "Egg breakfast bowl", tags: ["breakfast", "egg", "frittata"] },
-  { id: "JMIHhE2EH0A", title: "Smoothie bowl", tags: ["smoothie", "snack", "berry", "shake"] },
-  { id: "tIzF2tW0avk", title: "Greek yogurt parfait", tags: ["snack", "yogurt", "berry"] },
-  { id: "Cflr97Iv9F8", title: "Quinoa bowl", tags: ["quinoa", "vegetarian", "bowl", "lunch"] },
-  { id: "Jv2uxzhXFTw", title: "Lentil curry", tags: ["lentil", "curry", "vegetarian", "vegan", "indian"] },
-  { id: "iCLI0V_jmws", title: "Chickpea power bowl", tags: ["chickpea", "vegan", "vegetarian", "mediterranean"] },
-  { id: "KGS0PvCfV-Y", title: "Tofu stir fry", tags: ["tofu", "vegan", "vegetarian", "asian", "stir-fry"] },
-  { id: "v7iIbkSWJEI", title: "Sweet potato plate", tags: ["sweet-potato", "dinner", "recovery"] },
-  { id: "g2bX5Sd1xaM", title: "Cauliflower rice keto", tags: ["keto", "low-carb", "cauliflower"] },
-  { id: "0vC6-hSBbVA", title: "Avocado toast", tags: ["breakfast", "avocado", "toast"] },
-  { id: "L06xm0u_TbE", title: "Greek salad", tags: ["salad", "mediterranean", "lunch", "vegetarian"] },
-  { id: "P53q-EuCWss", title: "Asian noodle bowl", tags: ["noodle", "asian", "dinner"] },
-  { id: "Z9JiyeKqI1U", title: "Burrito bowl", tags: ["mexican", "rice", "beans", "lunch", "dinner"] },
-  { id: "8FBHGfbBCAk", title: "Shrimp skillet", tags: ["shrimp", "seafood", "dinner"] },
-  { id: "j09s0_lG2Bk", title: "Pasta with chicken", tags: ["pasta", "chicken", "italian", "dinner"] },
-  { id: "Ms-uyjSFWFk", title: "Frittata muffins", tags: ["breakfast", "egg", "frittata", "muffin"] },
-  { id: "QNGVsaTl_pE", title: "Energy balls snack", tags: ["snack", "energy", "ball", "no-bake"] },
+  {
+    id: "w_Ja6PilPNg",
+    title: "High-Protein Meal Prep for Busy People",
+    tags: ["high-protein", "lunch", "dinner", "chicken", "rice", "bowl", "busy", "weeknight"],
+  },
+  {
+    id: "0GNfATCkS8g",
+    title: "Budget-Friendly High-Protein Week Meal Prep",
+    tags: ["high-protein", "budget", "lunch", "dinner", "chicken", "rice", "beans", "bowl"],
+  },
+  {
+    id: "8VM4Df5fBlA",
+    title: "12 Quick & Easy High-Protein Recipes",
+    tags: ["high-protein", "quick", "easy", "lunch", "dinner", "snack", "chicken", "egg", "tuna"],
+  },
+  {
+    id: "vqZkRTslHwE",
+    title: "Healthy High-Protein + Fiber Meal Prep Ideas",
+    tags: ["high-protein", "fiber", "healthy", "lunch", "dinner", "bowl", "salad", "quinoa", "beans"],
+  },
+  {
+    id: "5XscNlXwZDw",
+    title: "10 Easy High-Protein Meal Prep Recipes",
+    tags: ["high-protein", "easy", "lunch", "dinner", "chicken", "beef", "turkey", "bowl"],
+  },
+  {
+    id: "y1uQwAlPYaI",
+    title: "One-Pot Healthy High-Protein Dinners",
+    tags: ["high-protein", "dinner", "one-pot", "skillet", "chicken", "beef", "pasta", "stew", "soup"],
+  },
+  {
+    id: "Dqf-uc_-R6I",
+    title: "6 Amazing Real-Life High-Protein Recipes",
+    tags: ["high-protein", "lunch", "dinner", "snack", "chicken", "salmon", "egg"],
+  },
+  {
+    id: "K1CJOhPM_4Q",
+    title: "30-Minute High-Protein Meal Prep",
+    tags: ["high-protein", "quick", "30-minute", "lunch", "dinner", "chicken", "rice", "bowl"],
+  },
+  {
+    id: "ltaz1HVgktQ",
+    title: "Healthy Meal Prep with 6 Ingredients",
+    tags: ["healthy", "easy", "simple", "lunch", "dinner", "bowl", "minimal"],
+  },
+  {
+    id: "gvJuykYhy5s",
+    title: "Full Week Meal Prep in 1 Hour",
+    tags: ["meal-prep", "week", "lunch", "dinner", "breakfast", "batch"],
+  },
+  {
+    id: "J8PGVR9Rn1o",
+    title: "High-Protein Plant-Based Meal Prep",
+    tags: [
+      "vegan",
+      "vegetarian",
+      "plant-based",
+      "tofu",
+      "tempeh",
+      "lentil",
+      "chickpea",
+      "bean",
+      "high-protein",
+      "lunch",
+      "dinner",
+    ],
+  },
+  {
+    id: "XiuRe95_8Uo",
+    title: "High-Protein Freezer Meal Prep (Breakfast/Lunch/Dinner)",
+    tags: [
+      "high-protein",
+      "freezer",
+      "breakfast",
+      "lunch",
+      "dinner",
+      "egg",
+      "burrito",
+      "oats",
+      "pancake",
+      "muffin",
+    ],
+  },
 ];
 
 function hashString(s: string): number {
@@ -35,26 +94,47 @@ function hashString(s: string): number {
   return Math.abs(h);
 }
 
-export type MealVideoMeta = { id: string; embedUrl: string; watchUrl: string; title: string };
+export type MealVideoMeta = {
+  id: string;
+  embedUrl: string;
+  watchUrl: string;
+  title: string;
+};
 
-export function videoForRecipe(opts: {
+type RecipeLike = {
   slug?: string | null;
   title?: string | null;
   meal_type?: string | null;
   dietary_tags?: string[] | null;
   cuisine?: string | null;
-}): MealVideoMeta {
-  const text = `${opts.title ?? ""} ${opts.meal_type ?? ""} ${(opts.dietary_tags ?? []).join(" ")} ${opts.cuisine ?? ""}`.toLowerCase();
-  // Score by tag matches
-  const scored = CURATED_VIDEOS.map((v) => ({
-    v,
-    score: v.tags.reduce((acc, t) => acc + (text.includes(t) ? 1 : 0), 0),
-  }));
+};
+
+function pickVideo(opts: RecipeLike, offset = 0) {
+  const tags = (opts.dietary_tags ?? []).map((t) => t.toLowerCase());
+  const text = `${opts.title ?? ""} ${opts.meal_type ?? ""} ${tags.join(" ")} ${opts.cuisine ?? ""}`.toLowerCase();
+
+  const isVegan = tags.includes("vegan") || /\bvegan\b/.test(text);
+  const isVegetarian = isVegan || tags.includes("vegetarian") || /\bvegetarian\b/.test(text);
+  const isBreakfast = (opts.meal_type ?? "").toLowerCase() === "breakfast" || /\bbreakfast\b/.test(text);
+
+  const scored = CURATED_VIDEOS.map((v) => {
+    let score = v.tags.reduce((acc, t) => acc + (text.includes(t) ? 1 : 0), 0);
+    // Strong boosts so dietary intent wins over keyword noise
+    if (isVegan && v.tags.includes("vegan")) score += 10;
+    if (isVegetarian && (v.tags.includes("vegan") || v.tags.includes("vegetarian"))) score += 4;
+    if (!isVegetarian && v.tags.includes("vegan")) score -= 5; // don't push plant-based on meaty recipes
+    if (isBreakfast && v.tags.includes("breakfast")) score += 6;
+    return { v, score };
+  });
+
   const max = Math.max(...scored.map((s) => s.score));
   const top = max > 0 ? scored.filter((s) => s.score === max).map((s) => s.v) : CURATED_VIDEOS;
-  // Deterministic pick within top group
-  const seed = hashString(opts.slug || opts.title || "meal");
-  const pick = top[seed % top.length];
+  const seed = hashString(opts.slug || opts.title || "meal") + offset;
+  return top[seed % top.length];
+}
+
+export function videoForRecipe(opts: RecipeLike, offset = 0): MealVideoMeta {
+  const pick = pickVideo(opts, offset);
   return {
     id: pick.id,
     embedUrl: `https://www.youtube.com/embed/${pick.id}?rel=0&modestbranding=1&playsinline=1`,
@@ -63,6 +143,13 @@ export function videoForRecipe(opts: {
   };
 }
 
-export function thumbForRecipe(opts: Parameters<typeof videoForRecipe>[0]): string {
-  return `https://img.youtube.com/vi/${videoForRecipe(opts).id}/hqdefault.jpg`;
+export function thumbForRecipe(opts: RecipeLike, offset = 0): string {
+  const pick = pickVideo(opts, offset);
+  // hqdefault is universally available; maxresdefault sometimes 404s.
+  return `https://img.youtube.com/vi/${pick.id}/hqdefault.jpg`;
+}
+
+// Used by chat "regenerate video" intent — pick a different real video.
+export function nextVideoForRecipe(opts: RecipeLike, currentOffset = 0): MealVideoMeta {
+  return videoForRecipe(opts, currentOffset + 1);
 }
