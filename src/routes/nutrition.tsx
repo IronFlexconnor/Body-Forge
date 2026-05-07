@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Apple, Loader2, Plus, Sparkles, Trash2, ArrowLeft, Target, ChefHat, ChevronDown, ShoppingCart, BookOpen } from "lucide-react";
+import { Apple, Loader2, Plus, Sparkles, Trash2, ArrowLeft, Target, ChefHat, ChevronDown, ShoppingCart, BookOpen, PlayCircle, RefreshCcw } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,7 +77,7 @@ function Nutrition() {
     } catch { toast.error("Couldn't fetch suggestions"); } finally { setSuggesting(false); }
   };
 
-  const generatePlan = async () => {
+  const generatePlan = async (overridePrompt?: string) => {
     setPlanning(true);
     let activeProfile = profile;
     try {
@@ -95,7 +95,7 @@ function Nutrition() {
         activeProfile = p;
       }
       const { data, error } = await supabase.functions.invoke("nutrition-coach", {
-        body: { action: "meal_plan", prompt: planPrompt || undefined },
+        body: { action: "meal_plan", prompt: overridePrompt || planPrompt || undefined },
       });
       const d: any = data;
       if (d?.error === "limit_reached") {
@@ -108,12 +108,17 @@ function Nutrition() {
         return;
       }
       setPlan(d);
+      if (d?.recommended_macros) setProfile((p: any) => p ? { ...p, macro_targets: d.recommended_macros } : p);
       setOpenDay(0);
-      toast.success(`${d.days.length}-day dietitian plan ready`);
+      toast.success(`${d.days.length}-day macro-matched plan ready`);
     } catch (e: any) {
       console.error(e);
       toast.error(e?.message || "Couldn't generate meal plan");
     } finally { setPlanning(false); }
+  };
+
+  const swapMeal = (meal: any) => {
+    generatePlan(`Swap ${meal.title} for a different allergy-safe meal with the same macros and a matching prep video.`);
   };
 
   const reviewDay = async () => {
