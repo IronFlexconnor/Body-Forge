@@ -98,30 +98,34 @@ Deno.serve(async (req) => {
       recipe_library: recipeLib ?? [],
     };
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: `${SYS}\n\n${EXPERT_KNOWLEDGE}` },
-          { role: "user", content: `Make the best positive adjustment(s) right now.\n\nCONTEXT:\n${JSON.stringify(ctx).slice(0, 60000)}` },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
-
-    if (!aiResp.ok) {
-      const t = await aiResp.text();
-      console.error("auto-adjust ai error", aiResp.status, t);
-      if (aiResp.status === 429) return new Response(JSON.stringify({ error: "Rate limit — try again in a moment." }), { status: 429, headers: cors });
-      if (aiResp.status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: cors });
-      return new Response(JSON.stringify({ error: "AI error" }), { status: 500, headers: cors });
+    let plan: any = null;
+    try {
+      const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: `${SYS}\n\n${EXPERT_KNOWLEDGE}` },
+            { role: "user", content: `Make the best positive adjustment(s) right now.\n\nCONTEXT:\n${JSON.stringify(ctx).slice(0, 60000)}` },
+          ],
+          response_format: { type: "json_object" },
+        }),
+      });
+      if (aiResp.ok) {
+        const aiJson = await aiResp.json();
+        try { plan = JSON.parse(aiJson.choices?.[0]?.message?.content ?? "{}"); } catch { plan = null; }
+      } else {
+        console.warn("auto-adjust ai non-ok", aiResp.status);
+      }
+    } catch (err) {
+      console.warn("auto-adjust ai threw", err);
     }
 
-    const aiJson = await aiResp.json();
-    let plan: any = {};
-    try { plan = JSON.parse(aiJson.choices?.[0]?.message?.content ?? "{}"); } catch { plan = {}; }
+    // Deterministic fallback so "Tune Now" always returns a useful tweak
+    if (!plan || typeof plan !== "object" || !("should_adjust" in plan)) {
+      plan = buildFallbackAdjustment(ctx);
+    }
 
     if (!plan.should_adjust) {
       return new Response(JSON.stringify({ should_adjust: false, summary: plan.summary || "Plan is on track — no changes needed." }), { headers: { ...cors, "Content-Type": "application/json" } });
