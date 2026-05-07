@@ -539,12 +539,6 @@ function Nutrition() {
           </div>
         )}
       </div>
-      <PaywallModal
-        open={paywall.open}
-        onClose={() => setPaywall({ open: false })}
-        reason={paywall.reason}
-        recommend={paywall.recommend ?? "pro"}
-      />
     </AppShell>
   );
 }
