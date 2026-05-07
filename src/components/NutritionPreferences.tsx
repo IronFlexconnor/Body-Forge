@@ -49,9 +49,11 @@ export const DEFAULT_NUTRITION: NutritionPrefs = {
 export function NutritionPreferencesForm({
   value,
   onChange,
+  weightUnitLabel = "lbs",
 }: {
   value: NutritionPrefs;
   onChange: (v: NutritionPrefs) => void;
+  weightUnitLabel?: string;
 }) {
   const toggle = (key: "diets" | "allergies", item: string) => {
     const set = new Set(value[key]);
@@ -61,6 +63,31 @@ export function NutritionPreferencesForm({
 
   return (
     <div className="space-y-6">
+      <section>
+        <h3 className="mb-3 text-sm font-semibold text-foreground">What is your main bodyweight goal?</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {BODYWEIGHT_GOALS.map((g) => {
+            const on = value.bodyweightGoal === g.id;
+            return (
+              <button key={g.id} type="button" onClick={() => onChange({ ...value, bodyweightGoal: g.id })}
+                className={cn("rounded-2xl border bg-gradient-card px-4 py-4 text-left transition-all",
+                  on ? "border-primary text-primary shadow-glow" : "border-border hover:border-primary/50")}>
+                <div className="text-sm font-semibold">{g.label}</div>
+                <div className="mt-0.5 text-[11px] text-muted-foreground">{g.sub}</div>
+              </button>
+            );
+          })}
+        </div>
+        <Input
+          type="number"
+          inputMode="decimal"
+          placeholder={`Target weight (${weightUnitLabel}) — optional`}
+          value={value.targetWeight ?? ""}
+          onChange={(e) => onChange({ ...value, targetWeight: e.target.value ? Number(e.target.value) : null })}
+          className="mt-3 h-12"
+        />
+      </section>
+
       <section>
         <h3 className="mb-3 text-sm font-semibold text-foreground">Dietary preferences</h3>
         <div className="flex flex-wrap gap-2">
