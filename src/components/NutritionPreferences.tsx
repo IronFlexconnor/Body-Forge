@@ -42,6 +42,8 @@ export const DEFAULT_NUTRITION: NutritionPrefs = {
   calorieGoal: null,
   mealsPerDay: 3,
   mealTiming: "",
+  bodyweightGoal: null,
+  targetWeight: null,
 };
 
 export function NutritionPreferencesForm({
