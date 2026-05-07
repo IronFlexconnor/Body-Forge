@@ -214,7 +214,9 @@ function Chat() {
             </div>
             <div>
               <div className="font-semibold leading-tight">Coach Forge</div>
-              <div className="text-xs text-muted-foreground">Online · Personalized to you</div>
+              <div className="text-xs text-muted-foreground">
+                {adjusting ? <span className="inline-flex items-center gap-1 text-primary"><Loader2 className="h-3 w-3 animate-spin" /> Updating your plan…</span> : "Online · Personalized to you"}
+              </div>
             </div>
           </div>
         </div>
