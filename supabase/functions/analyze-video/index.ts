@@ -9,7 +9,7 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const buildSys = (injuries: string | null, units: "imperial" | "metric") => {
+const buildSys = (injuries: string | null, units: "imperial" | "metric", goal: string, level: string) => {
   const wu = units === "imperial" ? "lbs" : "kg";
   return `You are an elite strength & conditioning coach + biomechanics specialist.
 Analyze exercise form from sequential video frames (or a single still photo) at the
