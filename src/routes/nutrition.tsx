@@ -68,17 +68,21 @@ function Nutrition() {
     } catch (e) { toast.error("Couldn't calculate macros"); } finally { setCalcing(false); }
   };
 
-  const suggestMeals = async () => {
+  const suggestMeals = async (preset?: string) => {
     setSuggesting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "suggest_meals" } });
+      const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "suggest_meals", prompt: preset } });
       const d: any = data;
       if (d?.error === "limit_reached") {
         setPaywall({ open: true, reason: d.message, recommend: "pro" });
         return;
       }
       if (error) throw error;
-      setSuggestions(d?.meals ?? []);
+      const m = d?.meals ?? [];
+      if (m.length === 0) { toast.error("No suggestions returned — try again."); return; }
+      setSuggestions(m);
+      toast.success(preset ? "Suggestion ready" : `${m.length} meal ideas ready`);
+      setTimeout(() => document.getElementById("coach-suggestions")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     } catch { toast.error("Couldn't fetch suggestions"); } finally { setSuggesting(false); }
   };
 
