@@ -206,6 +206,7 @@ function Onboarding() {
           <NutritionPreferencesForm
             value={data.nutrition ?? DEFAULT_NUTRITION}
             onChange={(v) => setData((d) => ({ ...d, nutrition: v }))}
+            weightUnitLabel={weightLabel(units)}
           />
         ),
       },
