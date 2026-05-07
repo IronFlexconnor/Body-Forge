@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
+import { AdjustmentsCard } from "@/components/AdjustmentsCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
