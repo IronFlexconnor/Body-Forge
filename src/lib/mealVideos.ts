@@ -145,7 +145,12 @@ export function videoForRecipe(opts: RecipeLike, offset = 0): MealVideoMeta {
 
 export function thumbForRecipe(opts: RecipeLike, offset = 0): string {
   const pick = pickVideo(opts, offset);
-  // hqdefault is 480x360 — sharp, mouth-watering thumbnails on every device.
+  // maxresdefault = 1280x720 crisp on retina; UI falls back to hqdefault on error.
+  return `https://i.ytimg.com/vi/${pick.id}/maxresdefault.jpg`;
+}
+
+export function thumbFallbackForRecipe(opts: RecipeLike, offset = 0): string {
+  const pick = pickVideo(opts, offset);
   return `https://i.ytimg.com/vi/${pick.id}/hqdefault.jpg`;
 }
 
