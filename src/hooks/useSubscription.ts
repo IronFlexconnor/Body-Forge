@@ -73,10 +73,15 @@ export function useSubscription() {
     return () => { supabase.removeChannel(channel); };
   }, [user, refetch]);
 
-  const isActive = deriveActive(sub);
-  const tier: PlanTier = isActive && sub?.price_id ? (PLAN_BY_PRICE[sub.price_id] ?? "free") : "free";
-  const isPro = isActive && (tier === "pro" || tier === "elite");
-  const isElite = isActive && tier === "elite";
+  // TEMP: Full free access for everyone during pre-launch development.
+  // Flip FORGE_FREE_ACCESS to false to restore real subscription gating.
+  const FORGE_FREE_ACCESS = true;
+  const isActive = FORGE_FREE_ACCESS ? true : deriveActive(sub);
+  const tier: PlanTier = FORGE_FREE_ACCESS
+    ? "elite"
+    : (isActive && sub?.price_id ? (PLAN_BY_PRICE[sub.price_id] ?? "free") : "free");
+  const isPro = FORGE_FREE_ACCESS ? true : (isActive && (tier === "pro" || tier === "elite"));
+  const isElite = FORGE_FREE_ACCESS ? true : (isActive && tier === "elite");
   const isTrialing = sub?.status === "trialing";
 
   return { sub, loading, isActive, tier, isPro, isElite, isTrialing, refetch };
