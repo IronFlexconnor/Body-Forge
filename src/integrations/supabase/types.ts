@@ -203,6 +203,7 @@ export type Database = {
           level: string | null
           macro_targets: Json | null
           name: string | null
+          nutrition_preferences: Json | null
           onboarded: boolean | null
           session_length: number | null
           timezone: string | null
@@ -228,6 +229,7 @@ export type Database = {
           level?: string | null
           macro_targets?: Json | null
           name?: string | null
+          nutrition_preferences?: Json | null
           onboarded?: boolean | null
           session_length?: number | null
           timezone?: string | null
@@ -253,6 +255,7 @@ export type Database = {
           level?: string | null
           macro_targets?: Json | null
           name?: string | null
+          nutrition_preferences?: Json | null
           onboarded?: boolean | null
           session_length?: number | null
           timezone?: string | null
