@@ -617,3 +617,47 @@ function Section({ title, children, tone }: { title: string; children: React.Rea
     </div>
   );
 }
+
+function SubScoreGrid({ scores }: { scores: SubScores }) {
+  const items: { key: keyof SubScores; label: string; icon: any }[] = [
+    { key: "posture", label: "Posture", icon: Activity },
+    { key: "joint_alignment", label: "Alignment", icon: Target },
+    { key: "tempo", label: "Tempo", icon: Activity },
+    { key: "symmetry", label: "Symmetry", icon: Activity },
+    { key: "stability", label: "Stability", icon: Activity },
+    { key: "range_of_motion", label: "ROM", icon: Activity },
+    { key: "power_transfer", label: "Power", icon: Zap },
+    { key: "injury_risk", label: "Safety", icon: ShieldAlert },
+    { key: "efficiency", label: "Efficiency", icon: Zap },
+    { key: "effectiveness", label: "Effectiveness", icon: Target },
+  ];
+  return (
+    <div className="mb-1 grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {items.map(({ key, label, icon: Icon }) => {
+        const v = scores[key] ?? 0;
+        const tone = v >= 85 ? "text-success" : v >= 70 ? "text-primary" : "text-warning";
+        const barColor = v >= 85 ? "bg-success" : v >= 70 ? "bg-primary" : "bg-warning";
+        return (
+          <div key={key} className="rounded-xl border border-border/60 bg-surface p-2.5">
+            <div className="mb-1 flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="flex items-center gap-1"><Icon className="h-3 w-3" />{label}</span>
+              <span className={cn("tabular-nums text-sm font-bold", tone)}>{v}</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-border/60">
+              <div className={cn("h-full transition-all", barColor)} style={{ width: `${v}%` }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function TempoCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-surface p-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="text-base font-bold tabular-nums text-primary">{value}</div>
+    </div>
+  );
+}
