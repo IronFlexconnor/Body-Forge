@@ -154,6 +154,19 @@ function Profile() {
           />
         </div>
 
+        <div className="mb-6 rounded-3xl border border-border/60 bg-gradient-card p-5 shadow-card">
+          <h3 className="mb-3 text-sm font-semibold">Nutrition preferences</h3>
+          <NutritionPreferencesForm
+            value={{ ...DEFAULT_NUTRITION, ...((p as any).nutrition_preferences ?? {}) }}
+            onChange={async (v) => {
+              if (!user) return;
+              const { error } = await supabase.from("profiles").update({ nutrition_preferences: v }).eq("user_id", user.id);
+              if (error) { toast.error("Could not save nutrition preferences"); return; }
+              setP({ ...p, nutrition_preferences: v });
+            }}
+          />
+        </div>
+
         <Section title="Training">
           <Row icon={Dumbbell} label="Current program" value={program?.name ?? "—"} />
           <Row icon={Heart} label="Days per week" value={`${p.days_per_week ?? 4}`} />
