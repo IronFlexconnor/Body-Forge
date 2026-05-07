@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Flame, Play, MessageCircle, TrendingUp, Activity, Heart, Zap, ChevronRight, Loader2, Apple, Check, Crown, Sparkles } from "lucide-react";
+import { Flame, Play, MessageCircle, TrendingUp, Activity, Heart, Zap, ChevronRight, Loader2, Apple, Check, Crown, Sparkles, Video, ChefHat, Dumbbell } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -99,6 +99,21 @@ function Home() {
           <Stat icon={Heart} value={readiness ? `${readiness}` : "—"} label="Readiness" />
           <Stat icon={Flame} value={`${stats.workouts}`} label="Total sessions" />
           <Stat icon={Activity} value={`${stats.weekDone}/${stats.weekTotal}`} label="This week" />
+        </div>
+
+        {/* One-tap quick actions */}
+        <div className="mb-5 grid grid-cols-4 gap-2">
+          <QuickAction to="/workouts" icon={Dumbbell} label="Log workout" />
+          <QuickAction to="/form" icon={Video} label="Record form" />
+          <QuickAction
+            icon={ChefHat}
+            label="New meals"
+            onClick={() => {
+              if (typeof window !== "undefined") sessionStorage.setItem("forge:open-regen", "1");
+              navigate({ to: "/nutrition" });
+            }}
+          />
+          <QuickAction to="/chat" icon={MessageCircle} label="Talk to Coach" />
         </div>
 
         {!checkin && (
@@ -291,4 +306,18 @@ function Card({ icon: Icon, title, value, sub }: { icon: typeof TrendingUp; titl
       <div className="mt-1 text-xs text-muted-foreground">{sub}</div>
     </div>
   );
+}
+
+function QuickAction({ to, onClick, icon: Icon, label }: { to?: string; onClick?: () => void; icon: typeof Heart; label: string }) {
+  const inner = (
+    <>
+      <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="text-[11px] font-semibold leading-tight text-center">{label}</span>
+    </>
+  );
+  const cls = "flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-gradient-card p-2.5 shadow-card hover:border-primary/40 active:scale-95 transition";
+  if (to) return <Link to={to} className={cls}>{inner}</Link>;
+  return <button onClick={onClick} className={cls}>{inner}</button>;
 }
