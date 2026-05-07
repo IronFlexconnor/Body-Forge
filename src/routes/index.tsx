@@ -213,10 +213,7 @@ function Home() {
         </div>
 
         <button
-          onClick={() => {
-            if (typeof window !== "undefined") sessionStorage.setItem("forge:open-regen", "1");
-            navigate({ to: "/nutrition" });
-          }}
+          onClick={() => navigate({ to: "/fresh-meals" })}
           className="group relative mt-4 flex w-full items-center gap-3 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-card p-4 text-left shadow-card hover:border-primary/60"
         >
           <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
