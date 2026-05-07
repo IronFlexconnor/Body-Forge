@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYS },
+          { role: "system", content: `${SYS}\n\n${EXPERT_KNOWLEDGE}` },
           { role: "user", content: `Make the best positive adjustment(s) right now.\n\nCONTEXT:\n${JSON.stringify(ctx).slice(0, 60000)}` },
         ],
         response_format: { type: "json_object" },
