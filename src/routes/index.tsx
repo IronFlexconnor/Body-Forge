@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Flame, Play, MessageCircle, TrendingUp, Activity, Heart, Zap, ChevronRight, Loader2, Apple, Check, Crown } from "lucide-react";
+import { Flame, Play, MessageCircle, TrendingUp, Activity, Heart, Zap, ChevronRight, Loader2, Apple, Check, Crown, Sparkles } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -135,6 +135,17 @@ function Home() {
             <p className="text-sm text-muted-foreground">No upcoming sessions. Open Coach to plan your next block.</p>
           </div>
         )}
+
+        <Link to="/form" className="mb-3 flex items-center gap-4 rounded-2xl border border-primary/30 bg-gradient-card p-4 shadow-card hover:border-primary/60">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold">Analyze my form</div>
+            <p className="truncate text-sm text-muted-foreground">Video or photo · graded in seconds</p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+        </Link>
 
         <Link to="/chat" className="mb-6 flex items-center gap-4 rounded-2xl border border-border/60 bg-gradient-card p-4 shadow-card hover:border-primary/40">
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">
