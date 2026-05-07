@@ -574,6 +574,30 @@ function Nutrition() {
           </div>
         )}
       </div>
+
+      {/* Floating Regenerate Meals button */}
+      <button
+        onClick={() => openRegen()}
+        className="fixed bottom-24 right-5 z-30 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-gradient-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-glow hover:scale-105 active:scale-95 transition"
+        aria-label="Regenerate meals"
+      >
+        <Wand2 className="h-4 w-4" /> Regenerate
+      </button>
+
+      <MealRegenerationModal
+        open={regenOpen}
+        onClose={() => setRegenOpen(false)}
+        initialPrompt={regenPrompt}
+        userAllergens={profile?.nutrition_preferences?.allergies ?? []}
+        userDiets={profile?.nutrition_preferences?.diets ?? []}
+        macroTargets={profile?.macro_targets ?? null}
+        onSwapped={async () => {
+          if (!user) return;
+          const since = new Date(); since.setHours(0, 0, 0, 0);
+          const { data: m } = await supabase.from("meal_logs").select("*").eq("user_id", user.id).gte("eaten_at", since.toISOString()).order("eaten_at", { ascending: false });
+          setMeals((m ?? []) as Meal[]);
+        }}
+      />
     </AppShell>
   );
 }
