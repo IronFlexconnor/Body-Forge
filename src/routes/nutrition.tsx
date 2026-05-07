@@ -83,6 +83,13 @@ function Nutrition() {
         sessionStorage.removeItem("forge:autogen-plan");
         setTimeout(() => generatePlan(), 200);
       }
+      if (typeof window !== "undefined") {
+        const regenFlag = sessionStorage.getItem("forge:open-regen");
+        if (regenFlag) {
+          sessionStorage.removeItem("forge:open-regen");
+          setTimeout(() => openRegen(regenFlag === "1" ? undefined : regenFlag), 250);
+        }
+      }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, loading, navigate]);
