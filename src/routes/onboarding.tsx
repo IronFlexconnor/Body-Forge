@@ -382,3 +382,29 @@ function Slider({ label, value, min, max, step = 1, onChange, suffix }: { label:
     </div>
   );
 }
+
+function GoalGrid({ value, onSelect }: { value?: string; onSelect: (v: string) => void }) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {GOAL_CARDS.map((g) => {
+        const on = value === g.title;
+        return (
+          <button
+            key={g.id}
+            type="button"
+            onClick={() => onSelect(g.title)}
+            className={cn(
+              "rounded-2xl border bg-gradient-to-br p-4 text-left transition-all active:scale-[0.98]",
+              g.accent,
+              on ? "border-primary shadow-glow" : "border-border/60 hover:border-primary/50",
+            )}
+          >
+            <div className="text-3xl">{g.emoji}</div>
+            <div className="mt-2 text-sm font-bold leading-tight">{g.title}</div>
+            <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{g.blurb}</p>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
