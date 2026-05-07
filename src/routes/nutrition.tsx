@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PaywallModal } from "@/components/PaywallModal";
+import { buildMealPlan, calculateMacroTargets } from "../../supabase/functions/nutrition-coach/planner";
 
 export const Route = createFileRoute("/nutrition")({
   head: () => ({ meta: [{ title: "Nutrition — Body Forge" }] }),
@@ -35,6 +36,26 @@ async function invokeNutritionCoach(body: Record<string, unknown>) {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
   return { data, error };
+}
+
+function suggestedMealsFromPlan(plan: any, preset?: string) {
+  const text = String(preset ?? "").toLowerCase();
+  let meals = [...(plan.days?.[0]?.meals ?? [])];
+  if (text.includes("high-protein")) meals = meals.sort((a, b) => Number(b.protein_g) - Number(a.protein_g)).slice(0, 3);
+  else if (text.includes("post-workout")) meals = meals.filter((m) => /snack|post|lunch/i.test(String(m.slot))).slice(0, 3);
+  else if (text.includes("swap")) meals = (plan.days?.slice(1).flatMap((d: any) => d.meals ?? []) ?? []).slice(0, 3);
+  else meals = meals.slice(0, 4);
+  return meals.map((meal: any) => ({
+    name: meal.slot,
+    title: meal.title,
+    calories: meal.calories,
+    protein_g: meal.protein_g,
+    carbs_g: meal.carbs_g,
+    fat_g: meal.fat_g,
+    ingredients: meal.ingredients_with_units,
+    prep: meal.instructions?.join(" "),
+    prep_video: meal.prep_video,
+  }));
 }
 
 function Nutrition() {
