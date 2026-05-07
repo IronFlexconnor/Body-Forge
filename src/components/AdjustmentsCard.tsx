@@ -53,18 +53,27 @@ export function AdjustmentsCard() {
   const generate = async () => {
     setBusyId("gen");
     const { data, error } = await supabase.functions.invoke("auto-adjust", {
-      body: { trigger: "manual" },
+      body: { trigger: "manual", auto_apply: true },
     });
     setBusyId(null);
     if (error || (data as any)?.error) {
-      toast.error((data as any)?.error || error?.message || "Could not generate");
+      toast.error((data as any)?.error || error?.message || "Could not tune right now");
       return;
     }
-    if (!(data as any)?.should_adjust) {
-      toast.success((data as any)?.summary ?? "Plan is on track — no changes needed.");
+    const d: any = data ?? {};
+    if (!d.should_adjust) {
+      toast.success(d.summary ?? "Plan is on track — no changes needed.");
       return;
     }
-    toast.success("New adjustment ready to review");
+    const tChanges: string[] = d?.training?.changes ?? [];
+    const nChanges: string[] = d?.nutrition?.changes ?? [];
+    const all = [...tChanges, ...nChanges].slice(0, 4);
+    toast.success(d.summary ?? "Plan tuned ✨", {
+      description: all.length
+        ? `Here's what I just tuned for you:\n• ${all.join("\n• ")}`
+        : "Applied to your next session and macros.",
+      duration: 8000,
+    });
     load();
   };
 
