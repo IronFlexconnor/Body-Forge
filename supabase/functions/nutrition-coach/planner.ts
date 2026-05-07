@@ -423,7 +423,7 @@ function smartSubstitutions(np: Record<string, any>) {
 }
 
 function dailyTotals(meals: Array<Record<string, any>>): MacroTargets {
-  return meals.reduce((acc, meal) => ({
+  return meals.reduce<MacroTargets>((acc, meal) => ({
     calories: acc.calories + Math.round(n(meal.calories, 0)),
     protein_g: acc.protein_g + Math.round(n(meal.protein_g, 0)),
     carbs_g: acc.carbs_g + Math.round(n(meal.carbs_g, 0)),

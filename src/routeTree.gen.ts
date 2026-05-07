@@ -23,6 +23,7 @@ import { Route as BodyRouteImport } from './routes/body'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as AdminMealTestRouteImport } from './routes/admin.meal-test'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const WorkoutsRoute = WorkoutsRouteImport.update({
@@ -95,6 +96,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminMealTestRoute = AdminMealTestRouteImport.update({
+  id: '/admin/meal-test',
+  path: '/admin/meal-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
     id: '/api/public/payments/webhook',
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/progress': typeof ProgressRoute
   '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
+  '/admin/meal-test': typeof AdminMealTestRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/progress': typeof ProgressRoute
   '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
+  '/admin/meal-test': typeof AdminMealTestRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/progress': typeof ProgressRoute
   '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
+  '/admin/meal-test': typeof AdminMealTestRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/progress'
     | '/welcome'
     | '/workouts'
+    | '/admin/meal-test'
     | '/checkout/return'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/progress'
     | '/welcome'
     | '/workouts'
+    | '/admin/meal-test'
     | '/checkout/return'
     | '/api/public/payments/webhook'
   id:
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/progress'
     | '/welcome'
     | '/workouts'
+    | '/admin/meal-test'
     | '/checkout/return'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
@@ -222,6 +234,7 @@ export interface RootRouteChildren {
   ProgressRoute: typeof ProgressRoute
   WelcomeRoute: typeof WelcomeRoute
   WorkoutsRoute: typeof WorkoutsRoute
+  AdminMealTestRoute: typeof AdminMealTestRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -326,6 +339,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/meal-test': {
+      id: '/admin/meal-test'
+      path: '/admin/meal-test'
+      fullPath: '/admin/meal-test'
+      preLoaderRoute: typeof AdminMealTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -350,6 +370,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProgressRoute: ProgressRoute,
   WelcomeRoute: WelcomeRoute,
   WorkoutsRoute: WorkoutsRoute,
+  AdminMealTestRoute: AdminMealTestRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
