@@ -48,7 +48,7 @@ function FormAnalysis() {
   const [exercise, setExercise] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<{ id?: string; analysis: Analysis; mediaUrl?: string } | null>(null);
+  const [result, setResult] = useState<{ id?: string; analysis: Analysis; mediaUrl?: string; mediaKind?: "video" | "photo" } | null>(null);
   const [paywall, setPaywall] = useState<{ open: boolean; reason?: string }>({ open: false });
 
   const videoCaptureRef = useRef<HTMLInputElement>(null);
@@ -102,7 +102,7 @@ function FormAnalysis() {
       }
       if (error) throw error;
       setProgress(100);
-      setResult({ id: d?.id, analysis: d?.analysis ?? {}, mediaUrl: localPreview });
+      setResult({ id: d?.id, analysis: d?.analysis ?? {}, mediaUrl: localPreview, mediaKind: kind });
       toast.success("Form analysis ready");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Analysis failed");
@@ -347,8 +347,11 @@ function ResultCard({ result, exercise, onReset, onApplyFix }:
     <div className="space-y-4">
       {result.mediaUrl && (
         <div className="overflow-hidden rounded-3xl border border-border/60 bg-black">
-          {result.mediaUrl.match(/\.(jpe?g|png|webp)$/i) || !result.mediaUrl.startsWith("blob:") ? null : null}
-          <video src={result.mediaUrl} controls playsInline className="aspect-video w-full bg-black object-contain" />
+          {result.mediaKind === "photo" ? (
+            <img src={result.mediaUrl} alt="Your form" className="aspect-video w-full bg-black object-contain" />
+          ) : (
+            <video src={result.mediaUrl} controls playsInline className="aspect-video w-full bg-black object-contain" />
+          )}
         </div>
       )}
 
