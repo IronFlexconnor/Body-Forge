@@ -9,6 +9,7 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { thumbForRecipe, thumbFallbackForRecipe, videoForRecipe } from "@/lib/mealVideos";
 import { useFavorites } from "@/lib/favorites";
+import { logPlanChangeToCoach } from "@/lib/coachSync";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/fresh-meals")({
@@ -290,6 +291,7 @@ function FreshMealsPage() {
     setSeedOffset((n) => n + 1);
     setOverrides({});
     toast.success("Fresh plan served — same macro shape, brand-new variety");
+    logPlanChangeToCoach("Regenerated today's full meal plan (Surprise Me) — keeping macros aligned. Please factor this into future coaching.");
   };
 
   const swapIntoPlan = (r: Recipe) => {
@@ -300,6 +302,7 @@ function FreshMealsPage() {
       sessionStorage.setItem("forge:open-regen", `swap ${r.title} into today's plan with similar macros`);
     }
     toast.success(`${r.title} swapped in — shopping list updated`);
+    logPlanChangeToCoach(`Swapped ${slot?.label ?? "a meal"} to "${r.title}" (${r.calories} kcal · ${Math.round(r.protein_g)}P/${Math.round(r.carbs_g)}C/${Math.round(r.fat_g)}F). Shopping list updated.`);
   };
 
   const addToWeek = (r: Recipe) => {
@@ -307,6 +310,7 @@ function FreshMealsPage() {
       sessionStorage.setItem("forge:open-regen", `add ${r.title} to this week's meal plan`);
     }
     toast.success(`Added ${r.title} to this week`);
+    logPlanChangeToCoach(`Added "${r.title}" to this week's plan (${r.calories} kcal · ${Math.round(r.protein_g)}g protein).`);
     navigate({ to: "/nutrition" });
   };
 
@@ -447,6 +451,14 @@ function FreshMealsPage() {
             setSeedOffset((n) => n + 1);
             setRegenOpen(false);
             toast.success("New daily plan generated for your picks");
+            const bits: string[] = [];
+            if (p.cuisines.length) bits.push(`cuisines: ${p.cuisines.join(", ")}`);
+            if (p.prepTime !== "any") bits.push(`prep: ${PREP_TIMES.find((x) => x.key === p.prepTime)?.label}`);
+            if (p.dietary.length) bits.push(`dietary: ${p.dietary.join(", ")}`);
+            if (p.mood) bits.push(`mood: ${MOODS.find((m) => m.key === p.mood)?.label}`);
+            logPlanChangeToCoach(
+              `Regenerated today's meal plan with preferences — ${bits.length ? bits.join(" · ") : "no specific filters"}. Macros kept aligned with current targets.`,
+            );
           }}
         />
       )}
