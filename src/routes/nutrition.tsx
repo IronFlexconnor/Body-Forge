@@ -75,6 +75,24 @@ function Nutrition() {
     } catch { toast.error("Couldn't fetch suggestions"); } finally { setSuggesting(false); }
   };
 
+  const generatePlan = async () => {
+    setPlanning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nutrition-coach", {
+        body: { action: "meal_plan", prompt: planPrompt || undefined },
+      });
+      const d: any = data;
+      if (d?.error === "limit_reached") {
+        setPaywall({ open: true, reason: d.message, recommend: "pro" });
+        return;
+      }
+      if (error) throw error;
+      setPlan(d);
+      setOpenDay(0);
+      toast.success("Your training-synced meal plan is ready");
+    } catch { toast.error("Couldn't generate meal plan"); } finally { setPlanning(false); }
+  };
+
   const reviewDay = async () => {
     setReviewing(true);
     try {
