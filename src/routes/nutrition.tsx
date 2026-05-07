@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { PaywallModal } from "@/components/PaywallModal";
+import { buildMealPlan, calculateMacroTargets, reviewLoggedMeals } from "../../supabase/functions/nutrition-coach/planner";
 
 export const Route = createFileRoute("/nutrition")({
   head: () => ({ meta: [{ title: "Nutrition — Body Forge" }] }),
@@ -17,14 +17,29 @@ export const Route = createFileRoute("/nutrition")({
 type Macros = { calories: number; protein_g: number; carbs_g: number; fat_g: number };
 type Meal = { id: string; name: string; calories: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null; eaten_at: string };
 
-function isNutritionLimit(data: unknown) {
-  const d = data as { error?: string; code?: string } | null;
-  return d?.error === "limit_reached" || d?.code === "nutrition_pro_only";
-}
-
 function nutritionErrorMessage(error: unknown, fallback: string) {
   const message = error instanceof Error ? error.message : String(error ?? "");
   return message.includes("non-2xx") || message.includes("FunctionsHttpError") ? fallback : message || fallback;
+}
+
+function suggestedMealsFromPlan(plan: any, preset?: string) {
+  const text = String(preset ?? "").toLowerCase();
+  let meals = [...(plan.days?.[0]?.meals ?? [])];
+  if (text.includes("high-protein")) meals = meals.sort((a, b) => Number(b.protein_g) - Number(a.protein_g)).slice(0, 3);
+  else if (text.includes("post-workout")) meals = meals.filter((m) => /snack|post|lunch/i.test(String(m.slot))).slice(0, 3);
+  else if (text.includes("swap")) meals = (plan.days?.slice(1).flatMap((d: any) => d.meals ?? []) ?? []).slice(0, 3);
+  else meals = meals.slice(0, 4);
+  return meals.map((meal: any) => ({
+    name: meal.slot,
+    title: meal.title,
+    calories: meal.calories,
+    protein_g: meal.protein_g,
+    carbs_g: meal.carbs_g,
+    fat_g: meal.fat_g,
+    ingredients: meal.ingredients_with_units,
+    prep: meal.instructions?.join(" "),
+    prep_video: meal.prep_video,
+  }));
 }
 
 function Nutrition() {
@@ -40,7 +55,6 @@ function Nutrition() {
   const [review, setReview] = useState<any>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [form, setForm] = useState({ name: "", calories: "", protein_g: "", carbs_g: "", fat_g: "" });
-  const [paywall, setPaywall] = useState<{ open: boolean; reason?: string; recommend?: "pro" | "elite" }>({ open: false });
   const [planning, setPlanning] = useState(false);
   const [plan, setPlan] = useState<any>(null);
   const [planPrompt, setPlanPrompt] = useState("");
@@ -70,10 +84,10 @@ function Nutrition() {
   const calcMacros = async () => {
     setCalcing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "calc_macros" } });
-      if (error) throw error;
-      const { data: p } = await supabase.from("profiles").select("*").eq("user_id", user!.id).maybeSingle();
-      setProfile(p);
+      const nutritionPrefs = profile?.nutrition_preferences ?? {};
+      const data = calculateMacroTargets(profile ?? {}, nutritionPrefs, null, []);
+      if (user) await supabase.from("profiles").update({ macro_targets: data }).eq("user_id", user.id);
+      setProfile((p: any) => p ? { ...p, macro_targets: data } : p);
       toast.success(`Targets set: ${data.calories} kcal · ${data.protein_g}g protein`);
     } catch (e) { toast.error(nutritionErrorMessage(e, "Couldn't calculate macros — open Nutrition again after your profile loads.")); } finally { setCalcing(false); }
   };
@@ -81,14 +95,15 @@ function Nutrition() {
   const suggestMeals = async (preset?: string) => {
     setSuggesting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "suggest_meals", prompt: preset } });
-      const d: any = data;
-      if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
-        setPaywall({ open: true, reason: d?.message || "Personalized meal suggestions are part of Pro Coach.", recommend: "pro" });
-        return;
+      const activeProfile = profile ?? {};
+      const nutritionPrefs = activeProfile?.nutrition_preferences ?? {};
+      const targets = activeProfile?.macro_targets ?? calculateMacroTargets(activeProfile, nutritionPrefs, null, []);
+      if (!activeProfile?.macro_targets && user) {
+        await supabase.from("profiles").update({ macro_targets: targets }).eq("user_id", user.id);
+        setProfile((p: any) => p ? { ...p, macro_targets: targets } : p);
       }
-      if (error) throw error;
-      const m = d?.meals ?? [];
+      const localPlan = buildMealPlan({ profile: { ...activeProfile, macro_targets: targets }, nutritionPrefs, program: null, upcoming: [], prompt: preset }, targets);
+      const m = suggestedMealsFromPlan(localPlan, preset);
       if (m.length === 0) { toast.error("No suggestions returned — try again."); return; }
       setSuggestions(m);
       toast.success(preset ? "Suggestion ready" : `${m.length} meal ideas ready`);
@@ -102,26 +117,17 @@ function Nutrition() {
     try {
       if (!activeProfile?.macro_targets) {
         toast.loading("Calculating your macro targets…", { id: "macros" });
-        const { data: mData, error: mErr } = await supabase.functions.invoke("nutrition-coach", { body: { action: "calc_macros" } });
+        const nutritionPrefs = activeProfile?.nutrition_preferences ?? {};
+        const mData = calculateMacroTargets(activeProfile ?? {}, nutritionPrefs, null, []);
         toast.dismiss("macros");
-        if (mErr) throw mErr;
-        if (isNutritionLimit(mData)) {
-          setPaywall({ open: true, reason: (mData as any).message, recommend: "pro" });
-          return;
-        }
+        if (user) await supabase.from("profiles").update({ macro_targets: mData }).eq("user_id", user.id);
         const { data: p } = await supabase.from("profiles").select("*").eq("user_id", user!.id).maybeSingle();
-        setProfile(p);
-        activeProfile = p;
+        activeProfile = p ?? { ...activeProfile, macro_targets: mData };
+        setProfile(activeProfile);
       }
-      const { data, error } = await supabase.functions.invoke("nutrition-coach", {
-        body: { action: "meal_plan", prompt: overridePrompt || planPrompt || undefined },
-      });
-      const d: any = data;
-      if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
-        setPaywall({ open: true, reason: d?.message || "Personalized meal plans are part of Pro Coach.", recommend: "pro" });
-        return;
-      }
-      if (error) throw error;
+      const nutritionPrefs = activeProfile?.nutrition_preferences ?? {};
+      const targets = activeProfile?.macro_targets ?? calculateMacroTargets(activeProfile ?? {}, nutritionPrefs, null, []);
+      const d: any = buildMealPlan({ profile: { ...activeProfile, macro_targets: targets }, nutritionPrefs, program: null, upcoming: [], prompt: overridePrompt || planPrompt || undefined }, targets);
       if (!d?.days?.length) {
         toast.error("The plan came back incomplete — please try again.");
         return;
@@ -143,13 +149,9 @@ function Nutrition() {
   const reviewDay = async () => {
     setReviewing(true);
     try {
-      const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "review_day" } });
-      const d: any = data;
-      if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
-        setPaywall({ open: true, reason: d?.message || "Nutrition coaching reviews are part of Pro Coach.", recommend: "pro" });
-        return;
-      }
-      if (error) throw error;
+      const nutritionPrefs = profile?.nutrition_preferences ?? {};
+      const targets = profile?.macro_targets ?? calculateMacroTargets(profile ?? {}, nutritionPrefs, null, []);
+      const d = reviewLoggedMeals(meals, targets);
       setReview(d);
     } catch (e) { toast.error(nutritionErrorMessage(e, "Couldn't generate review — please try again.")); } finally { setReviewing(false); }
   };
@@ -537,12 +539,6 @@ function Nutrition() {
           </div>
         )}
       </div>
-      <PaywallModal
-        open={paywall.open}
-        onClose={() => setPaywall({ open: false })}
-        reason={paywall.reason}
-        recommend={paywall.recommend ?? "pro"}
-      />
     </AppShell>
   );
 }
