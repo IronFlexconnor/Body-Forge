@@ -268,7 +268,7 @@ function Nutrition() {
         )}
 
         {suggestions.length > 0 && (
-          <div className="mb-5">
+          <div id="coach-suggestions" className="mb-5">
             <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Coach suggestions</h3>
             <div className="space-y-2">
               {suggestions.map((s, i) => (
