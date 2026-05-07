@@ -545,15 +545,39 @@ function ResultCard({ result, exercise, onReset, onApplyFix }:
           </Section>
         )}
 
-        {a.next_session_adjustment && (
+        {!!a.plan_adjustments?.length && (
+          <Section title="Plan adjustments Coach is making" tone="primary">
+            <div className="space-y-2">
+              {a.plan_adjustments.map((p, i) => (
+                <div key={i} className="rounded-xl border border-primary/20 bg-primary/5 p-3">
+                  <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
+                    <Zap className="h-3 w-3" /> {p.type}
+                  </div>
+                  <div className="text-sm font-semibold">{p.change}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground"><span className="font-semibold text-foreground/80">Why:</span> {p.reason}</div>
+                  {p.expected_benefit && <div className="mt-0.5 text-xs text-muted-foreground"><span className="font-semibold text-foreground/80">Benefit:</span> {p.expected_benefit}</div>}
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
+
+        {(a.next_session_adjustment || a.plan_adjustments?.length) && (
           <div className="mt-4 rounded-2xl border border-primary/30 bg-primary/5 p-4">
             <div className="mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
               <TrendingUp className="h-3.5 w-3.5" /> Next session
             </div>
-            <p className="text-sm">{a.next_session_adjustment}</p>
+            {a.next_session_adjustment && <p className="text-sm">{a.next_session_adjustment}</p>}
             <Button onClick={onApplyFix} className="mt-3 h-11 w-full rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow">
-              <Check className="mr-2 h-4 w-4" /> Apply this fix to today's workout
+              <Check className="mr-2 h-4 w-4" /> Apply across upcoming workouts
             </Button>
+          </div>
+        )}
+
+        {a.encouragement && (
+          <div className="mt-3 flex items-start gap-2 rounded-2xl border border-success/30 bg-success/5 p-3 text-sm">
+            <Heart className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+            <span>{a.encouragement}</span>
           </div>
         )}
       </div>
