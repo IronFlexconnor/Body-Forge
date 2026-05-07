@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Sparkles, Video, MessageCircle, ChefHat, ChevronRight, Check, Zap, Heart } from "lucide-react";
+import { Sparkles, Video, MessageCircle, ChefHat, ChevronRight, Check, Zap, Heart, Play, Flame, TrendingUp, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/welcome")({
