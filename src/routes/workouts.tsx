@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Play, Calendar, Plus, Minus, Check, Loader2, X, Sparkles } from "lucide-react";
+import { Play, Calendar, Plus, Minus, Check, Loader2, X, Sparkles, Target } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DEFAULT_WEIGHT_UNIT, unitsToWeightUnit, type WeightUnit } from "@/lib/units";
+import { GoalSelector } from "@/components/GoalSelector";
 
 export const Route = createFileRoute("/workouts")({
   head: () => ({ meta: [{ title: "Workouts — Body Forge" }] }),
@@ -24,18 +25,27 @@ function Workouts() {
   const [upcoming, setUpcoming] = useState<Workout[]>([]);
   const [active, setActive] = useState<Workout | null>(null);
   const [busy, setBusy] = useState(true);
+  const [showGoals, setShowGoals] = useState(false);
+  const [currentGoal, setCurrentGoal] = useState<string | null>(null);
+
+  const refresh = async () => {
+    if (!user) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const [{ data: ws }, { data: prof }] = await Promise.all([
+      supabase.from("workouts").select("*")
+        .eq("user_id", user.id).gte("scheduled_date", today).neq("status", "completed")
+        .order("scheduled_date", { ascending: true }).limit(7),
+      supabase.from("profiles").select("goal").eq("user_id", user.id).maybeSingle(),
+    ]);
+    setUpcoming((ws ?? []) as any);
+    setCurrentGoal(prof?.goal ?? null);
+    setBusy(false);
+  };
 
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate({ to: "/auth" }); return; }
-    (async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const { data } = await supabase.from("workouts").select("*")
-        .eq("user_id", user.id).gte("scheduled_date", today).neq("status", "completed")
-        .order("scheduled_date", { ascending: true }).limit(7);
-      setUpcoming((data ?? []) as any);
-      setBusy(false);
-    })();
+    refresh();
   }, [user, loading, navigate]);
 
   if (loading || busy) return <AppShell><div className="grid min-h-dvh place-items-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div></AppShell>;
@@ -55,6 +65,27 @@ function Workouts() {
           <Button size="icon" variant="outline" className="h-10 w-10 rounded-full border-border bg-surface">
             <Calendar className="h-4 w-4" />
           </Button>
+        </div>
+
+        <div className="mb-5 rounded-2xl border border-primary/30 bg-gradient-card p-4 shadow-card">
+          <div className="flex items-center gap-3">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow">
+              <Target className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-primary">Current goal</div>
+              <div className="font-semibold leading-tight truncate">{currentGoal ?? "Pick a goal"}</div>
+            </div>
+            <Button onClick={() => setShowGoals((s) => !s)} size="sm" className="h-9 rounded-full bg-gradient-primary text-xs font-semibold text-primary-foreground shadow-glow">
+              <Sparkles className="mr-1 h-3.5 w-3.5" /> Optimize
+            </Button>
+          </div>
+          {showGoals && (
+            <div className="mt-4">
+              <p className="mb-3 text-xs text-muted-foreground">Tap a goal — Coach instantly rebuilds your program around it.</p>
+              <GoalSelector compact onBuilt={() => { setShowGoals(false); refresh(); }} />
+            </div>
+          )}
         </div>
 
         {today ? (

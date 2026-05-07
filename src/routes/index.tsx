@@ -11,6 +11,7 @@ import { AdjustmentsCard } from "@/components/AdjustmentsCard";
 import { DailyFreshPicks } from "@/components/DailyFreshPicks";
 import { InsightsCarousel } from "@/components/InsightsCarousel";
 import { celebrate } from "@/lib/celebrate";
+import { GoalSelector } from "@/components/GoalSelector";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -166,6 +167,8 @@ function Home() {
         )}
 
         <AdjustmentsCard />
+
+        <GoalCarousel currentGoal={profile?.goal} onBuilt={() => navigate({ to: "/workouts" })} />
 
         <DailyFreshPicks />
 
@@ -334,4 +337,22 @@ function QuickAction({ to, onClick, icon: Icon, label }: { to?: string; onClick?
   const cls = "flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-gradient-card p-2.5 shadow-card hover:border-primary/40 active:scale-95 transition";
   if (to) return <Link to={to} className={cls}>{inner}</Link>;
   return <button onClick={onClick} className={cls}>{inner}</button>;
+}
+
+function GoalCarousel({ currentGoal, onBuilt }: { currentGoal?: string | null; onBuilt: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mb-6 rounded-3xl border border-primary/30 bg-gradient-card p-5 shadow-card">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-primary">Choose your next goal</div>
+          <div className="font-bold truncate">{currentGoal ? `Currently: ${currentGoal}` : "Pick a goal — Coach builds the program"}</div>
+        </div>
+        <Button onClick={() => setOpen((s) => !s)} size="sm" className="h-9 shrink-0 rounded-full bg-gradient-primary text-xs font-semibold text-primary-foreground shadow-glow">
+          <Sparkles className="mr-1 h-3.5 w-3.5" /> Optimize
+        </Button>
+      </div>
+      {open && <GoalSelector compact onBuilt={() => { setOpen(false); onBuilt(); }} />}
+    </div>
+  );
 }

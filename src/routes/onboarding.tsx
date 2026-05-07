@@ -20,6 +20,7 @@ import {
   weightLabel,
   toMetricWeight,
 } from "@/lib/units";
+import { GOAL_CARDS } from "@/components/GoalSelector";
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -172,8 +173,8 @@ function Onboarding() {
         ) },
       { title: "Your experience level", subtitle: "Be honest — your coach adapts every week.", valid: !!data.level,
         body: <ChipsLarge options={levels} value={data.level} onSelect={(v) => update("level", v)} /> },
-      { title: "What's your #1 goal?", subtitle: "We'll architect your program around this.", valid: !!data.goal,
-        body: <ChipsLarge options={goals} value={data.goal} onSelect={(v) => update("goal", v)} /> },
+      { title: "What's your #1 goal?", subtitle: "Pick a goal — Coach designs the whole program around it.", valid: !!data.goal,
+        body: <GoalGrid value={data.goal} onSelect={(v) => update("goal", v)} /> },
       { title: "Your schedule", subtitle: "Quality over quantity — every session counts.", valid: true,
         body: (
           <div className="space-y-6">
@@ -378,6 +379,32 @@ function Slider({ label, value, min, max, step = 1, onChange, suffix }: { label:
       </div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))}
         className="h-2 w-full cursor-pointer appearance-none rounded-full bg-surface accent-[oklch(0.78_0.17_165)]" />
+    </div>
+  );
+}
+
+function GoalGrid({ value, onSelect }: { value?: string; onSelect: (v: string) => void }) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {GOAL_CARDS.map((g) => {
+        const on = value === g.title;
+        return (
+          <button
+            key={g.id}
+            type="button"
+            onClick={() => onSelect(g.title)}
+            className={cn(
+              "rounded-2xl border bg-gradient-to-br p-4 text-left transition-all active:scale-[0.98]",
+              g.accent,
+              on ? "border-primary shadow-glow" : "border-border/60 hover:border-primary/50",
+            )}
+          >
+            <div className="text-3xl">{g.emoji}</div>
+            <div className="mt-2 text-sm font-bold leading-tight">{g.title}</div>
+            <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{g.blurb}</p>
+          </button>
+        );
+      })}
     </div>
   );
 }
