@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Apple, Loader2, Plus, Sparkles, Trash2, ArrowLeft, Target } from "lucide-react";
+import { Apple, Loader2, Plus, Sparkles, Trash2, ArrowLeft, Target, ChefHat, ChevronDown, ShoppingCart, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +31,11 @@ function Nutrition() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [form, setForm] = useState({ name: "", calories: "", protein_g: "", carbs_g: "", fat_g: "" });
   const [paywall, setPaywall] = useState<{ open: boolean; reason?: string; recommend?: "pro" | "elite" }>({ open: false });
+  const [planning, setPlanning] = useState(false);
+  const [plan, setPlan] = useState<any>(null);
+  const [planPrompt, setPlanPrompt] = useState("");
+  const [openDay, setOpenDay] = useState<number | null>(0);
+  const [openPrep, setOpenPrep] = useState<string | null>(null);
 
   useEffect(() => {
     if (loading) return;
@@ -68,6 +73,24 @@ function Nutrition() {
       if (error) throw error;
       setSuggestions(d?.meals ?? []);
     } catch { toast.error("Couldn't fetch suggestions"); } finally { setSuggesting(false); }
+  };
+
+  const generatePlan = async () => {
+    setPlanning(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nutrition-coach", {
+        body: { action: "meal_plan", prompt: planPrompt || undefined },
+      });
+      const d: any = data;
+      if (d?.error === "limit_reached") {
+        setPaywall({ open: true, reason: d.message, recommend: "pro" });
+        return;
+      }
+      if (error) throw error;
+      setPlan(d);
+      setOpenDay(0);
+      toast.success("Your training-synced meal plan is ready");
+    } catch { toast.error("Couldn't generate meal plan"); } finally { setPlanning(false); }
   };
 
   const reviewDay = async () => {
@@ -205,6 +228,126 @@ function Nutrition() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* AI Meal Plan synced with training */}
+        <div className="mb-5 rounded-3xl border border-primary/20 bg-gradient-card p-5 shadow-card">
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+            <ChefHat className="h-3 w-3" /> Training-synced meal plan
+          </div>
+          <p className="mb-3 text-sm text-muted-foreground">7-day plan with recipes, macros, and a meal-prep library — automatically matched to this week's training and your allergies.</p>
+          <Input
+            placeholder='Optional request — e.g. "high-protein for push-pull-legs" or "no eggs this week"'
+            value={planPrompt}
+            onChange={(e) => setPlanPrompt(e.target.value)}
+            className="mb-3 h-11"
+          />
+          <Button onClick={generatePlan} disabled={planning} className="h-11 w-full rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow">
+            {planning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            {plan ? "Regenerate plan" : "Generate my meal plan"}
+          </Button>
+        </div>
+
+        {plan && (
+          <div className="mb-6 space-y-3">
+            {plan.summary && <p className="rounded-2xl border border-border/60 bg-surface p-3 text-sm text-muted-foreground">{plan.summary}</p>}
+
+            {plan.shopping_list?.length > 0 && (
+              <details className="rounded-2xl border border-border/60 bg-gradient-card p-4 shadow-card">
+                <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold">
+                  <ShoppingCart className="h-4 w-4 text-primary" /> Weekly shopping list
+                </summary>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {plan.shopping_list.map((c: any, i: number) => (
+                    <div key={i}>
+                      <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-primary">{c.category}</div>
+                      <ul className="space-y-0.5 text-sm text-muted-foreground">
+                        {c.items?.map((it: string, j: number) => <li key={j}>· {it}</li>)}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+
+            {plan.days?.map((day: any, di: number) => {
+              const isOpen = openDay === di;
+              return (
+                <div key={di} className="rounded-2xl border border-border/60 bg-gradient-card shadow-card">
+                  <button onClick={() => setOpenDay(isOpen ? null : di)} className="flex w-full items-center justify-between gap-3 p-4 text-left">
+                    <div>
+                      <div className="font-semibold">{day.day} <span className="ml-1 text-xs font-normal text-muted-foreground">· {day.training_focus}</span></div>
+                      {day.calorie_target && <div className="text-xs text-muted-foreground">{day.calorie_target} kcal target</div>}
+                    </div>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                  </button>
+                  {isOpen && (
+                    <div className="space-y-3 border-t border-border/60 p-4">
+                      {day.meals?.map((meal: any, mi: number) => {
+                        const prepKey = `${di}-${mi}`;
+                        const prepOpen = openPrep === prepKey;
+                        return (
+                          <div key={mi} className="rounded-xl border border-border/60 bg-surface p-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[10px] uppercase tracking-wider text-primary">{meal.slot}</div>
+                                <div className="font-semibold">{meal.title}</div>
+                                <div className="mt-0.5 text-xs text-muted-foreground">{meal.calories} kcal · {meal.protein_g}P / {meal.carbs_g}C / {meal.fat_g}F</div>
+                              </div>
+                              <Button size="sm" onClick={() => addSuggested({ name: meal.slot, title: meal.title, calories: meal.calories, protein_g: meal.protein_g, carbs_g: meal.carbs_g, fat_g: meal.fat_g })} className="rounded-lg bg-gradient-primary text-primary-foreground">Log</Button>
+                            </div>
+
+                            {meal.training_rationale && <p className="mt-2 text-xs italic text-muted-foreground">{meal.training_rationale}</p>}
+
+                            {meal.ingredients_with_units?.length > 0 && (
+                              <div className="mt-3">
+                                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Ingredients</div>
+                                <ul className="mt-1 text-xs text-muted-foreground">
+                                  {meal.ingredients_with_units.map((ing: string, k: number) => <li key={k}>· {ing}</li>)}
+                                </ul>
+                              </div>
+                            )}
+
+                            {meal.instructions?.length > 0 && (
+                              <div className="mt-3">
+                                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Cook</div>
+                                <ol className="mt-1 list-decimal pl-4 text-xs text-muted-foreground space-y-0.5">
+                                  {meal.instructions.map((s: string, k: number) => <li key={k}>{s}</li>)}
+                                </ol>
+                              </div>
+                            )}
+
+                            {meal.meal_prep && (
+                              <div className="mt-3 rounded-lg border border-primary/20 bg-primary/5 p-3">
+                                <button onClick={() => setOpenPrep(prepOpen ? null : prepKey)} className="flex w-full items-center justify-between gap-2 text-left">
+                                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+                                    <BookOpen className="h-3.5 w-3.5" /> Meal-prep library
+                                  </span>
+                                  <ChevronDown className={`h-3.5 w-3.5 text-primary transition-transform ${prepOpen ? "rotate-180" : ""}`} />
+                                </button>
+                                {prepOpen && (
+                                  <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                                    {meal.meal_prep.batch_cook && <div><span className="font-semibold text-foreground">Batch cook:</span> {meal.meal_prep.batch_cook}</div>}
+                                    {meal.meal_prep.store && <div><span className="font-semibold text-foreground">Store:</span> {meal.meal_prep.store}</div>}
+                                    {meal.meal_prep.reheat && <div><span className="font-semibold text-foreground">Reheat:</span> {meal.meal_prep.reheat}</div>}
+                                    {meal.meal_prep.make_ahead && <div><span className="font-semibold text-foreground">Make-ahead:</span> {meal.meal_prep.make_ahead}</div>}
+                                    {meal.meal_prep.portion_scaling && <div><span className="font-semibold text-foreground">Scaling:</span> {meal.meal_prep.portion_scaling}</div>}
+                                    {meal.meal_prep.substitutions?.length > 0 && (
+                                      <div><span className="font-semibold text-foreground">Substitutions:</span> {meal.meal_prep.substitutions.join(", ")}</div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 

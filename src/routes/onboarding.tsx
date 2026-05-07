@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { MeasurementSystemPicker } from "@/components/MeasurementSystemPicker";
 import { HeightPicker, cmToFtIn, ftInToCm, type HeightUnit } from "@/components/HeightPicker";
 import { InjuryAssessment, parseInjuries, serializeInjuries } from "@/components/InjuryAssessment";
+import { NutritionPreferencesForm, DEFAULT_NUTRITION, type NutritionPrefs } from "@/components/NutritionPreferences";
 import {
   DEFAULT_UNITS,
   type Units,
@@ -43,6 +44,7 @@ type Data = {
   heightUnit?: HeightUnit;
   heightFeet?: number | null; heightInches?: number | null; heightCm?: number | null;
   injurySelected?: string[]; injuryNotes?: string;
+  nutrition?: NutritionPrefs;
   agreedToDisclaimer?: boolean;
 };
 
@@ -51,7 +53,7 @@ function Onboarding() {
   const { user, loading } = useAuth();
   const [step, setStep] = useState(0);
   const [building, setBuilding] = useState(false);
-  const [data, setData] = useState<Data>({ daysPerWeek: 4, sessionLength: 45, equipment: [], heightUnit: "imperial" });
+  const [data, setData] = useState<Data>({ daysPerWeek: 4, sessionLength: 45, equipment: [], heightUnit: "imperial", nutrition: DEFAULT_NUTRITION });
   const [units, setUnits] = useState<Units>(DEFAULT_UNITS);
 
   useEffect(() => {
@@ -81,6 +83,7 @@ function Onboarding() {
           injurySelected: parseInjuries(p.injuries).selected,
           injuryNotes: parseInjuries(p.injuries).notes,
           agreedToDisclaimer: !!(p as any).agreed_to_disclaimer,
+          nutrition: { ...DEFAULT_NUTRITION, ...((p as any).nutrition_preferences ?? {}) },
           weight: fromMetricWeight(p.weight, u),
           heightUnit: hu,
           heightFeet: ft.feet,
@@ -196,6 +199,17 @@ function Onboarding() {
       { title: "Diet preference", subtitle: "Used for nutrition & meal suggestions.", valid: !!data.diet,
         body: <ChipsLarge options={diets} value={data.diet} onSelect={(v) => update("diet", v)} /> },
       {
+        title: "Tell us about your nutrition needs",
+        subtitle: "Allergies, dietary restrictions, and meal timing — your AI nutrition coach uses this to plan meals that match your training.",
+        valid: true,
+        body: (
+          <NutritionPreferencesForm
+            value={data.nutrition ?? DEFAULT_NUTRITION}
+            onChange={(v) => setData((d) => ({ ...d, nutrition: v }))}
+          />
+        ),
+      },
+      {
         title: "Important Legal Agreement & Disclaimer",
         subtitle: "Please read carefully before continuing.",
         valid: !!data.agreedToDisclaimer,
@@ -262,6 +276,7 @@ function Onboarding() {
             ? (data.heightFeet != null && data.heightInches != null ? ftInToCm(data.heightFeet, data.heightInches) : null)
             : (data.heightCm ?? null),
         agreed_to_disclaimer: true,
+        nutrition_preferences: data.nutrition ?? DEFAULT_NUTRITION,
         agreed_to_disclaimer_at: new Date().toISOString(),
         onboarded: true,
       }).eq("user_id", user.id);
