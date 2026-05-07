@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
         // Fastest multimodal model on the gateway
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: buildSys(injuries, units) },
+          { role: "system", content: `${buildSys(injuries, units)}\n\n${EXPERT_KNOWLEDGE}` },
           { role: "user", content: userContent },
         ],
         response_format: { type: "json_object" },
