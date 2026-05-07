@@ -184,3 +184,61 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }), { status: 500, headers: cors });
   }
 });
+
+function buildFallbackAdjustment(ctx: any) {
+  const profile = ctx.profile ?? {};
+  const goal = (profile.goal ?? "").toString().toLowerCase();
+  const next = ctx.next_workout;
+  const exercises = Array.isArray(next?.exercises) ? next.exercises : [];
+  const recentLog = (ctx.recent_workouts ?? [])[0];
+  const setLogs: any[] = recentLog?.set_logs ?? [];
+  const avgRpe = setLogs.length ? setLogs.reduce((a, s) => a + (s.rpe ?? 7), 0) / setLogs.length : 7;
+  const macros = profile.macro_targets ?? {};
+  const cals = Number(macros.calories ?? 2200);
+  const protein = Number(macros.protein_g ?? 150);
+
+  const bumpUp = avgRpe < 8;
+  const tunedExercises = exercises.map((e: any, i: number) => {
+    const sets = Math.min(5, (e.sets ?? 3) + (bumpUp && i < 2 ? 1 : 0));
+    return {
+      ...e,
+      sets,
+      rpe: bumpUp ? Math.min(9, (e.rpe ?? 7) + 1) : Math.max(6, (e.rpe ?? 8) - 1),
+      notes: bumpUp
+        ? `Bumping intensity — last session felt strong (RPE ${avgRpe.toFixed(1)}). Add 2.5–5% load.`
+        : `Backing off slightly to bank recovery — quality over grind.`,
+    };
+  });
+
+  const trainingChanges = bumpUp
+    ? [
+        `Added a top set to your first 1–2 lifts`,
+        `Nudged target RPE up by 1 — last session averaged RPE ${avgRpe.toFixed(1)}`,
+        `Add 2.5–5% load where the bar still moves fast`,
+      ]
+    : [
+        `Pulled volume back ~10% on main lifts`,
+        `Lowered target RPE by 1 to prioritize recovery`,
+        `Keep technique crisp — we'll re-load next week`,
+      ];
+
+  const macroDelta = bumpUp ? { calories: cals + 150, protein_g: protein + 10 } : { calories: cals - 100 };
+  const nutritionChanges = bumpUp
+    ? [`+150 kcal on training days for recovery`, `+10g protein to support the added volume`]
+    : [`-100 kcal on rest days to match lower output`, `Keep protein steady to protect lean mass`];
+
+  const focus = goal.includes("glute") ? "glute volume" : goal.includes("strength") ? "top-set strength" : goal.includes("fat") ? "calorie precision" : "progressive overload";
+
+  return {
+    should_adjust: true,
+    scope: "both",
+    summary: bumpUp
+      ? `Last session felt strong — pushing ${focus} up a notch and adding fuel.`
+      : `Pulling back slightly to lock in recovery and keep momentum.`,
+    coach_note: bumpUp
+      ? `You averaged RPE ${avgRpe.toFixed(1)} last session — that's room to grow. I added a top set, nudged load, and bumped calories on training days so you actually recover from it.`
+      : `Three hard sessions stacked up. A small back-off week now means a bigger jump next week. Trust the process.`,
+    training: { next_workout_exercises: tunedExercises.length ? tunedExercises : null, changes: trainingChanges },
+    nutrition: { macro_changes: macroDelta, meal_swaps: [], changes: nutritionChanges },
+  };
+}
