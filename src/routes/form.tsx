@@ -339,9 +339,32 @@ function FormAnalysis() {
           <ResultCard
             result={result}
             exercise={exercise}
-            onReset={() => { setResult(null); setExercise(""); }}
+            onReset={() => { setResult(null); setExercise(""); setChangeSummary(""); }}
             onApplyFix={applyFix}
           />
+        )}
+
+        {changeSummary && (
+          <div className="mt-4 rounded-3xl border border-success/40 bg-success/5 p-5 shadow-card">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-success">
+                <Check className="h-3.5 w-3.5" /> Synced with AI Coach
+              </div>
+              <button
+                onClick={() => navigate({ to: "/chat" })}
+                className="text-xs font-semibold text-primary hover:underline"
+              >
+                Open Coach chat →
+              </button>
+            </div>
+            <div className="whitespace-pre-wrap text-sm leading-relaxed">
+              {changeSummary.split(/(\*\*[^*]+\*\*|_[^_]+_)/g).map((seg, i) => {
+                if (seg.startsWith("**") && seg.endsWith("**")) return <strong key={i}>{seg.slice(2, -2)}</strong>;
+                if (seg.startsWith("_") && seg.endsWith("_")) return <em key={i} className="text-muted-foreground">{seg.slice(1, -1)}</em>;
+                return <span key={i}>{seg}</span>;
+              })}
+            </div>
+          </div>
         )}
 
         <div className="mt-7 mb-3 flex items-center justify-between">
