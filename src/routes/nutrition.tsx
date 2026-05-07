@@ -84,7 +84,7 @@ function Nutrition() {
       const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "suggest_meals", prompt: preset } });
       const d: any = data;
       if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
-        setPaywall({ open: true, reason: d.message, recommend: "pro" });
+        setPaywall({ open: true, reason: d?.message || "Personalized meal suggestions are part of Pro Coach.", recommend: "pro" });
         return;
       }
       if (error) throw error;
