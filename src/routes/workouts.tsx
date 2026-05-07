@@ -67,6 +67,27 @@ function Workouts() {
           </Button>
         </div>
 
+        <div className="mb-5 rounded-2xl border border-primary/30 bg-gradient-card p-4 shadow-card">
+          <div className="flex items-center gap-3">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow">
+              <Target className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-primary">Current goal</div>
+              <div className="font-semibold leading-tight truncate">{currentGoal ?? "Pick a goal"}</div>
+            </div>
+            <Button onClick={() => setShowGoals((s) => !s)} size="sm" className="h-9 rounded-full bg-gradient-primary text-xs font-semibold text-primary-foreground shadow-glow">
+              <Sparkles className="mr-1 h-3.5 w-3.5" /> Optimize
+            </Button>
+          </div>
+          {showGoals && (
+            <div className="mt-4">
+              <p className="mb-3 text-xs text-muted-foreground">Tap a goal — Coach instantly rebuilds your program around it.</p>
+              <GoalSelector compact onBuilt={() => { setShowGoals(false); refresh(); }} />
+            </div>
+          )}
+        </div>
+
         {today ? (
           <div className="mb-6 rounded-3xl border border-primary/20 bg-gradient-card p-5 shadow-card">
             <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-primary">Next · {today.scheduled_date}</div>
