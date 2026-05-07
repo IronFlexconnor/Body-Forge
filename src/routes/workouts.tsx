@@ -25,18 +25,27 @@ function Workouts() {
   const [upcoming, setUpcoming] = useState<Workout[]>([]);
   const [active, setActive] = useState<Workout | null>(null);
   const [busy, setBusy] = useState(true);
+  const [showGoals, setShowGoals] = useState(false);
+  const [currentGoal, setCurrentGoal] = useState<string | null>(null);
+
+  const refresh = async () => {
+    if (!user) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const [{ data: ws }, { data: prof }] = await Promise.all([
+      supabase.from("workouts").select("*")
+        .eq("user_id", user.id).gte("scheduled_date", today).neq("status", "completed")
+        .order("scheduled_date", { ascending: true }).limit(7),
+      supabase.from("profiles").select("goal").eq("user_id", user.id).maybeSingle(),
+    ]);
+    setUpcoming((ws ?? []) as any);
+    setCurrentGoal(prof?.goal ?? null);
+    setBusy(false);
+  };
 
   useEffect(() => {
     if (loading) return;
     if (!user) { navigate({ to: "/auth" }); return; }
-    (async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const { data } = await supabase.from("workouts").select("*")
-        .eq("user_id", user.id).gte("scheduled_date", today).neq("status", "completed")
-        .order("scheduled_date", { ascending: true }).limit(7);
-      setUpcoming((data ?? []) as any);
-      setBusy(false);
-    })();
+    refresh();
   }, [user, loading, navigate]);
 
   if (loading || busy) return <AppShell><div className="grid min-h-dvh place-items-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div></AppShell>;
