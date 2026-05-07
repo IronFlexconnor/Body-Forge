@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
+import { AdjustmentsCard } from "@/components/AdjustmentsCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -136,6 +137,8 @@ function Home() {
           </div>
         )}
 
+        <AdjustmentsCard />
+
         <Link to="/form" className="mb-3 flex items-center gap-4 rounded-2xl border border-primary/30 bg-gradient-card p-4 shadow-card hover:border-primary/60">
           <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">
             <Sparkles className="h-5 w-5" />
@@ -207,7 +210,7 @@ function CheckinCard({ onSaved }: { onSaved: (c: any) => void }) {
     toast.success("Check-in saved — Coach will tune today's session");
     onSaved(data);
     // Trigger auto-adjust based on readiness
-    supabase.functions.invoke("auto-adjust", { body: { trigger: "checkin" } })
+    supabase.functions.invoke("auto-adjust", { body: { trigger: "checkin", auto_apply: true } })
       .then(({ data: a }) => {
         const d = a as any;
         if (d?.should_adjust && d?.summary) toast.success(`Plan tuned — ${d.summary}`, { duration: 6000 });
