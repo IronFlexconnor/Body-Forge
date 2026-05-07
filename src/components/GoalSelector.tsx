@@ -55,7 +55,11 @@ export function GoalSelector({ onBuilt, compact }: Props) {
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
       celebrate();
-      toast.success(`Your ${label} program is ready 💪`);
+      const summary = (data as any)?.summary as string | undefined;
+      toast.success(`Your ${label} program is ready 💪`, {
+        description: summary ? `Here's what changed: ${summary}` : undefined,
+        duration: 8000,
+      });
       onBuilt?.();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't build the program");
