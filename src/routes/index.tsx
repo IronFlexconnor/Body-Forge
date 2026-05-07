@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { AdjustmentsCard } from "@/components/AdjustmentsCard";
+import { DailyFreshPicks } from "@/components/DailyFreshPicks";
+import { celebrate } from "@/lib/celebrate";
 
 export const Route = createFileRoute("/")({
   head: () => ({
