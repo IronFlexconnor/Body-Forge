@@ -180,7 +180,7 @@ function containsAllergen(text: string, terms: string[]) {
 
 function profileWeightKg(profile: Record<string, any>) {
   const raw = n(profile.weight, 80);
-  if (raw > 220 && profile.units === "imperial") return raw * 0.45359237;
+  if (profile.units === "imperial") return raw * 0.45359237;
   return raw;
 }
 

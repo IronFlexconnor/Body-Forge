@@ -17,6 +17,16 @@ export const Route = createFileRoute("/nutrition")({
 type Macros = { calories: number; protein_g: number; carbs_g: number; fat_g: number };
 type Meal = { id: string; name: string; calories: number | null; protein_g: number | null; carbs_g: number | null; fat_g: number | null; eaten_at: string };
 
+function isNutritionLimit(data: unknown) {
+  const d = data as { error?: string; code?: string } | null;
+  return d?.error === "limit_reached" || d?.code === "nutrition_pro_only";
+}
+
+function nutritionErrorMessage(error: unknown, fallback: string) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return message.includes("non-2xx") || message.includes("FunctionsHttpError") ? fallback : message || fallback;
+}
+
 function Nutrition() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
@@ -65,7 +75,7 @@ function Nutrition() {
       const { data: p } = await supabase.from("profiles").select("*").eq("user_id", user!.id).maybeSingle();
       setProfile(p);
       toast.success(`Targets set: ${data.calories} kcal · ${data.protein_g}g protein`);
-    } catch (e) { toast.error("Couldn't calculate macros"); } finally { setCalcing(false); }
+    } catch (e) { toast.error(nutritionErrorMessage(e, "Couldn't calculate macros — open Nutrition again after your profile loads.")); } finally { setCalcing(false); }
   };
 
   const suggestMeals = async (preset?: string) => {
@@ -73,8 +83,8 @@ function Nutrition() {
     try {
       const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "suggest_meals", prompt: preset } });
       const d: any = data;
-      if (d?.error === "limit_reached") {
-        setPaywall({ open: true, reason: d.message, recommend: "pro" });
+      if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
+        setPaywall({ open: true, reason: d?.message || "Personalized meal suggestions are part of Pro Coach.", recommend: "pro" });
         return;
       }
       if (error) throw error;
@@ -83,7 +93,7 @@ function Nutrition() {
       setSuggestions(m);
       toast.success(preset ? "Suggestion ready" : `${m.length} meal ideas ready`);
       setTimeout(() => document.getElementById("coach-suggestions")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-    } catch { toast.error("Couldn't fetch suggestions"); } finally { setSuggesting(false); }
+    } catch (e) { toast.error(nutritionErrorMessage(e, "Couldn't fetch suggestions — please try again in Nutrition.")); } finally { setSuggesting(false); }
   };
 
   const generatePlan = async (overridePrompt?: string) => {
@@ -95,7 +105,7 @@ function Nutrition() {
         const { data: mData, error: mErr } = await supabase.functions.invoke("nutrition-coach", { body: { action: "calc_macros" } });
         toast.dismiss("macros");
         if (mErr) throw mErr;
-        if ((mData as any)?.error === "limit_reached") {
+        if (isNutritionLimit(mData)) {
           setPaywall({ open: true, reason: (mData as any).message, recommend: "pro" });
           return;
         }
@@ -107,8 +117,8 @@ function Nutrition() {
         body: { action: "meal_plan", prompt: overridePrompt || planPrompt || undefined },
       });
       const d: any = data;
-      if (d?.error === "limit_reached") {
-        setPaywall({ open: true, reason: d.message, recommend: "pro" });
+      if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
+        setPaywall({ open: true, reason: d?.message || "Personalized meal plans are part of Pro Coach.", recommend: "pro" });
         return;
       }
       if (error) throw error;
@@ -122,7 +132,7 @@ function Nutrition() {
       toast.success(`${d.days.length}-day macro-matched plan ready`);
     } catch (e: any) {
       console.error(e);
-      toast.error(e?.message || "Couldn't generate meal plan");
+      toast.error(nutritionErrorMessage(e, "Couldn't generate meal plan — please try again from Nutrition."));
     } finally { setPlanning(false); }
   };
 
@@ -135,13 +145,13 @@ function Nutrition() {
     try {
       const { data, error } = await supabase.functions.invoke("nutrition-coach", { body: { action: "review_day" } });
       const d: any = data;
-      if (d?.error === "limit_reached") {
-        setPaywall({ open: true, reason: d.message, recommend: "pro" });
+      if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
+        setPaywall({ open: true, reason: d?.message || "Nutrition coaching reviews are part of Pro Coach.", recommend: "pro" });
         return;
       }
       if (error) throw error;
       setReview(d);
-    } catch { toast.error("Couldn't generate review"); } finally { setReviewing(false); }
+    } catch (e) { toast.error(nutritionErrorMessage(e, "Couldn't generate review — please try again.")); } finally { setReviewing(false); }
   };
 
   const addMeal = async () => {
