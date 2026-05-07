@@ -641,14 +641,6 @@ function Nutrition() {
         )}
       </div>
 
-      {/* Floating Regenerate Meals button */}
-      <button
-        onClick={() => openRegen()}
-        className="fixed bottom-24 right-5 z-30 inline-flex items-center gap-2 rounded-full border border-primary/40 bg-gradient-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-glow hover:scale-105 active:scale-95 transition"
-        aria-label="Regenerate meals"
-      >
-        <Wand2 className="h-4 w-4" /> Regenerate
-      </button>
 
       <MealRegenerationModal
         open={regenOpen}
