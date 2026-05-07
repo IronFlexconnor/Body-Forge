@@ -44,6 +44,7 @@ type Data = {
   heightUnit?: HeightUnit;
   heightFeet?: number | null; heightInches?: number | null; heightCm?: number | null;
   injurySelected?: string[]; injuryNotes?: string;
+  nutrition?: NutritionPrefs;
   agreedToDisclaimer?: boolean;
 };
 
