@@ -35,9 +35,39 @@ function Chat() {
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [adjusting, setAdjusting] = useState(false);
   const [paywall, setPaywall] = useState<{ open: boolean; reason?: string; recommend?: "pro" | "elite" }>({ open: false });
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const ADJUST_REGEX = /\b(switch|change|swap|adjust|modify|update|rebuild|redo|new|give me|make|increase|decrease|more|less|higher|lower|add|remove|replace|push.?pull|upper.?lower|hypertrophy|strength|cut|bulk|keto|vegan|vegetarian|paleo|carni|protein|calorie|macro|meal plan|workout split|sore|tired|injured|injury|deload|drop|reduce|boost|focus on|sport|agility|cardio|hiit|mobility|recovery)\b/i;
+  const isAdjustIntent = (t: string) => ADJUST_REGEX.test(t) && t.trim().length > 8;
+
+  const triggerAdjust = async (text: string) => {
+    if (!session) return;
+    setAdjusting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-adjust", {
+        body: { trigger: "chat_request", user_request: text, auto_apply: true },
+      });
+      if (error) return;
+      const d = data as any;
+      if (d?.should_adjust) {
+        toast.success(`✨ Plan updated — ${d.summary}`, {
+          duration: 8000,
+          action: d.adjustment_id ? {
+            label: "Undo",
+            onClick: async () => {
+              await supabase.functions.invoke("apply-adjustment", { body: { adjustment_id: d.adjustment_id, action: "undo" } });
+              toast.success("Reverted to your previous plan");
+            },
+          } : undefined,
+        });
+      }
+    } finally {
+      setAdjusting(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth" });
@@ -57,6 +87,12 @@ function Chat() {
     setInput("");
     setMessages((m) => [...m, { role: "user", content: text }, { role: "assistant", content: "" }]);
     setStreaming(true);
+
+    // Real-time plan adjustment (fires in parallel with streaming reply)
+    if (isAdjustIntent(text)) {
+      toast.loading("Coach is updating your plan…", { id: "adjust" });
+      triggerAdjust(text).finally(() => toast.dismiss("adjust"));
+    }
 
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-coach`;
@@ -178,7 +214,9 @@ function Chat() {
             </div>
             <div>
               <div className="font-semibold leading-tight">Coach Forge</div>
-              <div className="text-xs text-muted-foreground">Online · Personalized to you</div>
+              <div className="text-xs text-muted-foreground">
+                {adjusting ? <span className="inline-flex items-center gap-1 text-primary"><Loader2 className="h-3 w-3 animate-spin" /> Updating your plan…</span> : "Online · Personalized to you"}
+              </div>
             </div>
           </div>
         </div>

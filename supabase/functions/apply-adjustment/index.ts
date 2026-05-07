@@ -23,13 +23,28 @@ Deno.serve(async (req) => {
     if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: cors });
 
     const { adjustment_id, action, training_exercises } = await req.json();
-    if (!adjustment_id || !["approve", "reject"].includes(action)) {
+    if (!adjustment_id || !["approve", "reject", "undo"].includes(action)) {
       return new Response(JSON.stringify({ error: "Bad request" }), { status: 400, headers: cors });
     }
 
     const { data: adj } = await supabase.from("program_adjustments").select("*").eq("id", adjustment_id).eq("user_id", user.id).maybeSingle();
     if (!adj) return new Response(JSON.stringify({ error: "Not found" }), { status: 404, headers: cors });
-    if (adj.status !== "pending") return new Response(JSON.stringify({ error: "Already reviewed" }), { status: 409, headers: cors });
+
+    if (action === "undo") {
+      const prev: any = adj.previous_state ?? {};
+      if (prev.workout_id && prev.workout_exercises) {
+        await supabase.from("workouts").update({ exercises: prev.workout_exercises }).eq("id", prev.workout_id);
+      }
+      if (prev.macro_targets) {
+        await supabase.from("profiles").update({ macro_targets: prev.macro_targets }).eq("user_id", user.id);
+      }
+      await supabase.from("program_adjustments").update({ status: "undone", reviewed_at: new Date().toISOString() }).eq("id", adjustment_id);
+      return new Response(JSON.stringify({ ok: true, status: "undone" }), { headers: { ...cors, "Content-Type": "application/json" } });
+    }
+
+    if (adj.status !== "pending" && adj.status !== "approved") {
+      return new Response(JSON.stringify({ error: "Already reviewed" }), { status: 409, headers: cors });
+    }
 
     if (action === "reject") {
       await supabase.from("program_adjustments").update({ status: "rejected", reviewed_at: new Date().toISOString() }).eq("id", adjustment_id);

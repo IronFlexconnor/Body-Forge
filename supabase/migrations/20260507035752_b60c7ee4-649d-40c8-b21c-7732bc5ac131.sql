@@ -1,0 +1,1 @@
+ALTER TABLE public.program_adjustments ADD COLUMN IF NOT EXISTS previous_state jsonb DEFAULT '{}'::jsonb;

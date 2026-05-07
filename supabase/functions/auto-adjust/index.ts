@@ -133,7 +133,13 @@ Deno.serve(async (req) => {
     const nutritionChanges: string[] = Array.isArray(nutrition.changes) ? nutrition.changes : [];
     const allChanges = [...trainingChanges, ...nutritionChanges];
 
-    // Persist as pending — user must approve/tweak/reject from the dashboard
+    // Snapshot previous state so user can Undo
+    const previous_state = {
+      workout_exercises: nextWorkout?.exercises ?? null,
+      workout_id: nextWorkout?.id ?? null,
+      macro_targets: profile?.macro_targets ?? null,
+    };
+
     const { data: adjustment } = await supabase.from("program_adjustments").insert({
       user_id: user.id,
       program_id: program?.id ?? null,
@@ -146,9 +152,10 @@ Deno.serve(async (req) => {
       changes: allChanges,
       meal_changes: nutrition.meal_swaps ?? [],
       macro_changes: nutrition.macro_changes ?? {},
+      previous_state,
     }).select().single();
 
-    // If auto-apply (e.g. checkin small tweak), apply immediately
+    // If auto-apply, apply immediately to training + nutrition
     if (auto_apply && adjustment) {
       if (Array.isArray(training.next_workout_exercises) && training.next_workout_exercises.length && nextWorkout?.id) {
         await supabase.from("workouts").update({ exercises: training.next_workout_exercises }).eq("id", nextWorkout.id);
