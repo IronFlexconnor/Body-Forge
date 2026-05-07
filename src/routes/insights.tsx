@@ -46,9 +46,9 @@ function InsightsPage() {
   const apply = async (c: InsightCard, idx: number) => {
     setBusyIdx(idx);
     try {
-      const message = `Apply this insight to my plan: "${c.headline}". Action: ${c.apply_action}. Make a small, smart adjustment now.`;
+      const user_request = `Apply this insight to my plan: "${c.headline}". Action: ${c.apply_action}. Make a small, smart adjustment now.`;
       const { data, error } = await supabase.functions.invoke("auto-adjust", {
-        body: { trigger: "insight", auto_apply: true, message },
+        body: { trigger: "insight", auto_apply: true, user_request },
       });
       if (error) throw error;
       const d = data as any;
