@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
     const priorMessages = (history ?? []).reverse().slice(0, -1); // exclude the just-inserted user msg
 
     const messages = [
-      { role: "system", content: `${SYSTEM}\n\n${ctxBlock}` },
+      { role: "system", content: `${SYSTEM}\n\n${EXPERT_KNOWLEDGE}\n\n${ctxBlock}` },
       ...priorMessages.map((m: { role: string; content: string }) => ({ role: m.role, content: m.content })),
       { role: "user", content: message },
     ];
