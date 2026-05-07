@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Camera, Video as VideoIcon, ImageIcon, Loader2, Sparkles, ShieldAlert,
-  TrendingUp, Check, RefreshCw, Send, ChevronRight, AlertTriangle,
+  TrendingUp, Check, RefreshCw, Send, ChevronRight, AlertTriangle, Activity, Heart, Zap, Target,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
