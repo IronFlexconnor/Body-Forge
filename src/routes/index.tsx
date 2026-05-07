@@ -101,6 +101,21 @@ function Home() {
           <Stat icon={Activity} value={`${stats.weekDone}/${stats.weekTotal}`} label="This week" />
         </div>
 
+        {/* One-tap quick actions */}
+        <div className="mb-5 grid grid-cols-4 gap-2">
+          <QuickAction to="/workouts" icon={Dumbbell} label="Log workout" />
+          <QuickAction to="/form" icon={Video} label="Record form" />
+          <QuickAction
+            icon={ChefHat}
+            label="New meals"
+            onClick={() => {
+              if (typeof window !== "undefined") sessionStorage.setItem("forge:open-regen", "1");
+              navigate({ to: "/nutrition" });
+            }}
+          />
+          <QuickAction to="/chat" icon={MessageCircle} label="Talk to Coach" />
+        </div>
+
         {!checkin && (
           <CheckinCard onSaved={(c) => setCheckin(c)} />
         )}
