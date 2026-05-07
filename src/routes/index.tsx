@@ -210,7 +210,7 @@ function CheckinCard({ onSaved }: { onSaved: (c: any) => void }) {
     toast.success("Check-in saved — Coach will tune today's session");
     onSaved(data);
     // Trigger auto-adjust based on readiness
-    supabase.functions.invoke("auto-adjust", { body: { trigger: "checkin" } })
+    supabase.functions.invoke("auto-adjust", { body: { trigger: "checkin", auto_apply: true } })
       .then(({ data: a }) => {
         const d = a as any;
         if (d?.should_adjust && d?.summary) toast.success(`Plan tuned — ${d.summary}`, { duration: 6000 });
