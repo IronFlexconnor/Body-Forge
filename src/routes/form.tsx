@@ -75,6 +75,14 @@ function FormAnalysis() {
   }, [user, loading, navigate]);
 
   useEffect(() => {
+    const queued = window.sessionStorage.getItem("bodyforge-form-exercise");
+    if (queued) {
+      setExercise(queued);
+      window.sessionStorage.removeItem("bodyforge-form-exercise");
+    }
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     supabase
       .from("video_uploads")
