@@ -94,7 +94,6 @@ function Nutrition() {
         setProfile(p);
         activeProfile = p;
       }
-    try {
       const { data, error } = await supabase.functions.invoke("nutrition-coach", {
         body: { action: "meal_plan", prompt: planPrompt || undefined },
       });
