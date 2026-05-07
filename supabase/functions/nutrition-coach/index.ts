@@ -102,10 +102,17 @@ Deno.serve(async (req) => {
         dayMap.push({ date: ds, weekday: d.toLocaleDateString("en-US", { weekday: "short" }), focus, intensity });
       }
       const weightKg = profile.units === "metric" ? Number(profile.weight) : Number(profile.weight) * 0.4536;
+      const targetWeightUserUnits = np.targetWeight ?? null;
+      const targetWeightKg = targetWeightUserUnits != null
+        ? (profile.units === "metric" ? Number(targetWeightUserUnits) : Number(targetWeightUserUnits) * 0.4536)
+        : null;
+      const bodyweightGoal = np.bodyweightGoal || profile.goal || "maintain";
       userPrompt = `Build a 7-day, dietitian-grade, fully periodized meal plan.
 
 CLIENT PROFILE: ${JSON.stringify(profile)}
 BODYWEIGHT_KG: ${isFinite(weightKg) ? weightKg.toFixed(1) : "unknown"}
+BODYWEIGHT_GOAL: ${bodyweightGoal} (lose_fat = -15-20% deficit, build_muscle = +8-12% surplus, maintain = maintenance, recomp = maintenance with high protein)
+TARGET_WEIGHT_KG: ${targetWeightKg ?? "not specified"}
 NUTRITION PREFERENCES: ${JSON.stringify(np)}
 DAILY MACRO TARGETS: ${JSON.stringify(profile.macro_targets) || "calculate from profile using Mifflin-St Jeor + activity + goal"}
 TRAINING PROGRAM: ${JSON.stringify(program)}
