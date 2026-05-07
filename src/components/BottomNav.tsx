@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Dumbbell, Apple, MessageCircle, TrendingUp } from "lucide-react";
+import { Home, Dumbbell, Apple, MessageCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items = [
@@ -7,7 +7,7 @@ const items = [
   { to: "/workouts", label: "Workouts", icon: Dumbbell },
   { to: "/nutrition", label: "Nutrition", icon: Apple },
   { to: "/chat", label: "Chat", icon: MessageCircle },
-  { to: "/progress", label: "Progress", icon: TrendingUp },
+  { to: "/insights", label: "Insights", icon: Sparkles },
 ] as const;
 
 export function BottomNav() {
