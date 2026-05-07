@@ -236,36 +236,84 @@ function Nutrition() {
             </Button>
           </div>
         ) : (
-          <div className="mb-5 rounded-3xl border border-border/60 bg-gradient-card p-5 shadow-card">
-            <div className="mb-3 flex items-center justify-between">
-              <div>
-                <div className="text-xs text-muted-foreground">Today</div>
-                <div className="text-2xl font-bold tabular-nums">{Math.round(totals.calories)} <span className="text-sm font-normal text-muted-foreground">/ {targets.calories} kcal</span></div>
+          <div className="mb-5 overflow-hidden rounded-3xl border border-primary/30 bg-gradient-card shadow-card">
+            <div className="relative p-5">
+              <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/25 blur-3xl" />
+              <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-accent/15 blur-3xl" />
+              <div className="relative mb-3 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-primary">Today's macros</div>
+                  <div className="text-3xl font-extrabold tabular-nums leading-none">
+                    {Math.round(totals.calories)}
+                    <span className="ml-1 text-sm font-normal text-muted-foreground">/ {targets.calories} kcal</span>
+                  </div>
+                </div>
+                <button onClick={calcMacros} disabled={calcing} className="rounded-full border border-primary/30 bg-surface px-3 py-1.5 text-[11px] font-semibold text-primary hover:bg-primary/10">
+                  {calcing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Recalc"}
+                </button>
               </div>
-              <button onClick={calcMacros} disabled={calcing} className="text-xs font-medium text-primary">Recalc</button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <MacroBar label="Protein" value={Math.round(totals.protein_g)} target={targets.protein_g} color="bg-primary" />
-              <MacroBar label="Carbs" value={Math.round(totals.carbs_g)} target={targets.carbs_g} color="bg-accent" />
-              <MacroBar label="Fat" value={Math.round(totals.fat_g)} target={targets.fat_g} color="bg-warning" />
+              <div className="relative grid grid-cols-4 gap-2">
+                <MacroBar label="kcal" value={Math.round(totals.calories)} target={targets.calories} color="bg-gradient-primary" unit="" />
+                <MacroBar label="Protein" value={Math.round(totals.protein_g)} target={targets.protein_g} color="bg-primary" />
+                <MacroBar label="Carbs" value={Math.round(totals.carbs_g)} target={targets.carbs_g} color="bg-accent" />
+                <MacroBar label="Fat" value={Math.round(totals.fat_g)} target={targets.fat_g} color="bg-warning" />
+              </div>
             </div>
           </div>
         )}
 
+        {/* Premium Fresh Meals hero */}
         <Link
           to="/fresh-meals"
-          className="group relative mb-4 flex items-center gap-3 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-card p-4 shadow-card hover:border-primary/60"
+          className="group relative mb-3 block overflow-hidden rounded-3xl border border-primary/30 shadow-card transition hover:border-primary/60"
         >
-          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/25 blur-3xl" />
-          <div className="relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">
-            <ChefHat className="h-5 w-5" />
-          </div>
-          <div className="relative flex-1 min-w-0">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-primary">Fresh today</div>
-            <div className="font-semibold leading-tight">Today's Fresh Meals</div>
-            <p className="truncate text-xs text-muted-foreground">5,000+ meals · prep videos · smart swaps</p>
+          <div className="relative aspect-[16/9] w-full">
+            <img
+              src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1600&q=80"
+              alt="Today's fresh meal plan preview"
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+            <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-primary/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-foreground shadow-glow">
+              <ChefHat className="h-3 w-3" /> Today's Fresh Meals
+            </div>
+            <div className="absolute bottom-3 left-4 right-4 text-white">
+              <div className="text-lg font-extrabold leading-tight drop-shadow">Your daily plan, ready to cook</div>
+              <p className="text-[11px] opacity-90 drop-shadow">Breakfast → evening snack · prep videos · macro-smart swaps</p>
+            </div>
+            <div className="absolute right-4 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 text-primary shadow-glow transition group-hover:scale-110">
+              <PlayCircle className="h-6 w-6" />
+            </div>
           </div>
         </Link>
+
+        {/* Quick filter chips — deep-link into the daily plan with filter pre-applied */}
+        <div className="-mx-5 mb-4 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-max gap-2">
+            {[
+              { key: "high-protein", label: "High protein" },
+              { key: "low-inflammation", label: "Low inflammation" },
+              { key: "quick", label: "Quick & easy" },
+              { key: "keto", label: "Keto" },
+              { key: "gluten-free", label: "Gluten-free" },
+              { key: "senior", label: "Senior-friendly" },
+              { key: "vegan", label: "Vegan" },
+              { key: "budget", label: "Budget" },
+            ].map((c) => (
+              <button
+                key={c.key}
+                onClick={() => {
+                  if (typeof window !== "undefined") sessionStorage.setItem("forge:fresh-filter", c.key);
+                  navigate({ to: "/fresh-meals" });
+                }}
+                className="shrink-0 rounded-full border border-border/60 bg-surface px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-primary/50 hover:text-primary"
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Surprise Me hero */}
         <button
