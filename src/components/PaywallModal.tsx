@@ -20,7 +20,7 @@ const TIERS: Record<Tier, {
 }> = {
   pro: {
     name: "Starter Coach",
-    price: "$14.99",
+    price: "$9.99",
     priceId: PRICE_PRO,
     tagline: "The basics to stay on track",
     icon: Sparkles,
@@ -36,7 +36,7 @@ const TIERS: Record<Tier, {
   },
   elite: {
     name: "Elite AI Coach",
-    price: "$19.99",
+    price: "$14.99",
     priceId: PRICE_ELITE,
     tagline: "Best value — your full-time elite trainer",
     icon: Crown,
