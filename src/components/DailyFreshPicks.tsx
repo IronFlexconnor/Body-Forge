@@ -113,7 +113,14 @@ export function DailyFreshPicks() {
                         <img
                           src={thumb}
                           alt={p.title}
-                          loading="lazy"
+                          loading="eager"
+                          decoding="async"
+                          fetchPriority="high"
+                          onError={(e) => {
+                            const img = e.currentTarget;
+                            const fb = thumbFallbackForRecipe(p);
+                            if (img.src !== fb) img.src = fb;
+                          }}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
