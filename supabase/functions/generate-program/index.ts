@@ -109,8 +109,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Deactivate old programs
+    // Deactivate old programs and clear future scheduled workouts so the new
+    // goal's exercises immediately replace the old ones in every screen.
     await supabase.from("programs").update({ is_active: false }).eq("user_id", user.id);
+    const todayIso = new Date().toISOString().slice(0, 10);
+    await supabase.from("workouts").delete()
+      .eq("user_id", user.id).eq("status", "scheduled").gte("scheduled_date", todayIso);
 
     const { data: program, error: progErr } = await supabase.from("programs").insert({
       user_id: user.id,
@@ -124,7 +128,6 @@ Deno.serve(async (req) => {
     }).select().single();
     if (progErr) throw progErr;
 
-    // Persist sessions as workouts (start of program week 1, scheduled across the week from today)
     const today = new Date();
     const sessions = Array.isArray(plan.sessions) ? plan.sessions : [];
     const rows = sessions.map((s: any) => {
@@ -147,7 +150,8 @@ Deno.serve(async (req) => {
 
     await supabase.from("profiles").update({ onboarded: true }).eq("user_id", user.id);
 
-    return new Response(JSON.stringify({ program, sessions: rows.length }), {
+    const summary = summarizeChanges(plan);
+    return new Response(JSON.stringify({ program, sessions: rows.length, summary }), {
       headers: { ...cors, "Content-Type": "application/json" },
     });
   } catch (e) {
