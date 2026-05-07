@@ -55,7 +55,6 @@ function Nutrition() {
   const [review, setReview] = useState<any>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [form, setForm] = useState({ name: "", calories: "", protein_g: "", carbs_g: "", fat_g: "" });
-  const [paywall, setPaywall] = useState<{ open: boolean; reason?: string; recommend?: "pro" | "elite" }>({ open: false });
   const [planning, setPlanning] = useState(false);
   const [plan, setPlan] = useState<any>(null);
   const [planPrompt, setPlanPrompt] = useState("");
@@ -85,10 +84,10 @@ function Nutrition() {
   const calcMacros = async () => {
     setCalcing(true);
     try {
-      const { data, error } = await invokeNutritionCoach({ action: "calc_macros" });
-      if (error) throw error;
-      const { data: p } = await supabase.from("profiles").select("*").eq("user_id", user!.id).maybeSingle();
-      setProfile(p);
+      const nutritionPrefs = profile?.nutrition_preferences ?? {};
+      const data = calculateMacroTargets(profile ?? {}, nutritionPrefs, null, []);
+      if (user) await supabase.from("profiles").update({ macro_targets: data }).eq("user_id", user.id);
+      setProfile((p: any) => p ? { ...p, macro_targets: data } : p);
       toast.success(`Targets set: ${data.calories} kcal · ${data.protein_g}g protein`);
     } catch (e) { toast.error(nutritionErrorMessage(e, "Couldn't calculate macros — open Nutrition again after your profile loads.")); } finally { setCalcing(false); }
   };
@@ -121,10 +120,6 @@ function Nutrition() {
         const nutritionPrefs = activeProfile?.nutrition_preferences ?? {};
         const mData = calculateMacroTargets(activeProfile ?? {}, nutritionPrefs, null, []);
         toast.dismiss("macros");
-        if (isNutritionLimit(mData)) {
-          setPaywall({ open: true, reason: (mData as any).message, recommend: "pro" });
-          return;
-        }
         if (user) await supabase.from("profiles").update({ macro_targets: mData }).eq("user_id", user.id);
         const { data: p } = await supabase.from("profiles").select("*").eq("user_id", user!.id).maybeSingle();
         activeProfile = p ?? { ...activeProfile, macro_targets: mData };
@@ -154,13 +149,9 @@ function Nutrition() {
   const reviewDay = async () => {
     setReviewing(true);
     try {
-      const { data, error } = await invokeNutritionCoach({ action: "review_day" });
-      const d: any = data;
-      if (isNutritionLimit(d) || ((error as any)?.context?.status === 402)) {
-        setPaywall({ open: true, reason: d?.message || "Nutrition coaching reviews are part of Pro Coach.", recommend: "pro" });
-        return;
-      }
-      if (error) throw error;
+      const nutritionPrefs = profile?.nutrition_preferences ?? {};
+      const targets = profile?.macro_targets ?? calculateMacroTargets(profile ?? {}, nutritionPrefs, null, []);
+      const d = reviewLoggedMeals(meals, targets);
       setReview(d);
     } catch (e) { toast.error(nutritionErrorMessage(e, "Couldn't generate review — please try again.")); } finally { setReviewing(false); }
   };
