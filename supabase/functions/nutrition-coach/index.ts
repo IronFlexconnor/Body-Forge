@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
         error: "limit_reached",
         code: "nutrition_pro_only",
         message: "Personalized meal plans, recipes, and meal-prep videos are part of Pro Coach. Start your 7-day free trial to unlock the full nutrition planner synced with your training.",
-      }), { status: 402, headers: cors });
+      }), { status: 200, headers: cors });
     }
 
     const { data: profile } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
