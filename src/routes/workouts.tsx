@@ -208,6 +208,13 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
         ))}
       </div>
 
+      <div className="fixed right-4 bottom-24 z-20">
+        <Link to="/form"
+          className="flex items-center gap-2 rounded-full border border-primary/40 bg-background/95 px-4 py-2.5 text-xs font-semibold shadow-card backdrop-blur-xl hover:border-primary">
+          <Sparkles className="h-4 w-4 text-primary" /> Analyze form
+        </Link>
+      </div>
+
       <div className="fixed bottom-0 inset-x-0 border-t border-border/60 bg-background/95 px-5 py-3 backdrop-blur-xl">
         <div className="mx-auto max-w-lg">
           <Button onClick={finish} disabled={finishing} className="h-12 w-full rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow">
