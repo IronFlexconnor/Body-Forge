@@ -9,15 +9,28 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const buildSys = (injuries: string | null, units: "imperial" | "metric") => {
+const buildSys = (injuries: string | null, units: "imperial" | "metric", goal: string, level: string) => {
   const wu = units === "imperial" ? "lbs" : "kg";
-  return `You are an elite strength & conditioning coach + biomechanics specialist.
+  return `You are an elite strength & conditioning coach + biomechanics specialist
+(think: pro golf-swing analyzer applied to barbell, dumbbell, bodyweight, and machine work).
+Coach with the warmth and clarity of a top-tier human trainer: honest, specific, encouraging,
+educational. Never robotic, never generic. Treat the user like a serious athlete.
+
 Analyze exercise form from sequential video frames (or a single still photo) at the
-precision level of a professional golf-swing analyzer applied to general fitness.
+precision level of a professional movement analyst.
 
 User context:
 - Reported injuries / limitations: ${injuries?.trim() ? injuries : "none reported"}
 - Preferred weight unit: ${wu}
+- Primary training goal: ${goal}
+- Experience level: ${level}
+
+Tailor optimal tempo + load guidance to the goal:
+- hypertrophy → 3-1-2 to 4-0-1, RIR 1-3
+- strength → 2-1-1 to 3-0-X, heavier loads, longer rests
+- power / athletic → 2-0-X explosive concentric
+- rehabilitation / return-to-lift → 4-2-3, sub-maximal, pain-free ROM
+- fat loss / general → 2-1-2 to 3-0-2, controlled
 
 FIRST: silently identify the EXACT exercise being performed (e.g. "Barbell Back Squat",
 "Conventional Deadlift", "Standard Push-up", "Dumbbell Bench Press"). Use the user's
@@ -56,24 +69,36 @@ Then return ONLY a JSON object with this EXACT shape:
   "compensation_patterns": ["e.g. butt-wink at depth", "right hip shift"],
   "muscle_activation": ["primary movers engaged", "under-activated muscles"],
   "good": ["positive points (max 3)"],
+  "findings": [                       // 3-6 deep, golf-swing-analyzer-grade findings
+    {
+      "title": "short label e.g. 'Right knee valgus on descent'",
+      "severity": "low" | "moderate" | "high",
+      "phase": "setup" | "descent" | "bottom" | "ascent" | "lockout" | "global",
+      "problem": "exact specific observation with numbers/sides where possible (e.g. 'Right knee caves ~22° inward on reps 3-5 between 60-90° knee flexion')",
+      "why_it_matters": "explain safety / joint health / activation / efficiency / results impact",
+      "correction_steps": ["3-5 ordered, step-by-step cues to fix on the next set"],
+      "drills": ["1-3 specific corrective drills or mobility exercises with sets x reps or duration"]
+    }
+  ],
   "fixes": ["3-5 specific corrections, ordered by priority — reference body parts/joint angles/bar paths"],
   "cues": ["3-4 short coaching cues (3-6 words each)"],
   "safety_flags": ["concerns tied to reported injuries — empty array if none"],
   "alternative_exercise": "safer/better variation if risk is high; else null",
   "next_session_adjustment": "One concrete change for the next set",
   "weight_delta": { "value": number, "unit": "${wu}", "direction": "increase" | "decrease" | "hold" },
-  "plan_adjustments": [              // 2-4 deeper program changes
+  "plan_adjustments": [              // 2-5 deeper program changes — must reference goal "${goal}"
     {
-      "type": "tempo" | "load" | "reps" | "sets" | "exercise_swap" | "mobility" | "accessory",
-      "change": "human-readable change e.g. 'Slow eccentric to 3s on all squats'",
-      "reason": "why this helps (safety/efficiency/effectiveness)",
+      "type": "tempo" | "load" | "reps" | "sets" | "exercise_swap" | "mobility" | "accessory" | "rest",
+      "change": "human-readable change e.g. 'Slow eccentric to 3s on all squats this week'",
+      "reason": "why this helps (safety/efficiency/effectiveness) — tie to goal",
       "expected_benefit": "what user will feel/gain"
     }
   ],
-  "encouragement": "1 short motivating line — warm, world-class trainer tone"
+  "encouragement": "1-2 sentences — warm, world-class trainer tone, honest + motivating"
 }
 
-Be SPECIFIC and PROFESSIONAL. No fluff. No hedging. If the input is a single photo,
+Be SPECIFIC, EDUCATIONAL, and PROFESSIONAL. Use numbers (degrees, reps, seconds) where the
+visual supports it. No fluff. No hedging. If the input is a single photo,
 judge the static position only and set tempo phases to 0 with verdict "static photo".`;
 };
 
@@ -96,6 +121,7 @@ function safeFallback(exercise: string | null, mediaType: string | null, units: 
     compensation_patterns: [],
     muscle_activation: [],
     good: ["Upload was received", "Movement intent looks committed"],
+    findings: [],
     fixes: ["Film from a 45° side angle so hips, knees, and torso are fully visible", "Brace before each rep and keep torso position consistent", "Use a controlled 2–3 second lowering phase", "Stop or regress if pain changes the movement path"],
     cues: ["Brace first", "Full foot pressure", "Control the lowering", "Smooth finish"],
     safety_flags: [],
@@ -143,6 +169,15 @@ function normalizeAnalysis(value: any, exercise: string | null, mediaType: strin
     compensation_patterns: Array.isArray(a.compensation_patterns) ? a.compensation_patterns.map(String).slice(0, 5) : [],
     muscle_activation: Array.isArray(a.muscle_activation) ? a.muscle_activation.map(String).slice(0, 5) : [],
     good: Array.isArray(a.good) ? a.good.slice(0, 3).map(String) : fallback.good,
+    findings: Array.isArray(a.findings) ? a.findings.slice(0, 6).map((f: any) => ({
+      title: String(f?.title ?? "Finding"),
+      severity: ["low", "moderate", "high"].includes(f?.severity) ? f.severity : "moderate",
+      phase: String(f?.phase ?? "global"),
+      problem: String(f?.problem ?? ""),
+      why_it_matters: String(f?.why_it_matters ?? ""),
+      correction_steps: Array.isArray(f?.correction_steps) ? f.correction_steps.slice(0, 6).map(String) : [],
+      drills: Array.isArray(f?.drills) ? f.drills.slice(0, 4).map(String) : [],
+    })) : [],
     fixes: Array.isArray(a.fixes) ? a.fixes.slice(0, 5).map(String) : fallback.fixes,
     cues: Array.isArray(a.cues) ? a.cues.slice(0, 4).map(String) : fallback.cues,
     safety_flags: Array.isArray(a.safety_flags) ? a.safety_flags.map(String) : [],
@@ -181,11 +216,13 @@ Deno.serve(async (req) => {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("injuries, units, goal")
+      .select("injuries, units, goal, level")
       .eq("user_id", user.id)
       .maybeSingle();
     const injuries = (profile?.injuries as string | null) ?? null;
     const units = ((profile?.units as string) === "metric" ? "metric" : "imperial") as "imperial" | "metric";
+    const goal = (profile?.goal as string | null) ?? "general fitness";
+    const level = (profile?.level as string | null) ?? "intermediate";
 
     // --- Plan limits (entitlements remain enforced server-side) ---
     const { getPlanTier, countUsage, logUsage, FREE_LIMITS } = await import("../_shared/entitlements.ts");
@@ -225,7 +262,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: `${buildSys(injuries, units)}\n\n${EXPERT_KNOWLEDGE}` },
+          { role: "system", content: `${buildSys(injuries, units, goal, level)}\n\n${EXPERT_KNOWLEDGE}` },
           { role: "user", content: userContent },
         ],
         response_format: { type: "json_object" },
@@ -255,11 +292,18 @@ Deno.serve(async (req) => {
       }).eq("id", row.id);
     }
 
-    // Sync a brief summary into AI Coach chat history so the assistant sees it
+    // Sync a rich summary into AI Coach chat history so the assistant has full biomechanics context
     try {
       const subs = analysis.sub_scores || {};
-      const top = (analysis.fixes || [])[0] || analysis.next_session_adjustment || "";
-      const note = `[Form check] ${analysis.exercise_detected} — ${analysis.score}/100 (posture ${subs.posture}, alignment ${subs.joint_alignment}, tempo ${subs.tempo}, symmetry ${subs.symmetry}, injury-safety ${subs.injury_risk}). Top fix: ${top}`;
+      const findings = (analysis.findings || []).slice(0, 3)
+        .map((f: any) => `• [${f.severity}] ${f.title} — ${f.problem}`).join("\n");
+      const tempoStr = analysis.tempo
+        ? `tempo ${analysis.tempo.eccentric_s}-${analysis.tempo.pause_s}-${analysis.tempo.concentric_s} (ideal ${analysis.tempo.ideal})`
+        : "";
+      const note = `[Form check] ${analysis.exercise_detected} — ${analysis.score}/100\n` +
+        `Sub-scores: posture ${subs.posture}, alignment ${subs.joint_alignment}, tempo ${subs.tempo}, symmetry ${subs.symmetry}, stability ${subs.stability}, ROM ${subs.range_of_motion}, safety ${subs.injury_risk}. ${tempoStr}\n` +
+        (findings ? `Top findings:\n${findings}\n` : "") +
+        `Next set: ${analysis.next_session_adjustment || ""}`;
       await supabase.from("chat_messages").insert({ user_id: user.id, role: "user", content: note });
     } catch (e) { console.warn("coach sync failed", e); }
 
