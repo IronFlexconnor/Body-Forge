@@ -150,6 +150,7 @@ function safeFallback(exercise: string | null, mediaType: string | null, units: 
       { type: "tempo", change: "Add a 3s eccentric to your main lift", reason: "Better motor control + joint safety", expected_benefit: "More muscle tension, less injury risk" },
     ],
     encouragement: "Solid effort — let's sharpen the details and you'll level up fast.",
+    safety_verdict: "green",
     diagnostic: reason,
   };
 }
