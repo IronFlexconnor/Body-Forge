@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
           model: "google/gemini-3-flash-preview",
           messages: [
             { role: "system", content: SYSTEM },
-            { role: "user", content: `Today is ${today}. Generate 6 brand-new insight cards (variation seed: ${seed}). Vary categories.` },
+            { role: "user", content: `Today is ${today}. Generate 7 brand-new insight cards (variation seed: ${seed}). Vary categories — include at least one nutrition, one training, one recovery/sleep, one mindset, and one supplements/injury-prevention card.` },
           ],
           tools: [TOOL],
           tool_choice: { type: "function", function: { name: "publish_insights" } },
