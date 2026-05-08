@@ -267,6 +267,42 @@ function FormAnalysis() {
     else toast.message("Saved cue for later — synced with Coach.");
   };
 
+  const submitFeedback = async (worked: "yes" | "partial" | "no", pain: "none" | "some" | "sharp", note: string) => {
+    if (!user || !result) return;
+    const a = result.analysis;
+    const exName = a.exercise_detected || exercise || "movement";
+    const painLabel = pain === "none" ? "no pain" : pain === "some" ? "mild discomfort" : "sharp pain";
+    const workedLabel = worked === "yes" ? "correction worked" : worked === "partial" ? "partial improvement" : "didn't help";
+    const summary = `[Form feedback] ${exName} · ${workedLabel} · ${painLabel}${note ? ` — "${note}"` : ""}`;
+    try {
+      await supabase.from("chat_messages").insert({
+        user_id: user.id,
+        role: "user",
+        content: `${summary}\nUse this signal to refine future form analysis and training adjustments. If pain was reported, prioritize safer regressions and recheck mechanics next session.`,
+      });
+    } catch {}
+    try {
+      await supabase.from("program_adjustments").insert({
+        user_id: user.id,
+        trigger: "form_feedback",
+        scope: "training",
+        status: "approved",
+        summary,
+        changes: [{
+          exercise: exName,
+          upload_id: result.id ?? null,
+          worked, pain, note: note || null,
+          prior_score: a.score ?? null,
+        }],
+        coach_note: pain !== "none" ? "User reported pain — bias toward regression and ROM/tempo safety on next analysis." : null,
+      });
+    } catch {}
+    setFeedback({ uploadId: result.id, submitted: true });
+    if (pain === "sharp") toast.warning("Logged. Coach will prioritize safer variations next session.");
+    else if (worked === "yes") toast.success("Nice — Coach will keep this dialed in.");
+    else toast.success("Got it — Coach will adjust next analysis.");
+  };
+
   return (
     <AppShell>
       <div className="px-5 pt-12 pb-24">
