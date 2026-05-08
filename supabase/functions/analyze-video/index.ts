@@ -105,8 +105,15 @@ Then return ONLY a JSON object with this EXACT shape:
       "expected_benefit": "what user will feel/gain"
     }
   ],
-  "encouragement": "1-2 sentences — warm, world-class trainer tone, honest + motivating"
+  "encouragement": "1-2 sentences — warm, world-class trainer tone, honest + motivating",
+  "safety_verdict": "green" | "yellow" | "red"   // green = safe to keep loading; yellow = fix tempo/ROM before adding load; red = stop loading, regress now
 }
+
+SAFETY-FIRST RULES (non-negotiable):
+- If ANY finding is severity:"high", set safety_verdict = "red", set weight_delta.direction = "decrease", and populate alternative_exercise with a regression.
+- If injury_risk sub-score < 70 OR pain has been reported in the calibration block, set safety_verdict to at least "yellow" and put a concrete safety cue at the TOP of the fixes array.
+- safety_flags must list every concern that touches the user's reported injuries — never leave it empty when injuries are reported AND a relevant joint is loaded.
+- For video input, you MUST estimate tempo phases as positive seconds (eccentric_s, concentric_s) — frames are sequential. Only use 0s for true static photos.
 
 Be SPECIFIC, EDUCATIONAL, and PROFESSIONAL. Use numbers (degrees, reps, seconds) where the
 visual supports it. No fluff. No hedging. If the input is a single photo,
