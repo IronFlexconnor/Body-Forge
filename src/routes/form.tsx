@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PaywallModal } from "@/components/PaywallModal";
 import { useSubscription } from "@/hooks/useSubscription";
+import { trackEvent } from "@/lib/usage";
 
 const FRIENDLY_ANALYSIS_ERROR = "Coach couldn't read that clip. Try a clear 5–15 second video or a still photo in good lighting.";
 
@@ -167,6 +168,7 @@ function FormAnalysis() {
       if (error) throw error;
       setProgress(100);
       setResult({ id: d?.id, analysis: d?.analysis ?? fallbackAnalysis(kind, exercise), mediaUrl: localPreview, mediaKind: kind });
+      trackEvent("form_analyze", { ref_id: (exercise || "workout").toLowerCase(), ref_label: exercise || "Workout", meta: { score: d?.analysis?.score } });
       toast.success("Form analysis ready");
     } catch (e) {
       setProgress(100);

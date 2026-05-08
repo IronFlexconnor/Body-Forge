@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { thumbForRecipe, thumbFallbackForRecipe, videoForRecipe } from "@/lib/mealVideos";
 import { useFavorites } from "@/lib/favorites";
 import { logPlanChangeToCoach } from "@/lib/coachSync";
+import { trackEvent } from "@/lib/usage";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/fresh-meals")({
@@ -414,10 +415,11 @@ function FreshMealsPage() {
                 slot={slot}
                 primary={slotPicks[slot.key].primary}
                 alts={slotPicks[slot.key].alts}
-                onOpen={setActive}
+                onOpen={(r) => { trackEvent("meal_view", { ref_id: r.slug, ref_label: r.title }); setActive(r); }}
                 onSwap={swapIntoPlan}
                 onSave={(r) => {
                   const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type });
+                  if (added) trackEvent("meal_save", { ref_id: r.slug, ref_label: r.title });
                   toast.success(added ? "Saved to favorites" : "Removed from favorites");
                 }}
                 isFav={isFav}
@@ -433,13 +435,13 @@ function FreshMealsPage() {
 
             <div className="mb-8 mt-3 grid grid-cols-2 gap-2">
               <button
-                onClick={() => setRegenOpen(true)}
+                onClick={() => { trackEvent("meal_regenerate", { ref_label: "open_sheet" }); setRegenOpen(true); }}
                 className="flex items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-gradient-primary p-4 font-semibold text-primary-foreground shadow-glow hover:scale-[1.01] transition"
               >
                 <Wand2 className="h-4 w-4" /> Regenerate plan
               </button>
               <button
-                onClick={regenAll}
+                onClick={() => { trackEvent("meal_regenerate", { ref_label: "surprise" }); regenAll(); }}
                 className="flex items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card p-4 font-semibold text-primary hover:bg-primary/10 transition"
               >
                 <Shuffle className="h-4 w-4" /> Surprise me
@@ -478,6 +480,7 @@ function FreshMealsPage() {
           isFav={isFav(active.id)}
           onSave={(r) => {
             const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type });
+            if (added) trackEvent("meal_save", { ref_id: r.slug, ref_label: r.title });
             toast.success(added ? "Saved to favorites" : "Removed from favorites");
           }}
           onSwap={(r) => { swapIntoPlan(r); setActive(null); }}
