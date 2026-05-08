@@ -141,6 +141,7 @@ SAFETY-FIRST RULES (non-negotiable):
 Be SPECIFIC, EDUCATIONAL, and PROFESSIONAL. Use numbers (degrees, reps, seconds) where the
 visual supports it. No fluff. No hedging. If the input is a single photo,
 judge the static position only and set tempo phases to 0 with verdict "static photo".`;
+};
 
 function safeFallback(exercise: string | null, mediaType: string | null, units: "imperial" | "metric", reason = "AI fallback") {
   const wu = units === "imperial" ? "lbs" : "kg";
