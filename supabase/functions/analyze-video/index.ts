@@ -279,7 +279,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: `${buildSys(injuries, units, goal, level)}\n\n${EXPERT_KNOWLEDGE}` },
+          { role: "system", content: `${buildSys(injuries, units, goal, level, calibration)}\n\n${EXPERT_KNOWLEDGE}` },
           { role: "user", content: userContent },
         ],
         response_format: { type: "json_object" },
