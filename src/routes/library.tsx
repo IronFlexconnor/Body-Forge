@@ -123,7 +123,7 @@ function Library() {
               return (
                 <button
                   key={ex.id}
-                  onClick={() => setActive(ex)}
+                  onClick={() => { trackEvent("exercise_view", { ref_id: ex.id, ref_label: ex.name }); setActive(ex); }}
                   className="group flex w-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-gradient-card text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-glow active:scale-[0.99]"
                 >
                   <div className="relative aspect-video w-full overflow-hidden bg-black">
