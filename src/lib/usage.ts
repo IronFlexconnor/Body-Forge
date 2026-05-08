@@ -26,7 +26,7 @@ export async function trackEvent(
       event_type,
       ref_id: opts.ref_id ?? null,
       ref_label: opts.ref_label ?? null,
-      meta: opts.meta ?? {},
+      meta: (opts.meta ?? {}) as never,
     });
   } catch {
     /* swallow */
