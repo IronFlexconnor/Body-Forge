@@ -435,7 +435,7 @@ function FreshMealsPage() {
 
             <div className="mb-8 mt-3 grid grid-cols-2 gap-2">
               <button
-                onClick={() => setRegenOpen(true)}
+                onClick={() => { trackEvent("meal_regenerate", { ref_label: "open_sheet" }); setRegenOpen(true); }}
                 className="flex items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-gradient-primary p-4 font-semibold text-primary-foreground shadow-glow hover:scale-[1.01] transition"
               >
                 <Wand2 className="h-4 w-4" /> Regenerate plan
