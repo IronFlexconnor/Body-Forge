@@ -31,6 +31,11 @@ User context:
 - Primary training goal: ${goal}
 - Experience level: ${level}
 
+Per-user calibration (built from this athlete's prior form-feedback history — what
+actually worked or didn't, plus any reported pain). Treat this as ground truth and
+adapt cues, ideal sub-score targets, tempo, and load advice accordingly:
+${calibration}
+
 Tailor optimal tempo + load guidance to the goal:
 - hypertrophy → 3-1-2 to 4-0-1, RIR 1-3
 - strength → 2-1-1 to 3-0-X, heavier loads, longer rests
