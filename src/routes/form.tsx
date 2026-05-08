@@ -337,8 +337,8 @@ function FormAnalysis() {
         const exs = (w.exercises as any[]) ?? [];
         let didTouch = false;
         const updated = exs.map((ex) => {
-          const name = (ex.name || "").toLowerCase();
-          const matches = !!target && (name.includes(target.split(" ")[0]) || target.includes(name.split(" ")[0]));
+          const name = ex.name || "";
+          const matches = !!target && isSameExercise(name, target);
           if (!matches) return ex;
           didTouch = true;
           const next: any = { ...ex };
