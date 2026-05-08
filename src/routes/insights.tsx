@@ -143,7 +143,7 @@ function InsightsPage() {
                       <p className="mt-0.5 text-foreground/90">{c.why_it_matters}</p>
                     </div>
                     <Button
-                      onClick={() => { trackEvent("insight_click", { ref_id: c.title?.slice(0, 80), ref_label: c.title }); apply(c, i); }}
+                      onClick={() => { trackEvent("insight_click", { ref_id: c.headline?.slice(0, 80), ref_label: c.headline }); apply(c, i); }}
                       disabled={busyIdx === i || applied}
                       className="mt-4 h-11 w-full rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow"
                     >
