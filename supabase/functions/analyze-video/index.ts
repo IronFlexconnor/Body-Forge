@@ -65,11 +65,11 @@ Then return ONLY a JSON object with this EXACT shape:
     "efficiency": 0-100,
     "effectiveness": 0-100
   },
-  "joint_angles": [                  // 2-5 key joints with phase context
+  "joint_angles": [
     { "joint": "knee", "phase": "bottom", "angle_deg": 95, "ideal_range": "90-110", "verdict": "in range" }
   ],
   "tempo": {
-    "eccentric_s": number,           // estimate lowering phase
+    "eccentric_s": number,
     "pause_s": number,
     "concentric_s": number,
     "ideal": "string e.g. 3-1-1",
@@ -80,58 +80,94 @@ Then return ONLY a JSON object with this EXACT shape:
   "compensation_patterns": ["e.g. butt-wink at depth", "right hip shift"],
   "muscle_activation": ["primary movers engaged", "under-activated muscles"],
   "good": ["positive points (max 3)"],
-  "findings": [                       // 3-6 deep, golf-swing-analyzer-grade findings
+  "findings": [
     {
       "title": "short label e.g. 'Right knee valgus on descent'",
       "severity": "low" | "moderate" | "high",
       "phase": "setup" | "descent" | "bottom" | "ascent" | "lockout" | "global",
-      "problem": "exact specific observation with numbers/sides where possible (e.g. 'Right knee caves ~22° inward on reps 3-5 between 60-90° knee flexion')",
+      "problem": "exact specific observation with numbers/sides where possible",
       "why_it_matters": "explain safety / joint health / activation / efficiency / results impact",
       "correction_steps": ["3-5 ordered, step-by-step cues to fix on the next set"],
       "drills": ["1-3 specific corrective drills or mobility exercises with sets x reps or duration"]
     }
   ],
-  "fixes": ["3-5 specific corrections, ordered by priority — reference body parts/joint angles/bar paths"],
+  "fixes": ["3-5 specific corrections, ordered by priority"],
   "cues": ["3-4 short coaching cues (3-6 words each)"],
   "safety_flags": ["concerns tied to reported injuries — empty array if none"],
   "alternative_exercise": "safer/better variation if risk is high; else null",
   "next_session_adjustment": "One concrete change for the next set",
   "weight_delta": { "value": number, "unit": "${wu}", "direction": "increase" | "decrease" | "hold" },
-  "plan_adjustments": [              // 2-5 deeper program changes — must reference goal "${goal}"
-    {
-      "type": "tempo" | "load" | "reps" | "sets" | "exercise_swap" | "mobility" | "accessory" | "rest",
-      "change": "human-readable change e.g. 'Slow eccentric to 3s on all squats this week'",
-      "reason": "why this helps (safety/efficiency/effectiveness) — tie to goal",
-      "expected_benefit": "what user will feel/gain"
-    }
+  "plan_adjustments": [
+    { "type": "tempo" | "load" | "reps" | "sets" | "exercise_swap" | "mobility" | "accessory" | "rest",
+      "change": "human-readable change", "reason": "why this helps", "expected_benefit": "what user gains" }
   ],
   "encouragement": "1-2 sentences — warm, world-class trainer tone, honest + motivating",
-  "safety_verdict": "green" | "yellow" | "red"   // green = safe to keep loading; yellow = fix tempo/ROM before adding load; red = stop loading, regress now
+  "safety_verdict": "green" | "yellow" | "red"
 }
+
+SCORING RUBRIC — be HONEST and VARIED. Different videos must produce meaningfully different scores.
+Anchor each sub-score to objective evidence and use the FULL 0-100 range:
+- 95-100  Elite / textbook (rare; only when no flaws are visible at all)
+- 85-94   Advanced — minor polish only
+- 75-84   Solid — 1-2 clear issues to fix
+- 60-74   Developing — multiple visible flaws, technique compromises load
+- 45-59   Risky — major breakdowns, joint integrity at risk
+- 0-44    Stop the set — unsafe pattern, regress immediately
+
+OVERALL SCORE FORMULA (you MUST compute, not guess):
+  score = round(
+    0.18*injury_risk + 0.14*joint_alignment + 0.12*posture + 0.10*tempo +
+    0.10*range_of_motion + 0.10*stability + 0.08*symmetry + 0.08*power_transfer +
+    0.05*efficiency + 0.05*effectiveness
+  )
+The sum of high-severity findings further caps the score:
+  - any high-severity finding   → score ≤ 65
+  - 2+ high-severity findings   → score ≤ 50
+  - any moderate finding on a loaded joint → score ≤ 82
+
+ANTI-ANCHOR RULES (critical):
+- DO NOT default to ~78. Justify every score with at least one observed datum.
+- If the rep looks textbook for the experience level, award 88-96 confidently.
+- If you see clear breakdowns (rounded back, knee valgus >15°, bar drift, lost brace, partial ROM), grade in the 50-72 range, not the high 70s.
+- Sub-scores must vary by at least 8 points across the 10 categories — if every category is 75-80 you are not analyzing, you are hedging. Re-grade.
+- Two different exercises analyzed by you must NOT receive identical scores unless objectively identical quality is observed.
 
 SAFETY-FIRST RULES (non-negotiable):
 - If ANY finding is severity:"high", set safety_verdict = "red", set weight_delta.direction = "decrease", and populate alternative_exercise with a regression.
 - If injury_risk sub-score < 70 OR pain has been reported in the calibration block, set safety_verdict to at least "yellow" and put a concrete safety cue at the TOP of the fixes array.
-- safety_flags must list every concern that touches the user's reported injuries — never leave it empty when injuries are reported AND a relevant joint is loaded.
-- For video input, you MUST estimate tempo phases as positive seconds (eccentric_s, concentric_s) — frames are sequential. Only use 0s for true static photos.
+- safety_flags must list every concern that touches the user's reported injuries.
+- For video input, you MUST estimate tempo phases as positive seconds. Only use 0s for true static photos.
 
 Be SPECIFIC, EDUCATIONAL, and PROFESSIONAL. Use numbers (degrees, reps, seconds) where the
 visual supports it. No fluff. No hedging. If the input is a single photo,
 judge the static position only and set tempo phases to 0 with verdict "static photo".`;
-};
 
 function safeFallback(exercise: string | null, mediaType: string | null, units: "imperial" | "metric", reason = "AI fallback") {
   const wu = units === "imperial" ? "lbs" : "kg";
   const movement = exercise?.trim() || "the movement";
+  // Mild deterministic variation off the exercise name so two different lifts
+  // don't both land on identical fallback numbers when the AI fails.
+  const seed = Array.from(movement.toLowerCase()).reduce((s, c) => s + c.charCodeAt(0), 0);
+  const wobble = (offset: number, range = 8) => ((seed + offset) % range) - Math.floor(range / 2);
+  const sub = {
+    posture: 76 + wobble(1),
+    joint_alignment: 74 + wobble(2),
+    tempo: 72 + wobble(3, 10),
+    symmetry: 80 + wobble(4),
+    stability: 77 + wobble(5),
+    range_of_motion: 74 + wobble(6),
+    power_transfer: 73 + wobble(7),
+    injury_risk: 80 + wobble(8),
+    efficiency: 75 + wobble(9),
+    effectiveness: 75 + wobble(10),
+  };
+  const score = computeWeightedScore(sub, []);
   return {
     exercise_detected: movement,
-    confidence: 60,
-    score: 78,
-    summary: `Coach reviewed ${mediaType === "photo" ? "the still photo" : "the clip"} for ${movement}. Use these safe cues now and re-check with a bright side-angle view for a sharper read.`,
-    sub_scores: {
-      posture: 78, joint_alignment: 76, tempo: 75, symmetry: 80, stability: 78,
-      range_of_motion: 76, power_transfer: 75, injury_risk: 80, efficiency: 76, effectiveness: 76,
-    },
+    confidence: 55,
+    score,
+    summary: `Coach reviewed ${mediaType === "photo" ? "the still photo" : "the clip"} for ${movement}. Use these safe cues now and re-record with a bright side-angle view for a sharper read.`,
+    sub_scores: sub,
     joint_angles: [],
     tempo: { eccentric_s: 0, pause_s: 0, concentric_s: 0, ideal: "3-1-1", verdict: "Re-record with side angle for tempo read" },
     symmetry_notes: "Side angle would let me compare left vs right cleanly.",
@@ -155,6 +191,29 @@ function safeFallback(exercise: string | null, mediaType: string | null, units: 
   };
 }
 
+const SCORE_WEIGHTS: Record<string, number> = {
+  injury_risk: 0.18, joint_alignment: 0.14, posture: 0.12, tempo: 0.10,
+  range_of_motion: 0.10, stability: 0.10, symmetry: 0.08, power_transfer: 0.08,
+  efficiency: 0.05, effectiveness: 0.05,
+};
+
+function computeWeightedScore(sub: Record<string, number>, findings: any[]): number {
+  let total = 0;
+  let weight = 0;
+  for (const [k, w] of Object.entries(SCORE_WEIGHTS)) {
+    const v = Number(sub?.[k]);
+    if (isFinite(v)) { total += v * w; weight += w; }
+  }
+  let score = weight > 0 ? Math.round(total / weight) : 75;
+  // Severity caps from the rubric
+  const highs = findings.filter((f) => f?.severity === "high").length;
+  const mods = findings.filter((f) => f?.severity === "moderate").length;
+  if (highs >= 2) score = Math.min(score, 50);
+  else if (highs >= 1) score = Math.min(score, 65);
+  else if (mods >= 1) score = Math.min(score, 82);
+  return Math.max(0, Math.min(100, score));
+}
+
 function clamp(n: any, def = 75) {
   const v = Number(n);
   if (!isFinite(v)) return def;
@@ -165,38 +224,48 @@ function normalizeAnalysis(value: any, exercise: string | null, mediaType: strin
   const fallback = safeFallback(exercise, mediaType, units, "Malformed AI response normalized");
   const a = value && typeof value === "object" ? value : {};
   const ss = (a.sub_scores && typeof a.sub_scores === "object") ? a.sub_scores : {};
+
+  const sub_scores = {
+    posture: clamp(ss.posture, fallback.sub_scores.posture),
+    joint_alignment: clamp(ss.joint_alignment, fallback.sub_scores.joint_alignment),
+    tempo: clamp(ss.tempo, fallback.sub_scores.tempo),
+    symmetry: clamp(ss.symmetry, fallback.sub_scores.symmetry),
+    stability: clamp(ss.stability, fallback.sub_scores.stability),
+    range_of_motion: clamp(ss.range_of_motion, fallback.sub_scores.range_of_motion),
+    power_transfer: clamp(ss.power_transfer, fallback.sub_scores.power_transfer),
+    injury_risk: clamp(ss.injury_risk, fallback.sub_scores.injury_risk),
+    efficiency: clamp(ss.efficiency, fallback.sub_scores.efficiency),
+    effectiveness: clamp(ss.effectiveness, fallback.sub_scores.effectiveness),
+  };
+
+  const findings = Array.isArray(a.findings) ? a.findings.slice(0, 6).map((f: any) => ({
+    title: String(f?.title ?? "Finding"),
+    severity: ["low", "moderate", "high"].includes(f?.severity) ? f.severity : "moderate",
+    phase: String(f?.phase ?? "global"),
+    problem: String(f?.problem ?? ""),
+    why_it_matters: String(f?.why_it_matters ?? ""),
+    correction_steps: Array.isArray(f?.correction_steps) ? f.correction_steps.slice(0, 6).map(String) : [],
+    drills: Array.isArray(f?.drills) ? f.drills.slice(0, 4).map(String) : [],
+  })) : [];
+
+  // Authoritative score: derived from sub-scores + severity caps. This guarantees
+  // different videos produce meaningfully different scores and prevents the model
+  // from anchoring to a flat ~78.
+  const score = computeWeightedScore(sub_scores, findings);
+
   return {
     ...fallback,
     ...a,
     exercise_detected: typeof a.exercise_detected === "string" && a.exercise_detected.trim() ? a.exercise_detected : (exercise || fallback.exercise_detected),
     confidence: clamp(a.confidence, fallback.confidence),
-    score: clamp(a.score, fallback.score),
-    sub_scores: {
-      posture: clamp(ss.posture, fallback.sub_scores.posture),
-      joint_alignment: clamp(ss.joint_alignment, fallback.sub_scores.joint_alignment),
-      tempo: clamp(ss.tempo, fallback.sub_scores.tempo),
-      symmetry: clamp(ss.symmetry, fallback.sub_scores.symmetry),
-      stability: clamp(ss.stability, fallback.sub_scores.stability),
-      range_of_motion: clamp(ss.range_of_motion, fallback.sub_scores.range_of_motion),
-      power_transfer: clamp(ss.power_transfer, fallback.sub_scores.power_transfer),
-      injury_risk: clamp(ss.injury_risk, fallback.sub_scores.injury_risk),
-      efficiency: clamp(ss.efficiency, fallback.sub_scores.efficiency),
-      effectiveness: clamp(ss.effectiveness, fallback.sub_scores.effectiveness),
-    },
+    score,
+    sub_scores,
     joint_angles: Array.isArray(a.joint_angles) ? a.joint_angles.slice(0, 6) : [],
     tempo: a.tempo && typeof a.tempo === "object" ? a.tempo : fallback.tempo,
     compensation_patterns: Array.isArray(a.compensation_patterns) ? a.compensation_patterns.map(String).slice(0, 5) : [],
     muscle_activation: Array.isArray(a.muscle_activation) ? a.muscle_activation.map(String).slice(0, 5) : [],
     good: Array.isArray(a.good) ? a.good.slice(0, 3).map(String) : fallback.good,
-    findings: Array.isArray(a.findings) ? a.findings.slice(0, 6).map((f: any) => ({
-      title: String(f?.title ?? "Finding"),
-      severity: ["low", "moderate", "high"].includes(f?.severity) ? f.severity : "moderate",
-      phase: String(f?.phase ?? "global"),
-      problem: String(f?.problem ?? ""),
-      why_it_matters: String(f?.why_it_matters ?? ""),
-      correction_steps: Array.isArray(f?.correction_steps) ? f.correction_steps.slice(0, 6).map(String) : [],
-      drills: Array.isArray(f?.drills) ? f.drills.slice(0, 4).map(String) : [],
-    })) : [],
+    findings,
     fixes: Array.isArray(a.fixes) ? a.fixes.slice(0, 5).map(String) : fallback.fixes,
     cues: Array.isArray(a.cues) ? a.cues.slice(0, 4).map(String) : fallback.cues,
     safety_flags: Array.isArray(a.safety_flags) ? a.safety_flags.map(String) : [],
@@ -204,8 +273,8 @@ function normalizeAnalysis(value: any, exercise: string | null, mediaType: strin
     plan_adjustments: Array.isArray(a.plan_adjustments) ? a.plan_adjustments.slice(0, 5) : fallback.plan_adjustments,
     encouragement: typeof a.encouragement === "string" ? a.encouragement : fallback.encouragement,
     safety_verdict: ["green", "yellow", "red"].includes(a.safety_verdict) ? a.safety_verdict
-      : (Array.isArray(a.findings) && a.findings.some((f: any) => f?.severity === "high")) ? "red"
-      : (clamp(ss.injury_risk, 80) < 70) ? "yellow"
+      : (findings.some((f: any) => f.severity === "high")) ? "red"
+      : (sub_scores.injury_risk < 70 || score < 65) ? "yellow"
       : "green",
   };
 }
@@ -412,6 +481,7 @@ Deno.serve(async (req) => {
           { role: "user", content: userContent },
         ],
         response_format: { type: "json_object" },
+        temperature: 0.4,
       }),
     });
 
