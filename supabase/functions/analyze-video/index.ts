@@ -481,6 +481,7 @@ Deno.serve(async (req) => {
           { role: "user", content: userContent },
         ],
         response_format: { type: "json_object" },
+        temperature: 0.4,
       }),
     });
 
