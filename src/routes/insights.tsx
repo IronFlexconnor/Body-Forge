@@ -19,13 +19,25 @@ export const Route = createFileRoute("/insights")({
 });
 
 const CATEGORY_COLORS: Record<string, string> = {
-  recovery: "from-cyan-500/20 to-emerald-500/10",
-  training: "from-emerald-500/25 to-teal-500/10",
-  nutrition: "from-amber-500/20 to-emerald-500/10",
-  supplements: "from-violet-500/20 to-emerald-500/10",
-  sleep: "from-indigo-500/25 to-emerald-500/10",
-  mindset: "from-rose-500/20 to-emerald-500/10",
-  performance: "from-emerald-500/30 to-cyan-500/10",
+  recovery: "from-cyan-500/25 to-emerald-500/10",
+  training: "from-emerald-500/30 to-teal-500/10",
+  nutrition: "from-amber-500/25 to-emerald-500/10",
+  supplements: "from-violet-500/25 to-emerald-500/10",
+  sleep: "from-indigo-500/30 to-emerald-500/10",
+  mindset: "from-rose-500/25 to-emerald-500/10",
+  performance: "from-emerald-500/35 to-cyan-500/10",
+  injury_prevention: "from-teal-500/30 to-emerald-500/10",
+};
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  recovery: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&q=80&auto=format&fit=crop",
+  training: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&q=80&auto=format&fit=crop",
+  nutrition: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=900&q=80&auto=format&fit=crop",
+  supplements: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=900&q=80&auto=format&fit=crop",
+  sleep: "https://images.unsplash.com/photo-1520206183501-b80df61043c2?w=900&q=80&auto=format&fit=crop",
+  mindset: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=900&q=80&auto=format&fit=crop",
+  performance: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&q=80&auto=format&fit=crop",
+  injury_prevention: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80&auto=format&fit=crop",
 };
 
 function InsightsPage() {
