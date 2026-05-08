@@ -9,7 +9,13 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const buildSys = (injuries: string | null, units: "imperial" | "metric", goal: string, level: string) => {
+const buildSys = (
+  injuries: string | null,
+  units: "imperial" | "metric",
+  goal: string,
+  level: string,
+  calibration: string,
+) => {
   const wu = units === "imperial" ? "lbs" : "kg";
   return `You are an elite strength & conditioning coach + biomechanics specialist
 (think: pro golf-swing analyzer applied to barbell, dumbbell, bodyweight, and machine work).
@@ -24,6 +30,11 @@ User context:
 - Preferred weight unit: ${wu}
 - Primary training goal: ${goal}
 - Experience level: ${level}
+
+Per-user calibration (built from this athlete's prior form-feedback history — what
+actually worked or didn't, plus any reported pain). Treat this as ground truth and
+adapt cues, ideal sub-score targets, tempo, and load advice accordingly:
+${calibration}
 
 Tailor optimal tempo + load guidance to the goal:
 - hypertrophy → 3-1-2 to 4-0-1, RIR 1-3
@@ -187,6 +198,123 @@ function normalizeAnalysis(value: any, exercise: string | null, mediaType: strin
   };
 }
 
+// Build a per-user calibration block from prior form feedback + analyses.
+// We aggregate by exercise: average score on prior checks, what corrections
+// the user reported as helpful vs not, and any pain signals → so the model
+// can shift ideal sub-score targets and bias cues toward what works.
+async function buildCalibration(supabase: any, currentExercise: string | null): Promise<string> {
+  try {
+    const since = new Date(); since.setDate(since.getDate() - 120);
+
+    const [{ data: feedback }, { data: forms }] = await Promise.all([
+      supabase
+        .from("program_adjustments")
+        .select("trigger, summary, changes, coach_note, created_at")
+        .in("trigger", ["form_feedback", "form_analysis"])
+        .gte("created_at", since.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(40),
+      supabase
+        .from("video_uploads")
+        .select("exercise_name, score, analysis, analyzed_at")
+        .gte("analyzed_at", since.toISOString())
+        .order("analyzed_at", { ascending: false })
+        .limit(20),
+    ]);
+
+    type ExStat = {
+      checks: number; scoreSum: number;
+      worked: number; partial: number; didnt: number;
+      painNone: number; painSome: number; painSharp: number;
+      subSums: Record<string, number>; subCounts: Record<string, number>;
+      lastNotes: string[];
+    };
+    const norm = (s: string | null | undefined) => (s || "").toLowerCase().trim();
+    const map: Record<string, ExStat> = {};
+    const ensure = (k: string): ExStat => (map[k] ||= {
+      checks: 0, scoreSum: 0, worked: 0, partial: 0, didnt: 0,
+      painNone: 0, painSome: 0, painSharp: 0,
+      subSums: {}, subCounts: {}, lastNotes: [],
+    });
+
+    for (const r of (forms ?? [])) {
+      const k = norm(r.exercise_name) || "unknown";
+      const s = ensure(k);
+      s.checks += 1;
+      if (typeof r.score === "number") s.scoreSum += r.score;
+      const subs = (r.analysis as any)?.sub_scores || {};
+      for (const [key, val] of Object.entries(subs)) {
+        if (typeof val === "number") {
+          s.subSums[key] = (s.subSums[key] ?? 0) + val;
+          s.subCounts[key] = (s.subCounts[key] ?? 0) + 1;
+        }
+      }
+    }
+
+    for (const r of (feedback ?? [])) {
+      const ch = Array.isArray(r.changes) ? r.changes[0] : null;
+      const exName = norm(ch?.exercise);
+      if (!exName) continue;
+      const s = ensure(exName);
+      if (r.trigger === "form_feedback") {
+        if (ch?.worked === "yes") s.worked += 1;
+        else if (ch?.worked === "partial") s.partial += 1;
+        else if (ch?.worked === "no") s.didnt += 1;
+        if (ch?.pain === "none") s.painNone += 1;
+        else if (ch?.pain === "some") s.painSome += 1;
+        else if (ch?.pain === "sharp") s.painSharp += 1;
+        if (ch?.note && s.lastNotes.length < 3) s.lastNotes.push(String(ch.note).slice(0, 120));
+      }
+    }
+
+    const targetKey = norm(currentExercise);
+    const entries = Object.entries(map);
+    if (!entries.length) {
+      return "No prior calibration data — use evidence-based defaults for this athlete's goal/level.";
+    }
+
+    // Surface the current exercise first, then top movements by check count.
+    entries.sort(([a, sa], [b, sb]) => {
+      if (targetKey && a === targetKey) return -1;
+      if (targetKey && b === targetKey) return 1;
+      return (sb.checks + sb.worked + sb.didnt) - (sa.checks + sa.worked + sa.didnt);
+    });
+
+    const lines: string[] = [];
+    for (const [name, s] of entries.slice(0, 5)) {
+      const avgScore = s.checks ? Math.round(s.scoreSum / s.checks) : null;
+      const subAvgs = Object.entries(s.subSums)
+        .map(([k, v]) => `${k}=${Math.round(v / s.subCounts[k])}`)
+        .slice(0, 6).join(", ");
+      const fb = s.worked + s.partial + s.didnt;
+      const fbStr = fb
+        ? `feedback: ${s.worked} worked, ${s.partial} partial, ${s.didnt} didn't`
+        : "no feedback yet";
+      const painStr = s.painSharp
+        ? `⚠ sharp pain reported ${s.painSharp}× — bias toward regressions/safer ROM`
+        : s.painSome
+        ? `mild discomfort ${s.painSome}× — keep tempo controlled`
+        : "no pain reported";
+      const noteStr = s.lastNotes.length ? ` notes: "${s.lastNotes.join(" | ")}"` : "";
+      lines.push(`• ${name}: ${s.checks} checks${avgScore !== null ? `, avg ${avgScore}/100` : ""}${subAvgs ? ` (${subAvgs})` : ""} — ${fbStr}; ${painStr}.${noteStr}`);
+    }
+
+    return [
+      "Calibration rules:",
+      "1) Raise ideal sub-score targets for cues this athlete has confirmed as helpful (worked).",
+      "2) Lower / replace cues this athlete has marked as 'didn't help' — pick a different lever.",
+      "3) If pain has been reported on this movement, prioritize injury_risk + alignment + ROM safety; suggest regression in alternative_exercise when severity is moderate or higher.",
+      "4) Anchor 'good' sub-scores to this athlete's recent averages — do not penalize for personal anatomy when the movement is safe & effective.",
+      "",
+      "Per-exercise history:",
+      ...lines,
+    ].join("\n");
+  } catch (e) {
+    console.warn("buildCalibration failed", e);
+    return "Calibration unavailable — proceed with evidence-based defaults.";
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   try {
@@ -223,6 +351,12 @@ Deno.serve(async (req) => {
     const units = ((profile?.units as string) === "metric" ? "metric" : "imperial") as "imperial" | "metric";
     const goal = (profile?.goal as string | null) ?? "general fitness";
     const level = (profile?.level as string | null) ?? "intermediate";
+
+    // --- Per-user calibration from feedback history ---
+    // Pull recent form feedback + applied form analyses so the model can
+    // recalibrate ideal sub-scores per exercise to what actually works for
+    // this athlete (and bias safer when pain has been reported).
+    const calibration = await buildCalibration(supabase, exercise ?? null);
 
     // --- Plan limits (entitlements remain enforced server-side) ---
     const { getPlanTier, countUsage, logUsage, FREE_LIMITS } = await import("../_shared/entitlements.ts");
@@ -262,7 +396,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: `${buildSys(injuries, units, goal, level)}\n\n${EXPERT_KNOWLEDGE}` },
+          { role: "system", content: `${buildSys(injuries, units, goal, level, calibration)}\n\n${EXPERT_KNOWLEDGE}` },
           { role: "user", content: userContent },
         ],
         response_format: { type: "json_object" },
