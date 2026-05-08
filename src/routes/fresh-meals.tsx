@@ -415,7 +415,7 @@ function FreshMealsPage() {
                 slot={slot}
                 primary={slotPicks[slot.key].primary}
                 alts={slotPicks[slot.key].alts}
-                onOpen={setActive}
+                onOpen={(r) => { trackEvent("meal_view", { ref_id: r.slug, ref_label: r.title }); setActive(r); }}
                 onSwap={swapIntoPlan}
                 onSave={(r) => {
                   const added = toggle({ id: r.id, slug: r.slug, title: r.title, meal_type: r.meal_type });
