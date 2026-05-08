@@ -378,7 +378,14 @@ function FormAnalysis() {
                   <div className="h-full bg-gradient-primary transition-all duration-200" style={{ width: `${progress}%` }} />
                 </div>
               </div>
-            )}
+        )}
+
+        {result && (
+          <FeedbackPrompt
+            submitted={feedback.submitted}
+            onSubmit={submitFeedback}
+          />
+        )}
           </div>
         )}
 
