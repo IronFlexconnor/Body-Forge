@@ -101,6 +101,7 @@ function FormAnalysis() {
   const [result, setResult] = useState<{ id?: string; analysis: Analysis; mediaUrl?: string; mediaKind?: "video" | "photo" } | null>(null);
   const [paywall, setPaywall] = useState<{ open: boolean; reason?: string }>({ open: false });
   const [changeSummary, setChangeSummary] = useState<string>("");
+  const [feedback, setFeedback] = useState<{ uploadId?: string; submitted: boolean }>({ submitted: false });
 
   const videoCaptureRef = useRef<HTMLInputElement>(null);
   const videoLibRef = useRef<HTMLInputElement>(null);
