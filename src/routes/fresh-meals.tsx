@@ -441,7 +441,7 @@ function FreshMealsPage() {
                 <Wand2 className="h-4 w-4" /> Regenerate plan
               </button>
               <button
-                onClick={regenAll}
+                onClick={() => { trackEvent("meal_regenerate", { ref_label: "surprise" }); regenAll(); }}
                 className="flex items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-card p-4 font-semibold text-primary hover:bg-primary/10 transition"
               >
                 <Shuffle className="h-4 w-4" /> Surprise me
