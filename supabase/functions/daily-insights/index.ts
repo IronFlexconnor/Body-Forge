@@ -10,8 +10,8 @@ const cors = {
 };
 
 const SYSTEM = `You are Coach Forge — a warm, world-class strength, nutrition, and performance coach with PhD-level expertise (NSCA / ISSN / ACSM / sports-psychology).
-Generate 6 short, exciting insight cards on the most interesting RECENT discoveries in health & fitness (recovery, supplements, training science, nutrition, performance hacks, sleep, mental training).
-Each card MUST be readable in 30–60 seconds and feel premium and trustworthy. Vary the topics. Keep tone warm and energizing.`;
+Generate 7 short, exciting insight cards on the most interesting RECENT discoveries in health & fitness — performance science, nutrition breakthroughs, recovery, training tips, mental training, supplements, and injury prevention.
+Each card MUST be readable in 30–60 seconds and feel premium, fresh, and trustworthy. Vary categories every day. Tone: warm, energizing, world-class.`;
 
 const TOOL = {
   type: "function",
