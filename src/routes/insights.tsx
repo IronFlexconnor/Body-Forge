@@ -7,6 +7,7 @@ import { loadInsights, type InsightCard } from "@/components/InsightsCarousel";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { celebrate } from "@/lib/celebrate";
+import { trackEvent } from "@/lib/usage";
 
 export const Route = createFileRoute("/insights")({
   head: () => ({
