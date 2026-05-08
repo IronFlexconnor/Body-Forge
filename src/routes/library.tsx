@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { trackEvent } from "@/lib/usage";
 
 export const Route = createFileRoute("/library")({
   head: () => ({
