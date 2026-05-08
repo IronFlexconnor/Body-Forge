@@ -65,11 +65,11 @@ Then return ONLY a JSON object with this EXACT shape:
     "efficiency": 0-100,
     "effectiveness": 0-100
   },
-  "joint_angles": [                  // 2-5 key joints with phase context
+  "joint_angles": [
     { "joint": "knee", "phase": "bottom", "angle_deg": 95, "ideal_range": "90-110", "verdict": "in range" }
   ],
   "tempo": {
-    "eccentric_s": number,           // estimate lowering phase
+    "eccentric_s": number,
     "pause_s": number,
     "concentric_s": number,
     "ideal": "string e.g. 3-1-1",
@@ -80,45 +80,67 @@ Then return ONLY a JSON object with this EXACT shape:
   "compensation_patterns": ["e.g. butt-wink at depth", "right hip shift"],
   "muscle_activation": ["primary movers engaged", "under-activated muscles"],
   "good": ["positive points (max 3)"],
-  "findings": [                       // 3-6 deep, golf-swing-analyzer-grade findings
+  "findings": [
     {
       "title": "short label e.g. 'Right knee valgus on descent'",
       "severity": "low" | "moderate" | "high",
       "phase": "setup" | "descent" | "bottom" | "ascent" | "lockout" | "global",
-      "problem": "exact specific observation with numbers/sides where possible (e.g. 'Right knee caves ~22° inward on reps 3-5 between 60-90° knee flexion')",
+      "problem": "exact specific observation with numbers/sides where possible",
       "why_it_matters": "explain safety / joint health / activation / efficiency / results impact",
       "correction_steps": ["3-5 ordered, step-by-step cues to fix on the next set"],
       "drills": ["1-3 specific corrective drills or mobility exercises with sets x reps or duration"]
     }
   ],
-  "fixes": ["3-5 specific corrections, ordered by priority — reference body parts/joint angles/bar paths"],
+  "fixes": ["3-5 specific corrections, ordered by priority"],
   "cues": ["3-4 short coaching cues (3-6 words each)"],
   "safety_flags": ["concerns tied to reported injuries — empty array if none"],
   "alternative_exercise": "safer/better variation if risk is high; else null",
   "next_session_adjustment": "One concrete change for the next set",
   "weight_delta": { "value": number, "unit": "${wu}", "direction": "increase" | "decrease" | "hold" },
-  "plan_adjustments": [              // 2-5 deeper program changes — must reference goal "${goal}"
-    {
-      "type": "tempo" | "load" | "reps" | "sets" | "exercise_swap" | "mobility" | "accessory" | "rest",
-      "change": "human-readable change e.g. 'Slow eccentric to 3s on all squats this week'",
-      "reason": "why this helps (safety/efficiency/effectiveness) — tie to goal",
-      "expected_benefit": "what user will feel/gain"
-    }
+  "plan_adjustments": [
+    { "type": "tempo" | "load" | "reps" | "sets" | "exercise_swap" | "mobility" | "accessory" | "rest",
+      "change": "human-readable change", "reason": "why this helps", "expected_benefit": "what user gains" }
   ],
   "encouragement": "1-2 sentences — warm, world-class trainer tone, honest + motivating",
-  "safety_verdict": "green" | "yellow" | "red"   // green = safe to keep loading; yellow = fix tempo/ROM before adding load; red = stop loading, regress now
+  "safety_verdict": "green" | "yellow" | "red"
 }
+
+SCORING RUBRIC — be HONEST and VARIED. Different videos must produce meaningfully different scores.
+Anchor each sub-score to objective evidence and use the FULL 0-100 range:
+- 95-100  Elite / textbook (rare; only when no flaws are visible at all)
+- 85-94   Advanced — minor polish only
+- 75-84   Solid — 1-2 clear issues to fix
+- 60-74   Developing — multiple visible flaws, technique compromises load
+- 45-59   Risky — major breakdowns, joint integrity at risk
+- 0-44    Stop the set — unsafe pattern, regress immediately
+
+OVERALL SCORE FORMULA (you MUST compute, not guess):
+  score = round(
+    0.18*injury_risk + 0.14*joint_alignment + 0.12*posture + 0.10*tempo +
+    0.10*range_of_motion + 0.10*stability + 0.08*symmetry + 0.08*power_transfer +
+    0.05*efficiency + 0.05*effectiveness
+  )
+The sum of high-severity findings further caps the score:
+  - any high-severity finding   → score ≤ 65
+  - 2+ high-severity findings   → score ≤ 50
+  - any moderate finding on a loaded joint → score ≤ 82
+
+ANTI-ANCHOR RULES (critical):
+- DO NOT default to ~78. Justify every score with at least one observed datum.
+- If the rep looks textbook for the experience level, award 88-96 confidently.
+- If you see clear breakdowns (rounded back, knee valgus >15°, bar drift, lost brace, partial ROM), grade in the 50-72 range, not the high 70s.
+- Sub-scores must vary by at least 8 points across the 10 categories — if every category is 75-80 you are not analyzing, you are hedging. Re-grade.
+- Two different exercises analyzed by you must NOT receive identical scores unless objectively identical quality is observed.
 
 SAFETY-FIRST RULES (non-negotiable):
 - If ANY finding is severity:"high", set safety_verdict = "red", set weight_delta.direction = "decrease", and populate alternative_exercise with a regression.
 - If injury_risk sub-score < 70 OR pain has been reported in the calibration block, set safety_verdict to at least "yellow" and put a concrete safety cue at the TOP of the fixes array.
-- safety_flags must list every concern that touches the user's reported injuries — never leave it empty when injuries are reported AND a relevant joint is loaded.
-- For video input, you MUST estimate tempo phases as positive seconds (eccentric_s, concentric_s) — frames are sequential. Only use 0s for true static photos.
+- safety_flags must list every concern that touches the user's reported injuries.
+- For video input, you MUST estimate tempo phases as positive seconds. Only use 0s for true static photos.
 
 Be SPECIFIC, EDUCATIONAL, and PROFESSIONAL. Use numbers (degrees, reps, seconds) where the
 visual supports it. No fluff. No hedging. If the input is a single photo,
 judge the static position only and set tempo phases to 0 with verdict "static photo".`;
-};
 
 function safeFallback(exercise: string | null, mediaType: string | null, units: "imperial" | "metric", reason = "AI fallback") {
   const wu = units === "imperial" ? "lbs" : "kg";
