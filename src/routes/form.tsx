@@ -101,6 +101,7 @@ function FormAnalysis() {
   const [result, setResult] = useState<{ id?: string; analysis: Analysis; mediaUrl?: string; mediaKind?: "video" | "photo" } | null>(null);
   const [paywall, setPaywall] = useState<{ open: boolean; reason?: string }>({ open: false });
   const [changeSummary, setChangeSummary] = useState<string>("");
+  const [feedback, setFeedback] = useState<{ uploadId?: string; submitted: boolean }>({ submitted: false });
 
   const videoCaptureRef = useRef<HTMLInputElement>(null);
   const videoLibRef = useRef<HTMLInputElement>(null);
@@ -266,6 +267,42 @@ function FormAnalysis() {
     else toast.message("Saved cue for later — synced with Coach.");
   };
 
+  const submitFeedback = async (worked: "yes" | "partial" | "no", pain: "none" | "some" | "sharp", note: string) => {
+    if (!user || !result) return;
+    const a = result.analysis;
+    const exName = a.exercise_detected || exercise || "movement";
+    const painLabel = pain === "none" ? "no pain" : pain === "some" ? "mild discomfort" : "sharp pain";
+    const workedLabel = worked === "yes" ? "correction worked" : worked === "partial" ? "partial improvement" : "didn't help";
+    const summary = `[Form feedback] ${exName} · ${workedLabel} · ${painLabel}${note ? ` — "${note}"` : ""}`;
+    try {
+      await supabase.from("chat_messages").insert({
+        user_id: user.id,
+        role: "user",
+        content: `${summary}\nUse this signal to refine future form analysis and training adjustments. If pain was reported, prioritize safer regressions and recheck mechanics next session.`,
+      });
+    } catch {}
+    try {
+      await supabase.from("program_adjustments").insert({
+        user_id: user.id,
+        trigger: "form_feedback",
+        scope: "training",
+        status: "approved",
+        summary,
+        changes: [{
+          exercise: exName,
+          upload_id: result.id ?? null,
+          worked, pain, note: note || null,
+          prior_score: a.score ?? null,
+        }],
+        coach_note: pain !== "none" ? "User reported pain — bias toward regression and ROM/tempo safety on next analysis." : null,
+      });
+    } catch {}
+    setFeedback({ uploadId: result.id, submitted: true });
+    if (pain === "sharp") toast.warning("Logged. Coach will prioritize safer variations next session.");
+    else if (worked === "yes") toast.success("Nice — Coach will keep this dialed in.");
+    else toast.success("Got it — Coach will adjust next analysis.");
+  };
+
   return (
     <AppShell>
       <div className="px-5 pt-12 pb-24">
@@ -341,7 +378,14 @@ function FormAnalysis() {
                   <div className="h-full bg-gradient-primary transition-all duration-200" style={{ width: `${progress}%` }} />
                 </div>
               </div>
-            )}
+        )}
+
+        {result && (
+          <FeedbackPrompt
+            submitted={feedback.submitted}
+            onSubmit={submitFeedback}
+          />
+        )}
           </div>
         )}
 
@@ -349,7 +393,7 @@ function FormAnalysis() {
           <ResultCard
             result={result}
             exercise={exercise}
-            onReset={() => { setResult(null); setExercise(""); setChangeSummary(""); }}
+            onReset={() => { setResult(null); setExercise(""); setChangeSummary(""); setFeedback({ submitted: false }); }}
             onApplyFix={applyFix}
           />
         )}
@@ -779,6 +823,90 @@ function TempoCell({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl border border-border/60 bg-surface p-2">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className="text-base font-bold tabular-nums text-primary">{value}</div>
+    </div>
+  );
+}
+
+function FeedbackPrompt({ submitted, onSubmit }: {
+  submitted: boolean;
+  onSubmit: (worked: "yes" | "partial" | "no", pain: "none" | "some" | "sharp", note: string) => void;
+}) {
+  const [worked, setWorked] = useState<"yes" | "partial" | "no" | null>(null);
+  const [pain, setPain] = useState<"none" | "some" | "sharp" | null>(null);
+  const [note, setNote] = useState("");
+
+  if (submitted) {
+    return (
+      <div className="mt-4 rounded-3xl border border-primary/30 bg-primary/5 p-5 text-center text-sm">
+        <Check className="mx-auto mb-1 h-5 w-5 text-primary" />
+        Feedback logged — Coach will use this to refine your next analysis and training adjustments.
+      </div>
+    );
+  }
+
+  const canSubmit = worked && pain;
+
+  return (
+    <div className="mt-4 rounded-3xl border border-border/60 bg-gradient-card p-5 shadow-card">
+      <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
+        <Heart className="h-3 w-3" /> Did this help?
+      </div>
+      <h3 className="mt-2 text-base font-semibold">Quick feedback for Coach</h3>
+      <p className="mb-4 text-xs text-muted-foreground">
+        Your answer feeds directly into future form analysis and training adjustments.
+      </p>
+
+      <div className="mb-3">
+        <div className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Did the correction work?</div>
+        <div className="grid grid-cols-3 gap-2">
+          {([["yes", "Yes 🔥"], ["partial", "A bit"], ["no", "Not really"]] as const).map(([k, label]) => (
+            <button
+              key={k}
+              onClick={() => setWorked(k)}
+              className={cn(
+                "rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all",
+                worked === k ? "border-primary bg-primary/15 text-primary" : "border-border bg-surface text-foreground hover:border-primary/40",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-3">
+        <div className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Any pain or discomfort?</div>
+        <div className="grid grid-cols-3 gap-2">
+          {([["none", "No pain"], ["some", "Mild"], ["sharp", "Sharp / hurt"]] as const).map(([k, label]) => (
+            <button
+              key={k}
+              onClick={() => setPain(k)}
+              className={cn(
+                "rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all",
+                pain === k ? (k === "sharp" ? "border-destructive bg-destructive/15 text-destructive" : "border-primary bg-primary/15 text-primary") : "border-border bg-surface text-foreground hover:border-primary/40",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value.slice(0, 240))}
+        placeholder="Anything else Coach should know? (optional)"
+        rows={2}
+        className="mb-3 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary"
+      />
+
+      <Button
+        disabled={!canSubmit}
+        onClick={() => canSubmit && onSubmit(worked!, pain!, note.trim())}
+        className="w-full"
+      >
+        Send to Coach
+      </Button>
     </div>
   );
 }
