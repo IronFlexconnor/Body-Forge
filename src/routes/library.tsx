@@ -117,27 +117,54 @@ function Library() {
             No exercises match.
           </div>
         ) : (
-          <div className="space-y-2 pb-6">
-            {filtered.map((ex) => (
-              <button
-                key={ex.id}
-                onClick={() => setActive(ex)}
-                className="flex w-full items-center gap-3 rounded-2xl border border-border/60 bg-gradient-card p-4 text-left shadow-card hover:border-primary/40"
-              >
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary">
-                  <Play className="h-4 w-4 fill-current" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate font-semibold leading-tight">{ex.name}</div>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    {ex.category && <Badge variant="secondary" className="text-[10px] capitalize">{ex.category}</Badge>}
-                    {(ex.primary_muscles ?? []).slice(0, 2).map((m) => (
-                      <Badge key={m} variant="outline" className="text-[10px] capitalize">{m}</Badge>
-                    ))}
+          <div className="grid grid-cols-1 gap-3 pb-6 sm:grid-cols-2">
+            {filtered.map((ex) => {
+              const thumb = ytThumb(ex.video_url);
+              return (
+                <button
+                  key={ex.id}
+                  onClick={() => setActive(ex)}
+                  className="group flex w-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-gradient-card text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-glow active:scale-[0.99]"
+                >
+                  <div className="relative aspect-video w-full overflow-hidden bg-black">
+                    {thumb ? (
+                      <img
+                        src={thumb}
+                        alt={`${ex.name} demo`}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-emerald-900/40 to-teal-900/40 text-xs uppercase tracking-wider text-emerald-200/80">
+                        Tap to find demo
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                    <div className="absolute inset-0 grid place-items-center">
+                      <div className="grid h-14 w-14 place-items-center rounded-full bg-emerald-500 text-white shadow-[0_8px_30px_rgba(16,185,129,0.55)] ring-4 ring-emerald-300/30 transition-transform duration-300 group-hover:scale-110">
+                        <Play className="ml-0.5 h-6 w-6 fill-current" />
+                      </div>
+                    </div>
+                    <span className="absolute bottom-2 left-2 rounded-full bg-emerald-500/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur">
+                      Watch demo
+                    </span>
+                    {ex.category && (
+                      <span className="absolute right-2 top-2 rounded-full bg-background/70 px-2 py-0.5 text-[10px] font-semibold capitalize text-foreground backdrop-blur">
+                        {ex.category}
+                      </span>
+                    )}
                   </div>
-                </div>
-              </button>
-            ))}
+                  <div className="p-3">
+                    <div className="line-clamp-1 font-semibold leading-tight">{ex.name}</div>
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {(ex.primary_muscles ?? []).slice(0, 3).map((m) => (
+                        <Badge key={m} variant="outline" className="text-[10px] capitalize">{m}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
