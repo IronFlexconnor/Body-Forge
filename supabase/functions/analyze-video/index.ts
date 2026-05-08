@@ -235,6 +235,12 @@ Deno.serve(async (req) => {
     const goal = (profile?.goal as string | null) ?? "general fitness";
     const level = (profile?.level as string | null) ?? "intermediate";
 
+    // --- Per-user calibration from feedback history ---
+    // Pull recent form feedback + applied form analyses so the model can
+    // recalibrate ideal sub-scores per exercise to what actually works for
+    // this athlete (and bias safer when pain has been reported).
+    const calibration = await buildCalibration(supabase, exercise ?? null);
+
     // --- Plan limits (entitlements remain enforced server-side) ---
     const { getPlanTier, countUsage, logUsage, FREE_LIMITS } = await import("../_shared/entitlements.ts");
     const tier = await getPlanTier(user.id);
