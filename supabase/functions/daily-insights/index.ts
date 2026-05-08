@@ -23,12 +23,12 @@ const TOOL = {
       properties: {
         cards: {
           type: "array",
-          minItems: 6,
-          maxItems: 6,
+          minItems: 7,
+          maxItems: 8,
           items: {
             type: "object",
             properties: {
-              category: { type: "string", enum: ["recovery", "training", "nutrition", "supplements", "sleep", "mindset", "performance"] },
+              category: { type: "string", enum: ["recovery", "training", "nutrition", "supplements", "sleep", "mindset", "performance", "injury_prevention"] },
               emoji: { type: "string" },
               headline: { type: "string" },
               summary: { type: "string" },
