@@ -224,38 +224,48 @@ function normalizeAnalysis(value: any, exercise: string | null, mediaType: strin
   const fallback = safeFallback(exercise, mediaType, units, "Malformed AI response normalized");
   const a = value && typeof value === "object" ? value : {};
   const ss = (a.sub_scores && typeof a.sub_scores === "object") ? a.sub_scores : {};
+
+  const sub_scores = {
+    posture: clamp(ss.posture, fallback.sub_scores.posture),
+    joint_alignment: clamp(ss.joint_alignment, fallback.sub_scores.joint_alignment),
+    tempo: clamp(ss.tempo, fallback.sub_scores.tempo),
+    symmetry: clamp(ss.symmetry, fallback.sub_scores.symmetry),
+    stability: clamp(ss.stability, fallback.sub_scores.stability),
+    range_of_motion: clamp(ss.range_of_motion, fallback.sub_scores.range_of_motion),
+    power_transfer: clamp(ss.power_transfer, fallback.sub_scores.power_transfer),
+    injury_risk: clamp(ss.injury_risk, fallback.sub_scores.injury_risk),
+    efficiency: clamp(ss.efficiency, fallback.sub_scores.efficiency),
+    effectiveness: clamp(ss.effectiveness, fallback.sub_scores.effectiveness),
+  };
+
+  const findings = Array.isArray(a.findings) ? a.findings.slice(0, 6).map((f: any) => ({
+    title: String(f?.title ?? "Finding"),
+    severity: ["low", "moderate", "high"].includes(f?.severity) ? f.severity : "moderate",
+    phase: String(f?.phase ?? "global"),
+    problem: String(f?.problem ?? ""),
+    why_it_matters: String(f?.why_it_matters ?? ""),
+    correction_steps: Array.isArray(f?.correction_steps) ? f.correction_steps.slice(0, 6).map(String) : [],
+    drills: Array.isArray(f?.drills) ? f.drills.slice(0, 4).map(String) : [],
+  })) : [];
+
+  // Authoritative score: derived from sub-scores + severity caps. This guarantees
+  // different videos produce meaningfully different scores and prevents the model
+  // from anchoring to a flat ~78.
+  const score = computeWeightedScore(sub_scores, findings);
+
   return {
     ...fallback,
     ...a,
     exercise_detected: typeof a.exercise_detected === "string" && a.exercise_detected.trim() ? a.exercise_detected : (exercise || fallback.exercise_detected),
     confidence: clamp(a.confidence, fallback.confidence),
-    score: clamp(a.score, fallback.score),
-    sub_scores: {
-      posture: clamp(ss.posture, fallback.sub_scores.posture),
-      joint_alignment: clamp(ss.joint_alignment, fallback.sub_scores.joint_alignment),
-      tempo: clamp(ss.tempo, fallback.sub_scores.tempo),
-      symmetry: clamp(ss.symmetry, fallback.sub_scores.symmetry),
-      stability: clamp(ss.stability, fallback.sub_scores.stability),
-      range_of_motion: clamp(ss.range_of_motion, fallback.sub_scores.range_of_motion),
-      power_transfer: clamp(ss.power_transfer, fallback.sub_scores.power_transfer),
-      injury_risk: clamp(ss.injury_risk, fallback.sub_scores.injury_risk),
-      efficiency: clamp(ss.efficiency, fallback.sub_scores.efficiency),
-      effectiveness: clamp(ss.effectiveness, fallback.sub_scores.effectiveness),
-    },
+    score,
+    sub_scores,
     joint_angles: Array.isArray(a.joint_angles) ? a.joint_angles.slice(0, 6) : [],
     tempo: a.tempo && typeof a.tempo === "object" ? a.tempo : fallback.tempo,
     compensation_patterns: Array.isArray(a.compensation_patterns) ? a.compensation_patterns.map(String).slice(0, 5) : [],
     muscle_activation: Array.isArray(a.muscle_activation) ? a.muscle_activation.map(String).slice(0, 5) : [],
     good: Array.isArray(a.good) ? a.good.slice(0, 3).map(String) : fallback.good,
-    findings: Array.isArray(a.findings) ? a.findings.slice(0, 6).map((f: any) => ({
-      title: String(f?.title ?? "Finding"),
-      severity: ["low", "moderate", "high"].includes(f?.severity) ? f.severity : "moderate",
-      phase: String(f?.phase ?? "global"),
-      problem: String(f?.problem ?? ""),
-      why_it_matters: String(f?.why_it_matters ?? ""),
-      correction_steps: Array.isArray(f?.correction_steps) ? f.correction_steps.slice(0, 6).map(String) : [],
-      drills: Array.isArray(f?.drills) ? f.drills.slice(0, 4).map(String) : [],
-    })) : [],
+    findings,
     fixes: Array.isArray(a.fixes) ? a.fixes.slice(0, 5).map(String) : fallback.fixes,
     cues: Array.isArray(a.cues) ? a.cues.slice(0, 4).map(String) : fallback.cues,
     safety_flags: Array.isArray(a.safety_flags) ? a.safety_flags.map(String) : [],
@@ -263,8 +273,8 @@ function normalizeAnalysis(value: any, exercise: string | null, mediaType: strin
     plan_adjustments: Array.isArray(a.plan_adjustments) ? a.plan_adjustments.slice(0, 5) : fallback.plan_adjustments,
     encouragement: typeof a.encouragement === "string" ? a.encouragement : fallback.encouragement,
     safety_verdict: ["green", "yellow", "red"].includes(a.safety_verdict) ? a.safety_verdict
-      : (Array.isArray(a.findings) && a.findings.some((f: any) => f?.severity === "high")) ? "red"
-      : (clamp(ss.injury_risk, 80) < 70) ? "yellow"
+      : (findings.some((f: any) => f.severity === "high")) ? "red"
+      : (sub_scores.injury_risk < 70 || score < 65) ? "yellow"
       : "green",
   };
 }
