@@ -9,7 +9,13 @@ const cors = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const buildSys = (injuries: string | null, units: "imperial" | "metric", goal: string, level: string) => {
+const buildSys = (
+  injuries: string | null,
+  units: "imperial" | "metric",
+  goal: string,
+  level: string,
+  calibration: string,
+) => {
   const wu = units === "imperial" ? "lbs" : "kg";
   return `You are an elite strength & conditioning coach + biomechanics specialist
 (think: pro golf-swing analyzer applied to barbell, dumbbell, bodyweight, and machine work).
