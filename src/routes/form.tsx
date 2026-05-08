@@ -167,6 +167,7 @@ function FormAnalysis() {
       if (error) throw error;
       setProgress(100);
       setResult({ id: d?.id, analysis: d?.analysis ?? fallbackAnalysis(kind, exercise), mediaUrl: localPreview, mediaKind: kind });
+      trackEvent("form_analyze", { ref_id: (exercise || "workout").toLowerCase(), ref_label: exercise || "Workout", meta: { score: d?.analysis?.score } });
       toast.success("Form analysis ready");
     } catch (e) {
       setProgress(100);
