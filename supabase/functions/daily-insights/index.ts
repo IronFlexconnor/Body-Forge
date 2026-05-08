@@ -10,8 +10,8 @@ const cors = {
 };
 
 const SYSTEM = `You are Coach Forge — a warm, world-class strength, nutrition, and performance coach with PhD-level expertise (NSCA / ISSN / ACSM / sports-psychology).
-Generate 6 short, exciting insight cards on the most interesting RECENT discoveries in health & fitness (recovery, supplements, training science, nutrition, performance hacks, sleep, mental training).
-Each card MUST be readable in 30–60 seconds and feel premium and trustworthy. Vary the topics. Keep tone warm and energizing.`;
+Generate 7 short, exciting insight cards on the most interesting RECENT discoveries in health & fitness — performance science, nutrition breakthroughs, recovery, training tips, mental training, supplements, and injury prevention.
+Each card MUST be readable in 30–60 seconds and feel premium, fresh, and trustworthy. Vary categories every day. Tone: warm, energizing, world-class.`;
 
 const TOOL = {
   type: "function",
@@ -23,12 +23,12 @@ const TOOL = {
       properties: {
         cards: {
           type: "array",
-          minItems: 6,
-          maxItems: 6,
+          minItems: 7,
+          maxItems: 8,
           items: {
             type: "object",
             properties: {
-              category: { type: "string", enum: ["recovery", "training", "nutrition", "supplements", "sleep", "mindset", "performance"] },
+              category: { type: "string", enum: ["recovery", "training", "nutrition", "supplements", "sleep", "mindset", "performance", "injury_prevention"] },
               emoji: { type: "string" },
               headline: { type: "string" },
               summary: { type: "string" },
@@ -77,7 +77,7 @@ function rotate<T>(arr: T[], seed: number, count: number): T[] {
 
 function fallbackCards(today: string) {
   const seed = today.split("-").reduce((a, b) => a + parseInt(b, 10), 0);
-  return rotate(BANK, seed || 1, 6);
+  return rotate(BANK, seed || 1, 7);
 }
 
 Deno.serve(async (req) => {
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
           model: "google/gemini-3-flash-preview",
           messages: [
             { role: "system", content: SYSTEM },
-            { role: "user", content: `Today is ${today}. Generate 6 brand-new insight cards (variation seed: ${seed}). Vary categories.` },
+            { role: "user", content: `Today is ${today}. Generate 7 brand-new insight cards (variation seed: ${seed}). Vary categories — include at least one nutrition, one training, one recovery/sleep, one mindset, and one supplements/injury-prevention card.` },
           ],
           tools: [TOOL],
           tool_choice: { type: "function", function: { name: "publish_insights" } },
@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
     }
 
     // Fallback to curated bank if AI didn't deliver
-    if (!Array.isArray(cards) || cards.length < 6) {
+    if (!Array.isArray(cards) || cards.length < 7) {
       cards = fallbackCards(today);
     }
 

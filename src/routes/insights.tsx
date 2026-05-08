@@ -19,13 +19,25 @@ export const Route = createFileRoute("/insights")({
 });
 
 const CATEGORY_COLORS: Record<string, string> = {
-  recovery: "from-cyan-500/20 to-emerald-500/10",
-  training: "from-emerald-500/25 to-teal-500/10",
-  nutrition: "from-amber-500/20 to-emerald-500/10",
-  supplements: "from-violet-500/20 to-emerald-500/10",
-  sleep: "from-indigo-500/25 to-emerald-500/10",
-  mindset: "from-rose-500/20 to-emerald-500/10",
-  performance: "from-emerald-500/30 to-cyan-500/10",
+  recovery: "from-cyan-500/25 to-emerald-500/10",
+  training: "from-emerald-500/30 to-teal-500/10",
+  nutrition: "from-amber-500/25 to-emerald-500/10",
+  supplements: "from-violet-500/25 to-emerald-500/10",
+  sleep: "from-indigo-500/30 to-emerald-500/10",
+  mindset: "from-rose-500/25 to-emerald-500/10",
+  performance: "from-emerald-500/35 to-cyan-500/10",
+  injury_prevention: "from-teal-500/30 to-emerald-500/10",
+};
+
+const CATEGORY_IMAGES: Record<string, string> = {
+  recovery: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&q=80&auto=format&fit=crop",
+  training: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&q=80&auto=format&fit=crop",
+  nutrition: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=900&q=80&auto=format&fit=crop",
+  supplements: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=900&q=80&auto=format&fit=crop",
+  sleep: "https://images.unsplash.com/photo-1520206183501-b80df61043c2?w=900&q=80&auto=format&fit=crop",
+  mindset: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=900&q=80&auto=format&fit=crop",
+  performance: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&q=80&auto=format&fit=crop",
+  injury_prevention: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80&auto=format&fit=crop",
 };
 
 function InsightsPage() {
@@ -94,11 +106,29 @@ function InsightsPage() {
           <ul className="space-y-4">
             {cards.map((c, i) => {
               const grad = CATEGORY_COLORS[c.category] ?? "from-primary/20 to-primary/5";
+              const img = CATEGORY_IMAGES[c.category];
               const applied = appliedIdx.has(i);
               return (
-                <li key={i} className={`relative overflow-hidden rounded-3xl border border-primary/25 bg-gradient-to-br ${grad} p-5 shadow-card animate-fade-in`}>
+                <li key={i} className={`relative overflow-hidden rounded-3xl border border-primary/25 bg-gradient-to-br ${grad} shadow-card animate-fade-in`}>
+                  {img && (
+                    <div className="relative h-32 w-full overflow-hidden">
+                      <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                      <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary backdrop-blur">
+                        {c.emoji} {c.category.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                  )}
                   <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
-                  <div className="relative">
+                  <div className="relative p-5">
+                    {!img && (
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-background/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary backdrop-blur">
+                        {c.emoji} {c.category.replace(/_/g, " ")}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{c.read_minutes} min read</span>
+                    </div>
+                    )}
                     <div className="flex items-center justify-between">
                       <span className="inline-flex items-center gap-1 rounded-full bg-background/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary backdrop-blur">
                         {c.emoji} {c.category}

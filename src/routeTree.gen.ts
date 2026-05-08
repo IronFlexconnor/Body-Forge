@@ -27,6 +27,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AdminMealTestRouteImport } from './routes/admin.meal-test'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicHooksRefreshInsightsRouteImport } from './routes/api/public/hooks/refresh-insights'
 
 const WorkoutsRoute = WorkoutsRouteImport.update({
   id: '/workouts',
@@ -119,6 +120,12 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksRefreshInsightsRoute =
+  ApiPublicHooksRefreshInsightsRouteImport.update({
+    id: '/api/public/hooks/refresh-insights',
+    path: '/api/public/hooks/refresh-insights',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/workouts': typeof WorkoutsRoute
   '/admin/meal-test': typeof AdminMealTestRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/api/public/hooks/refresh-insights': typeof ApiPublicHooksRefreshInsightsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -158,6 +166,7 @@ export interface FileRoutesByTo {
   '/workouts': typeof WorkoutsRoute
   '/admin/meal-test': typeof AdminMealTestRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/api/public/hooks/refresh-insights': typeof ApiPublicHooksRefreshInsightsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -179,6 +188,7 @@ export interface FileRoutesById {
   '/workouts': typeof WorkoutsRoute
   '/admin/meal-test': typeof AdminMealTestRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/api/public/hooks/refresh-insights': typeof ApiPublicHooksRefreshInsightsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
     | '/workouts'
     | '/admin/meal-test'
     | '/checkout/return'
+    | '/api/public/hooks/refresh-insights'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/workouts'
     | '/admin/meal-test'
     | '/checkout/return'
+    | '/api/public/hooks/refresh-insights'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -241,6 +253,7 @@ export interface FileRouteTypes {
     | '/workouts'
     | '/admin/meal-test'
     | '/checkout/return'
+    | '/api/public/hooks/refresh-insights'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -262,6 +275,7 @@ export interface RootRouteChildren {
   WorkoutsRoute: typeof WorkoutsRoute
   AdminMealTestRoute: typeof AdminMealTestRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  ApiPublicHooksRefreshInsightsRoute: typeof ApiPublicHooksRefreshInsightsRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
@@ -393,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/refresh-insights': {
+      id: '/api/public/hooks/refresh-insights'
+      path: '/api/public/hooks/refresh-insights'
+      fullPath: '/api/public/hooks/refresh-insights'
+      preLoaderRoute: typeof ApiPublicHooksRefreshInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -414,6 +435,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkoutsRoute: WorkoutsRoute,
   AdminMealTestRoute: AdminMealTestRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  ApiPublicHooksRefreshInsightsRoute: ApiPublicHooksRefreshInsightsRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
