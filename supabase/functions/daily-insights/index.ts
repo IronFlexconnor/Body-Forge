@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
     }
 
     // Fallback to curated bank if AI didn't deliver
-    if (!Array.isArray(cards) || cards.length < 6) {
+    if (!Array.isArray(cards) || cards.length < 7) {
       cards = fallbackCards(today);
     }
 
