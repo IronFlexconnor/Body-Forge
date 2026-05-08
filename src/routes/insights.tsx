@@ -106,11 +106,29 @@ function InsightsPage() {
           <ul className="space-y-4">
             {cards.map((c, i) => {
               const grad = CATEGORY_COLORS[c.category] ?? "from-primary/20 to-primary/5";
+              const img = CATEGORY_IMAGES[c.category];
               const applied = appliedIdx.has(i);
               return (
-                <li key={i} className={`relative overflow-hidden rounded-3xl border border-primary/25 bg-gradient-to-br ${grad} p-5 shadow-card animate-fade-in`}>
+                <li key={i} className={`relative overflow-hidden rounded-3xl border border-primary/25 bg-gradient-to-br ${grad} shadow-card animate-fade-in`}>
+                  {img && (
+                    <div className="relative h-32 w-full overflow-hidden">
+                      <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                      <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary backdrop-blur">
+                        {c.emoji} {c.category.replace(/_/g, " ")}
+                      </span>
+                    </div>
+                  )}
                   <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
-                  <div className="relative">
+                  <div className="relative p-5">
+                    {!img && (
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-background/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary backdrop-blur">
+                        {c.emoji} {c.category.replace(/_/g, " ")}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{c.read_minutes} min read</span>
+                    </div>
+                    )}
                     <div className="flex items-center justify-between">
                       <span className="inline-flex items-center gap-1 rounded-full bg-background/70 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary backdrop-blur">
                         {c.emoji} {c.category}
