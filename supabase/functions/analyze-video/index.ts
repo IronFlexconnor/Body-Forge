@@ -203,6 +203,10 @@ function normalizeAnalysis(value: any, exercise: string | null, mediaType: strin
     alternative_exercise: typeof a.alternative_exercise === "string" ? a.alternative_exercise : null,
     plan_adjustments: Array.isArray(a.plan_adjustments) ? a.plan_adjustments.slice(0, 5) : fallback.plan_adjustments,
     encouragement: typeof a.encouragement === "string" ? a.encouragement : fallback.encouragement,
+    safety_verdict: ["green", "yellow", "red"].includes(a.safety_verdict) ? a.safety_verdict
+      : (Array.isArray(a.findings) && a.findings.some((f: any) => f?.severity === "high")) ? "red"
+      : (clamp(ss.injury_risk, 80) < 70) ? "yellow"
+      : "green",
   };
 }
 
