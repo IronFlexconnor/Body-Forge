@@ -557,6 +557,25 @@ function ResultCard({ result, exercise, onReset, onApplyFix }:
           </div>
         </div>
 
+        {a.safety_verdict && (() => {
+          const v = a.safety_verdict;
+          const cfg = v === "red"
+            ? { cls: "border-destructive/50 bg-destructive/10 text-destructive", icon: ShieldAlert, label: "Stop loading — regress now", sub: "High-severity issue detected. Drop weight, fix the pattern, then rebuild." }
+            : v === "yellow"
+            ? { cls: "border-warning/50 bg-warning/10 text-warning", icon: AlertTriangle, label: "Fix before adding load", sub: "Tempo, ROM, or alignment first — hold weight steady this session." }
+            : { cls: "border-success/50 bg-success/10 text-success", icon: ShieldAlert, label: "Safe to keep loading", sub: "Pattern is solid — small refinements only." };
+          const Icon = cfg.icon;
+          return (
+            <div className={cn("mb-3 flex items-start gap-2 rounded-xl border p-3 text-sm", cfg.cls)}>
+              <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>
+                <div className="font-bold uppercase tracking-wider text-[11px]">Safety: {v}</div>
+                <div className="text-xs leading-snug text-foreground/90">{cfg.label} — <span className="text-muted-foreground">{cfg.sub}</span></div>
+              </div>
+            </div>
+          );
+        })()}
+
         {a.sub_scores && <SubScoreGrid scores={a.sub_scores} />}
 
         {a.tempo && (a.tempo.eccentric_s || a.tempo.concentric_s) ? (
