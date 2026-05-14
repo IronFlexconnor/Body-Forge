@@ -40,7 +40,9 @@ const EVENT_LABELS: Record<string, string> = {
   lcp: "Largest Contentful Paint",
   ttfb: "Time to First Byte",
   load: "Page Load",
-  ai_first_token: "AI First Token",
+  ai_first_token: "AI First Token (client)",
+  ai_server_processing: "AI Server Processing",
+  ai_network_overhead: "AI Network Overhead",
   ai_total: "AI Total Response",
 };
 
