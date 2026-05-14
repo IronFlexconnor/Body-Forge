@@ -251,7 +251,7 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
               {logs[ex.name]?.map((s, i) => (
                 <div key={i} className={cn("grid grid-cols-[24px_1fr_1fr_1fr_36px] items-center gap-2 rounded-lg p-1 transition-colors", s.done && "bg-primary/10")}>
                   <div className="text-center text-xs font-semibold text-muted-foreground">{i + 1}</div>
-                  <Input inputMode="decimal" value={s.weight} onChange={(e) => updateSet(ex.name, i, "weight", e.target.value)} placeholder={weightUnit} className="h-9 text-sm" />
+                  <Input inputMode="decimal" value={s.weight} onChange={(e) => updateSet(ex.name, i, "weight", e.target.value)} placeholder={lastByExercise[ex.name]?.weight != null ? String(lastByExercise[ex.name]!.weight) : weightUnit} className="h-9 text-sm" />
                   <Input inputMode="numeric" value={s.reps} onChange={(e) => updateSet(ex.name, i, "reps", e.target.value)} placeholder={ex.reps} className="h-9 text-sm" />
                   <Input inputMode="decimal" value={s.rpe} onChange={(e) => updateSet(ex.name, i, "rpe", e.target.value)} placeholder="—" className="h-9 text-sm" />
                   <button onClick={() => toggleDone(ex.name, i)}
