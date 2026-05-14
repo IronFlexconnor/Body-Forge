@@ -183,7 +183,7 @@ export function MealPrepVideo({
             <div className="flex items-center gap-2 rounded-full border border-primary/40 bg-surface/90 px-3 py-1.5 text-xs font-semibold text-primary shadow-glow">
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Finding a fresher clip…
             </div>
-            <div className="pointer-events-none absolute inset-0 -translate-x-full animate-[shimmer_1.2s_linear_infinite] bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+            <div className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </div>
         )}
       </div>
