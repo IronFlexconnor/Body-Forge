@@ -90,7 +90,7 @@ function CalendarPage() {
     [completedDays]
   );
 
-  const selectedKey = selected ? dayKey(selected.toISOString()) : "";
+  const selectedKey = selected ? dayKeyFromDate(selected) : "";
   const dayLogs = useMemo(
     () => logs.filter(l => l.completed_at && dayKey(l.completed_at) === selectedKey),
     [logs, selectedKey]
