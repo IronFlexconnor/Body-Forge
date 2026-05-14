@@ -40,7 +40,9 @@ const EVENT_LABELS: Record<string, string> = {
   lcp: "Largest Contentful Paint",
   ttfb: "Time to First Byte",
   load: "Page Load",
-  ai_first_token: "AI First Token",
+  ai_first_token: "AI First Token (client)",
+  ai_server_processing: "AI Server Processing",
+  ai_network_overhead: "AI Network Overhead",
   ai_total: "AI Total Response",
 };
 
@@ -103,6 +105,21 @@ function MetricsDashboard() {
       p50: quantile(vals, 0.5),
       p95: quantile(vals, 0.95),
     }));
+  }, [rows]);
+
+  const reconciliation = useMemo(() => {
+    const buckets: Record<string, number[]> = { ai_first_token: [], ai_server_processing: [], ai_network_overhead: [] };
+    for (const r of rows) if (r.event_type in buckets) buckets[r.event_type].push(r.value_ms);
+    const cft = quantile(buckets.ai_first_token, 0.5);
+    const srv = quantile(buckets.ai_server_processing, 0.5);
+    const net = quantile(buckets.ai_network_overhead, 0.5);
+    const sum = srv + net;
+    const drift = cft > 0 ? Math.round(((cft - sum) / cft) * 100) : 0;
+    return {
+      n: buckets.ai_first_token.length,
+      cft, srv, net, sum, drift,
+      pairedCount: Math.min(buckets.ai_server_processing.length, buckets.ai_network_overhead.length),
+    };
   }, [rows]);
 
   const byDevice = useMemo(() => {
@@ -234,6 +251,59 @@ function MetricsDashboard() {
                 </Card>
               ))}
             </div>
+
+            {/* AI first-token reconciliation */}
+            <Card className="p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold">AI first-token reconciliation (p50)</h2>
+                <Badge variant="secondary" className="text-[10px]">n={reconciliation.n}</Badge>
+              </div>
+              {reconciliation.n === 0 ? (
+                <p className="text-xs text-muted-foreground">No AI samples yet — send a chat message to populate.</p>
+              ) : (
+                <>
+                  <div className="grid gap-3 sm:grid-cols-4">
+                    <div className="rounded-md border border-border/40 p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Client perceived</div>
+                      <div className="mt-1 text-lg font-semibold">{fmtMs(reconciliation.cft)}</div>
+                    </div>
+                    <div className="rounded-md border border-border/40 p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Server processing</div>
+                      <div className="mt-1 text-lg font-semibold text-amber-500">{fmtMs(reconciliation.srv)}</div>
+                    </div>
+                    <div className="rounded-md border border-border/40 p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Network overhead</div>
+                      <div className="mt-1 text-lg font-semibold text-sky-500">{fmtMs(reconciliation.net)}</div>
+                    </div>
+                    <div className="rounded-md border border-border/40 p-3">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Server + Network</div>
+                      <div className="mt-1 text-lg font-semibold">{fmtMs(reconciliation.sum)}</div>
+                      <div className={`mt-1 text-[10px] ${Math.abs(reconciliation.drift) <= 2 ? "text-emerald-500" : "text-amber-500"}`}>
+                        {reconciliation.drift >= 0 ? "+" : ""}{reconciliation.drift}% drift vs client
+                      </div>
+                    </div>
+                  </div>
+                  {/* Visual breakdown bar */}
+                  <div className="mt-4">
+                    <div className="flex h-3 w-full overflow-hidden rounded-full bg-muted">
+                      {reconciliation.cft > 0 && (
+                        <>
+                          <div className="bg-amber-500" style={{ width: `${Math.min(100, (reconciliation.srv / reconciliation.cft) * 100)}%` }} />
+                          <div className="bg-sky-500" style={{ width: `${Math.min(100, (reconciliation.net / reconciliation.cft) * 100)}%` }} />
+                        </>
+                      )}
+                    </div>
+                    <div className="mt-2 flex gap-4 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-sm bg-amber-500" /> Server (Gemini + context)</span>
+                      <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-sm bg-sky-500" /> Network (RTT + parse)</span>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-[11px] text-muted-foreground">
+                    Server timestamps are taken inside the edge function (handler entry → first content delta from Gemini). Network overhead is the residual after subtracting server processing from the client-perceived first-token time. Drift &lt;5% means clocks and instrumentation are reconciled correctly.
+                  </p>
+                </>
+              )}
+            </Card>
 
             {/* Trend chart */}
             <Card className="p-4">

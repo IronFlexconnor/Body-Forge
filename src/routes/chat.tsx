@@ -106,6 +106,8 @@ function Chat() {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-coach`;
       const t0 = performance.now();
       let firstTokenAt = 0;
+      let serverReceivedAt = 0;
+      let serverFirstTokenAt = 0;
       const resp = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
@@ -148,13 +150,29 @@ function Chat() {
           if (json === "[DONE]") { done = true; break; }
           try {
             const parsed = JSON.parse(json);
+            // Server-side timing markers (custom, non-OpenAI)
+            if (parsed.type === "timing") {
+              if (typeof parsed.server_received_at === "number") serverReceivedAt = parsed.server_received_at;
+              if (typeof parsed.server_first_token_at === "number") serverFirstTokenAt = parsed.server_first_token_at;
+              continue;
+            }
             const c = parsed.choices?.[0]?.delta?.content;
             if (c) {
               if (!firstTokenAt) {
                 firstTokenAt = performance.now();
-                import("@/lib/perf").then(({ recordPerf }) =>
-                  recordPerf({ event_type: "ai_first_token", value_ms: firstTokenAt - t0, route: "/chat" })
-                );
+                const clientFirstToken = firstTokenAt - t0;
+                const serverProcessing = serverReceivedAt && serverFirstTokenAt ? serverFirstTokenAt - serverReceivedAt : 0;
+                const networkOverhead = serverProcessing > 0 ? Math.max(0, clientFirstToken - serverProcessing) : 0;
+                import("@/lib/perf").then(({ recordPerf }) => {
+                  recordPerf({
+                    event_type: "ai_first_token",
+                    value_ms: clientFirstToken,
+                    route: "/chat",
+                    meta: { server_processing_ms: Math.round(serverProcessing), network_overhead_ms: Math.round(networkOverhead) },
+                  });
+                  if (serverProcessing > 0) recordPerf({ event_type: "ai_server_processing", value_ms: serverProcessing, route: "/chat" });
+                  if (networkOverhead > 0) recordPerf({ event_type: "ai_network_overhead", value_ms: networkOverhead, route: "/chat" });
+                });
               }
               acc += c;
               setMessages((m) => {

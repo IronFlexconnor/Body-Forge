@@ -47,6 +47,7 @@ NEVER
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
+  const serverReceivedAt = Date.now();
   try {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY not set");
@@ -135,22 +136,29 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "AI gateway error" }), { status: 500, headers: cors });
     }
 
-    // Tee stream: forward to client AND collect to persist final assistant message
+    // Tee stream: forward to client AND collect to persist final assistant message.
+    // Also inject `data: {"type":"timing",...}` SSE events so the client can
+    // reconcile server-side processing time with client-perceived first-token latency.
     const reader = aiResp.body!.getReader();
     const decoder = new TextDecoder();
     const encoder = new TextEncoder();
     let fullText = "";
     let buf = "";
+    let firstTokenSent = false;
 
     const stream = new ReadableStream({
       async start(controller) {
+        // Emit server_received_at immediately so client knows when handler started
+        controller.enqueue(encoder.encode(
+          `data: ${JSON.stringify({ type: "timing", server_received_at: serverReceivedAt, server_ready_at: Date.now() })}\n\n`,
+        ));
         try {
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-            controller.enqueue(value);
             buf += decoder.decode(value, { stream: true });
             let nl: number;
+            let firstContentInChunk = false;
             while ((nl = buf.indexOf("\n")) !== -1) {
               let line = buf.slice(0, nl);
               buf = buf.slice(nl + 1);
@@ -161,9 +169,21 @@ Deno.serve(async (req) => {
               try {
                 const parsed = JSON.parse(json);
                 const c = parsed.choices?.[0]?.delta?.content;
-                if (c) fullText += c;
+                if (c) {
+                  fullText += c;
+                  if (!firstTokenSent) firstContentInChunk = true;
+                }
               } catch { /* partial */ }
             }
+            // If this chunk carries the first content delta, emit a timing
+            // marker BEFORE forwarding the chunk so the client sees it first.
+            if (firstContentInChunk && !firstTokenSent) {
+              controller.enqueue(encoder.encode(
+                `data: ${JSON.stringify({ type: "timing", server_first_token_at: Date.now() })}\n\n`,
+              ));
+              firstTokenSent = true;
+            }
+            controller.enqueue(value);
           }
         } finally {
           controller.close();
@@ -174,7 +194,14 @@ Deno.serve(async (req) => {
       },
     });
 
-    return new Response(stream, { headers: { ...cors, "Content-Type": "text/event-stream" } });
+    return new Response(stream, {
+      headers: {
+        ...cors,
+        "Content-Type": "text/event-stream",
+        "x-server-received-at": String(serverReceivedAt),
+        "Access-Control-Expose-Headers": "x-server-received-at",
+      },
+    });
   } catch (e) {
     console.error("ai-coach error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : String(e) }), { status: 500, headers: cors });
