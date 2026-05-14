@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Play, Calendar, Plus, Minus, Check, Loader2, X, Sparkles, Target, Video } from "lucide-react";
+import { Play, Calendar, Plus, Minus, Check, Loader2, X, Sparkles, Target, Video, TrendingUp, ArrowRight } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
