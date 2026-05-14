@@ -21,6 +21,7 @@ import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as FreshMealsRouteImport } from './routes/fresh-meals'
 import { Route as FormRouteImport } from './routes/form'
 import { Route as ChatRouteImport } from './routes/chat'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as BodyRouteImport } from './routes/body'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -89,6 +90,11 @@ const ChatRoute = ChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BodyRoute = BodyRouteImport.update({
   id: '/body',
   path: '/body',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/body': typeof BodyRoute
+  '/calendar': typeof CalendarRoute
   '/chat': typeof ChatRoute
   '/form': typeof FormRoute
   '/fresh-meals': typeof FreshMealsRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/body': typeof BodyRoute
+  '/calendar': typeof CalendarRoute
   '/chat': typeof ChatRoute
   '/form': typeof FormRoute
   '/fresh-meals': typeof FreshMealsRoute
@@ -174,6 +182,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/body': typeof BodyRoute
+  '/calendar': typeof CalendarRoute
   '/chat': typeof ChatRoute
   '/form': typeof FormRoute
   '/fresh-meals': typeof FreshMealsRoute
@@ -197,6 +206,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/body'
+    | '/calendar'
     | '/chat'
     | '/form'
     | '/fresh-meals'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/body'
+    | '/calendar'
     | '/chat'
     | '/form'
     | '/fresh-meals'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/body'
+    | '/calendar'
     | '/chat'
     | '/form'
     | '/fresh-meals'
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   BodyRoute: typeof BodyRoute
+  CalendarRoute: typeof CalendarRoute
   ChatRoute: typeof ChatRoute
   FormRoute: typeof FormRoute
   FreshMealsRoute: typeof FreshMealsRoute
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/body': {
       id: '/body'
       path: '/body'
@@ -421,6 +441,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   BodyRoute: BodyRoute,
+  CalendarRoute: CalendarRoute,
   ChatRoute: ChatRoute,
   FormRoute: FormRoute,
   FreshMealsRoute: FreshMealsRoute,

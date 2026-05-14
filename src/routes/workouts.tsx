@@ -62,7 +62,7 @@ function Workouts() {
             <p className="text-sm text-muted-foreground">Your Program</p>
             <h1 className="text-2xl font-bold">Upcoming sessions</h1>
           </div>
-          <Button size="icon" variant="outline" className="h-10 w-10 rounded-full border-border bg-surface">
+          <Button onClick={() => navigate({ to: "/calendar" })} size="icon" variant="outline" className="h-10 w-10 rounded-full border-border bg-surface" aria-label="Open calendar">
             <Calendar className="h-4 w-4" />
           </Button>
         </div>
