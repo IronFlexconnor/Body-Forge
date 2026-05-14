@@ -135,6 +135,14 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
   const [finishing, setFinishing] = useState(false);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_WEIGHT_UNIT);
   const [lastByExercise, setLastByExercise] = useState<Record<string, { weight: number | null; reps: number | null; unit: string | null; date: string } | null>>({});
+  const [summary, setSummary] = useState<null | {
+    durationMin: number;
+    totalSets: number;
+    totalReps: number;
+    totalVolume: number;
+    coachNote?: string;
+    recs: { exercise: string; topWeight: number; topReps: number; rpe: number | null; nextWeight: number; deltaPct: number; verdict: string }[];
+  }>(null);
 
   useEffect(() => {
     if (!user) return;
