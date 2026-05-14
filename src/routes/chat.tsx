@@ -150,6 +150,12 @@ function Chat() {
             const parsed = JSON.parse(json);
             const c = parsed.choices?.[0]?.delta?.content;
             if (c) {
+              if (!firstTokenAt) {
+                firstTokenAt = performance.now();
+                import("@/lib/perf").then(({ recordPerf }) =>
+                  recordPerf({ event_type: "ai_first_token", value_ms: firstTokenAt - t0, route: "/chat" })
+                );
+              }
               acc += c;
               setMessages((m) => {
                 const copy = [...m];
