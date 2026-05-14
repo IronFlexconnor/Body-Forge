@@ -107,6 +107,21 @@ function MetricsDashboard() {
     }));
   }, [rows]);
 
+  const reconciliation = useMemo(() => {
+    const buckets: Record<string, number[]> = { ai_first_token: [], ai_server_processing: [], ai_network_overhead: [] };
+    for (const r of rows) if (r.event_type in buckets) buckets[r.event_type].push(r.value_ms);
+    const cft = quantile(buckets.ai_first_token, 0.5);
+    const srv = quantile(buckets.ai_server_processing, 0.5);
+    const net = quantile(buckets.ai_network_overhead, 0.5);
+    const sum = srv + net;
+    const drift = cft > 0 ? Math.round(((cft - sum) / cft) * 100) : 0;
+    return {
+      n: buckets.ai_first_token.length,
+      cft, srv, net, sum, drift,
+      pairedCount: Math.min(buckets.ai_server_processing.length, buckets.ai_network_overhead.length),
+    };
+  }, [rows]);
+
   const byDevice = useMemo(() => {
     const groups: Record<string, Record<string, number[]>> = {};
     for (const r of rows) {
