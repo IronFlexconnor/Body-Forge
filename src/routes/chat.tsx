@@ -104,6 +104,8 @@ function Chat() {
 
     try {
       const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-coach`;
+      const t0 = performance.now();
+      let firstTokenAt = 0;
       const resp = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
@@ -148,6 +150,12 @@ function Chat() {
             const parsed = JSON.parse(json);
             const c = parsed.choices?.[0]?.delta?.content;
             if (c) {
+              if (!firstTokenAt) {
+                firstTokenAt = performance.now();
+                import("@/lib/perf").then(({ recordPerf }) =>
+                  recordPerf({ event_type: "ai_first_token", value_ms: firstTokenAt - t0, route: "/chat" })
+                );
+              }
               acc += c;
               setMessages((m) => {
                 const copy = [...m];
@@ -158,6 +166,9 @@ function Chat() {
           } catch { buf = line + "\n" + buf; break; }
         }
       }
+      import("@/lib/perf").then(({ recordPerf }) =>
+        recordPerf({ event_type: "ai_total", value_ms: performance.now() - t0, route: "/chat", meta: { chars: acc.length } })
+      );
     } catch (e) {
       toast.error("Network error");
     } finally {
