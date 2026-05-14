@@ -498,7 +498,7 @@ function Nutrition() {
                             </button>
                             {open && (
                               <div className="mt-2 space-y-2">
-                                {video?.url && <MealPrepVideo video={video} title={meal.title} />}
+                                {video?.url && <MealPrepVideo recipe={{ slug: meal.title, title: meal.title, meal_type: meal.slot }} title={meal.title} categoryLabel={meal.slot} />}
                                 {meal.ingredients_with_units?.length > 0 && (
                                   <div><div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Ingredients</div>
                                     <ul className="mt-1 text-xs text-muted-foreground">{meal.ingredients_with_units.map((ing: string, k2: number) => <li key={k2}>· {ing}</li>)}</ul></div>
