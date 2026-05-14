@@ -26,6 +26,7 @@ import { Route as BodyRouteImport } from './routes/body'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as AdminMetricsRouteImport } from './routes/admin.metrics'
 import { Route as AdminMealTestRouteImport } from './routes/admin.meal-test'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicHooksRefreshInsightsRouteImport } from './routes/api/public/hooks/refresh-insights'
@@ -115,6 +116,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminMetricsRoute = AdminMetricsRouteImport.update({
+  id: '/admin/metrics',
+  path: '/admin/metrics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminMealTestRoute = AdminMealTestRouteImport.update({
   id: '/admin/meal-test',
   path: '/admin/meal-test',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
   '/admin/meal-test': typeof AdminMealTestRoute
+  '/admin/metrics': typeof AdminMetricsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/api/public/hooks/refresh-insights': typeof ApiPublicHooksRefreshInsightsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
   '/admin/meal-test': typeof AdminMealTestRoute
+  '/admin/metrics': typeof AdminMetricsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/api/public/hooks/refresh-insights': typeof ApiPublicHooksRefreshInsightsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
   '/admin/meal-test': typeof AdminMealTestRoute
+  '/admin/metrics': typeof AdminMetricsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/api/public/hooks/refresh-insights': typeof ApiPublicHooksRefreshInsightsRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -220,6 +229,7 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/workouts'
     | '/admin/meal-test'
+    | '/admin/metrics'
     | '/checkout/return'
     | '/api/public/hooks/refresh-insights'
     | '/api/public/payments/webhook'
@@ -242,6 +252,7 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/workouts'
     | '/admin/meal-test'
+    | '/admin/metrics'
     | '/checkout/return'
     | '/api/public/hooks/refresh-insights'
     | '/api/public/payments/webhook'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/welcome'
     | '/workouts'
     | '/admin/meal-test'
+    | '/admin/metrics'
     | '/checkout/return'
     | '/api/public/hooks/refresh-insights'
     | '/api/public/payments/webhook'
@@ -287,6 +299,7 @@ export interface RootRouteChildren {
   WelcomeRoute: typeof WelcomeRoute
   WorkoutsRoute: typeof WorkoutsRoute
   AdminMealTestRoute: typeof AdminMealTestRoute
+  AdminMetricsRoute: typeof AdminMetricsRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ApiPublicHooksRefreshInsightsRoute: typeof ApiPublicHooksRefreshInsightsRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -413,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/metrics': {
+      id: '/admin/metrics'
+      path: '/admin/metrics'
+      fullPath: '/admin/metrics'
+      preLoaderRoute: typeof AdminMetricsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/meal-test': {
       id: '/admin/meal-test'
       path: '/admin/meal-test'
@@ -455,6 +475,7 @@ const rootRouteChildren: RootRouteChildren = {
   WelcomeRoute: WelcomeRoute,
   WorkoutsRoute: WorkoutsRoute,
   AdminMealTestRoute: AdminMealTestRoute,
+  AdminMetricsRoute: AdminMetricsRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ApiPublicHooksRefreshInsightsRoute: ApiPublicHooksRefreshInsightsRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
