@@ -129,6 +129,7 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
   const [logs, setLogs] = useState<Record<string, { reps: string; weight: string; rpe: string; done: boolean }[]>>({});
   const [finishing, setFinishing] = useState(false);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_WEIGHT_UNIT);
+  const [lastByExercise, setLastByExercise] = useState<Record<string, { weight: number | null; reps: number | null; unit: string | null; date: string } | null>>({});
 
   useEffect(() => {
     if (!user) return;
@@ -145,6 +146,26 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
       init[ex.name] = Array.from({ length: ex.sets || 3 }, () => ({ reps: "", weight: "", rpe: "", done: false }));
     });
     setLogs(init);
+
+    // Fetch last logged set for each exercise (for the "previous" hint)
+    (async () => {
+      const names = workout.exercises.map((e) => e.name);
+      if (!names.length) return;
+      const { data } = await supabase
+        .from("set_logs")
+        .select("exercise_name, weight, reps, weight_unit, created_at")
+        .eq("user_id", user.id)
+        .in("exercise_name", names)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      const map: typeof lastByExercise = {};
+      (data ?? []).forEach((row: any) => {
+        if (!map[row.exercise_name] && row.weight != null) {
+          map[row.exercise_name] = { weight: row.weight, reps: row.reps, unit: row.weight_unit, date: row.created_at };
+        }
+      });
+      setLastByExercise(map);
+    })();
   }, [user, workout]);
 
   const updateSet = (ex: string, idx: number, key: "reps" | "weight" | "rpe", val: string) => {
