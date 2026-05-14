@@ -165,10 +165,10 @@ function Chat() {
             }
           } catch { buf = line + "\n" + buf; break; }
         }
+      }
       import("@/lib/perf").then(({ recordPerf }) =>
         recordPerf({ event_type: "ai_total", value_ms: performance.now() - t0, route: "/chat", meta: { chars: acc.length } })
       );
-      }
     } catch (e) {
       toast.error("Network error");
     } finally {
