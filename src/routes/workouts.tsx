@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Play, Calendar, Plus, Minus, Check, Loader2, X, Sparkles, Target, Video } from "lucide-react";
+import { Play, Calendar, Plus, Minus, Check, Loader2, X, Sparkles, Target, Video, TrendingUp, ArrowRight } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,6 +135,14 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
   const [finishing, setFinishing] = useState(false);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_WEIGHT_UNIT);
   const [lastByExercise, setLastByExercise] = useState<Record<string, { weight: number | null; reps: number | null; unit: string | null; date: string } | null>>({});
+  const [summary, setSummary] = useState<null | {
+    durationMin: number;
+    totalSets: number;
+    totalReps: number;
+    totalVolume: number;
+    coachNote?: string;
+    recs: { exercise: string; topWeight: number; topReps: number; rpe: number | null; nextWeight: number; deltaPct: number; verdict: string }[];
+  }>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -208,14 +216,53 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
     const duration = Math.round((Date.now() - startedAt) / 60000);
     await supabase.from("workout_logs").update({ completed_at: new Date().toISOString(), duration_min: duration }).eq("id", logId);
     await supabase.from("workouts").update({ status: "completed" }).eq("id", workout.id);
-    toast.success(`Session complete · ${duration} min 🔥`);
-    // Fire-and-forget auto-adjust for next session
+
+    // --- Build progressive-overload recommendations from this session's sets ---
+    const round = (n: number) => {
+      const step = weightUnit === "kg" ? 2.5 : 5;
+      return Math.round(n / step) * step;
+    };
+    const recs: NonNullable<typeof summary>["recs"] = [];
+    let totalSets = 0, totalReps = 0, totalVolume = 0;
+    for (const ex of workout.exercises) {
+      const sets = (logs[ex.name] ?? []).filter((s) => s.done && s.weight && s.reps);
+      if (!sets.length) continue;
+      // Heaviest set wins; tie-broken by reps
+      const top = sets
+        .map((s) => ({ w: parseFloat(s.weight), r: parseInt(s.reps), rpe: s.rpe ? parseFloat(s.rpe) : NaN }))
+        .filter((s) => Number.isFinite(s.w) && Number.isFinite(s.r))
+        .sort((a, b) => b.w - a.w || b.r - a.r)[0];
+      if (!top) continue;
+      sets.forEach((s) => {
+        const w = parseFloat(s.weight); const r = parseInt(s.reps);
+        if (Number.isFinite(w) && Number.isFinite(r)) { totalSets++; totalReps += r; totalVolume += w * r; }
+      });
+      const rpe = Number.isFinite(top.rpe) ? top.rpe : null;
+      let deltaPct = 0; let verdict = "Hold steady — dial in technique";
+      if (rpe == null || rpe <= 7) { deltaPct = 5; verdict = "Felt strong — push the bar"; }
+      else if (rpe <= 8) { deltaPct = 2.5; verdict = "Solid effort — small jump"; }
+      else if (rpe <= 8.5) { deltaPct = 1.25; verdict = "Right at the edge — micro-load"; }
+      else if (rpe <= 9.5) { deltaPct = 0; verdict = "Hold weight — chase a clean rep PR"; }
+      else { deltaPct = -5; verdict = "Back off 5% — recover and rebuild"; }
+      const nextWeight = Math.max(round(top.w * (1 + deltaPct / 100)), 0);
+      recs.push({ exercise: ex.name, topWeight: top.w, topReps: top.r, rpe, nextWeight, deltaPct, verdict });
+    }
+
+    // Show summary first; auto-adjust runs in parallel and updates coachNote on arrival
+    setSummary({ durationMin: duration, totalSets, totalReps, totalVolume, recs });
+
     supabase.functions.invoke("auto-adjust", { body: { trigger: "workout_complete", workout_log_id: logId } })
       .then(({ data }) => {
         const d = data as any;
-        if (d?.should_adjust && d?.summary) toast.success(`Coach updated next session — ${d.summary}`, { duration: 6000 });
+        if (d?.should_adjust && d?.summary) {
+          setSummary((prev) => prev ? { ...prev, coachNote: d.summary } : prev);
+        }
       })
       .catch(() => {});
+  };
+
+  const closeSummary = () => {
+    toast.success(`Session complete · ${summary?.durationMin ?? 0} min 🔥`);
     onComplete();
   };
 
@@ -296,6 +343,76 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
           </Button>
         </div>
       </div>
+
+      {summary && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/85 backdrop-blur-md sm:items-center" role="dialog" aria-modal="true">
+          <div className="relative max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-border/60 bg-gradient-card shadow-card sm:rounded-3xl">
+            <div className="px-6 pt-7 pb-3 text-center">
+              <div className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-full bg-gradient-primary text-primary-foreground shadow-glow">
+                <Check className="h-6 w-6" />
+              </div>
+              <h2 className="text-xl font-bold">Session complete</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{summary.durationMin} min · {summary.totalSets} sets · {Math.round(summary.totalVolume).toLocaleString()} {weightUnit} of total volume</p>
+            </div>
+
+            <div className="px-6 pt-2 pb-6 space-y-4">
+              <div>
+                <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                  Progressive overload — try next week
+                </div>
+                {summary.recs.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-border/60 p-4 text-center text-xs text-muted-foreground">
+                    Log weight + reps on at least one set next time to unlock per-lift recommendations.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {summary.recs.map((r) => (
+                      <div key={r.exercise} className="rounded-xl border border-border/60 bg-surface/50 p-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-semibold">{r.exercise}</div>
+                            <div className="text-[11px] text-muted-foreground">
+                              Today: <span className="font-medium text-foreground">{r.topWeight}{weightUnit} × {r.topReps}</span>
+                              {r.rpe != null && <> @ RPE {r.rpe}</>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-2.5 py-1.5 text-primary">
+                            <ArrowRight className="h-3.5 w-3.5" />
+                            <span className="text-sm font-bold tabular-nums">{r.nextWeight}{weightUnit}</span>
+                            <span className="text-[10px] font-semibold opacity-80">
+                              {r.deltaPct > 0 ? `+${r.deltaPct}%` : r.deltaPct < 0 ? `${r.deltaPct}%` : "hold"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-1.5 text-[11px] italic text-muted-foreground">{r.verdict}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {summary.coachNote && (
+                <div className="rounded-xl border border-primary/30 bg-primary/10 p-3">
+                  <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-primary">
+                    <Sparkles className="h-3.5 w-3.5" /> Coach updated next session
+                  </div>
+                  <div className="text-xs text-foreground/90">{summary.coachNote}</div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <Button variant="outline" className="h-11 rounded-xl" onClick={() => { closeSummary(); navigate({ to: "/calendar" }); }}>
+                  View history
+                </Button>
+                <Button className="h-11 rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-glow" onClick={closeSummary}>
+                  Done
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
