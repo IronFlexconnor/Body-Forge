@@ -31,9 +31,11 @@ type SetLog = {
   created_at: string;
 };
 
-function dayKey(iso: string) {
-  const d = new Date(iso);
+function dayKeyFromDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function dayKey(iso: string) {
+  return dayKeyFromDate(new Date(iso));
 }
 
 function CalendarPage() {
@@ -88,7 +90,7 @@ function CalendarPage() {
     [completedDays]
   );
 
-  const selectedKey = selected ? dayKey(selected.toISOString()) : "";
+  const selectedKey = selected ? dayKeyFromDate(selected) : "";
   const dayLogs = useMemo(
     () => logs.filter(l => l.completed_at && dayKey(l.completed_at) === selectedKey),
     [logs, selectedKey]
