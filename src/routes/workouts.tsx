@@ -129,6 +129,7 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
   const [logs, setLogs] = useState<Record<string, { reps: string; weight: string; rpe: string; done: boolean }[]>>({});
   const [finishing, setFinishing] = useState(false);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_WEIGHT_UNIT);
+  const [lastByExercise, setLastByExercise] = useState<Record<string, { weight: number | null; reps: number | null; unit: string | null; date: string } | null>>({});
 
   useEffect(() => {
     if (!user) return;
@@ -145,6 +146,26 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
       init[ex.name] = Array.from({ length: ex.sets || 3 }, () => ({ reps: "", weight: "", rpe: "", done: false }));
     });
     setLogs(init);
+
+    // Fetch last logged set for each exercise (for the "previous" hint)
+    (async () => {
+      const names = workout.exercises.map((e) => e.name);
+      if (!names.length) return;
+      const { data } = await supabase
+        .from("set_logs")
+        .select("exercise_name, weight, reps, weight_unit, created_at")
+        .eq("user_id", user.id)
+        .in("exercise_name", names)
+        .order("created_at", { ascending: false })
+        .limit(200);
+      const map: typeof lastByExercise = {};
+      (data ?? []).forEach((row: any) => {
+        if (!map[row.exercise_name] && row.weight != null) {
+          map[row.exercise_name] = { weight: row.weight, reps: row.reps, unit: row.weight_unit, date: row.created_at };
+        }
+      });
+      setLastByExercise(map);
+    })();
   }, [user, workout]);
 
   const updateSet = (ex: string, idx: number, key: "reps" | "weight" | "rpe", val: string) => {
@@ -208,9 +229,16 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
         {workout.exercises.map((ex) => (
           <div key={ex.name} className="rounded-2xl border border-border/60 bg-gradient-card p-4 shadow-card">
             <div className="mb-3 flex items-baseline justify-between">
-              <div>
-                <div className="font-semibold">{ex.name}</div>
+              <div className="min-w-0">
+                <div className="font-semibold truncate">{ex.name}</div>
                 <div className="text-xs text-muted-foreground">Target: {ex.sets} × {ex.reps}{ex.rpe ? ` · RPE ${ex.rpe}` : ""}</div>
+                {lastByExercise[ex.name] ? (
+                  <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                    Last: {lastByExercise[ex.name]!.weight}{lastByExercise[ex.name]!.unit ?? weightUnit} × {lastByExercise[ex.name]!.reps ?? "—"}
+                  </div>
+                ) : (
+                  <div className="mt-1 text-[10px] text-muted-foreground">First time logging — set your baseline 💪</div>
+                )}
               </div>
               <button onClick={() => analyzeExercise(ex.name)} className="ml-3 grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-primary/30 bg-primary/10 text-primary transition-colors hover:border-primary" aria-label={`Analyze ${ex.name} form`}>
                 <Video className="h-4 w-4" />
@@ -223,7 +251,7 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
               {logs[ex.name]?.map((s, i) => (
                 <div key={i} className={cn("grid grid-cols-[24px_1fr_1fr_1fr_36px] items-center gap-2 rounded-lg p-1 transition-colors", s.done && "bg-primary/10")}>
                   <div className="text-center text-xs font-semibold text-muted-foreground">{i + 1}</div>
-                  <Input inputMode="decimal" value={s.weight} onChange={(e) => updateSet(ex.name, i, "weight", e.target.value)} placeholder={weightUnit} className="h-9 text-sm" />
+                  <Input inputMode="decimal" value={s.weight} onChange={(e) => updateSet(ex.name, i, "weight", e.target.value)} placeholder={lastByExercise[ex.name]?.weight != null ? String(lastByExercise[ex.name]!.weight) : weightUnit} className="h-9 text-sm" />
                   <Input inputMode="numeric" value={s.reps} onChange={(e) => updateSet(ex.name, i, "reps", e.target.value)} placeholder={ex.reps} className="h-9 text-sm" />
                   <Input inputMode="decimal" value={s.rpe} onChange={(e) => updateSet(ex.name, i, "rpe", e.target.value)} placeholder="—" className="h-9 text-sm" />
                   <button onClick={() => toggleDone(ex.name, i)}

@@ -14,6 +14,7 @@ import { HeightPicker, ftInToCm, cmToFtIn, formatHeight, type HeightUnit } from 
 import { InjuryAssessment, parseInjuries, serializeInjuries } from "@/components/InjuryAssessment";
 import { NutritionPreferencesForm, DEFAULT_NUTRITION } from "@/components/NutritionPreferences";
 import { DEFAULT_UNITS, type Units, displayWeight, unitsToWeightUnit } from "@/lib/units";
+import { ProgramEditor } from "@/components/ProgramEditor";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — Body Forge" }] }),
@@ -168,9 +169,16 @@ function Profile() {
           />
         </div>
 
-        <Section title="Training">
-          <Row icon={Dumbbell} label="Current program" value={program?.name ?? "—"} />
-          <Row icon={Heart} label="Days per week" value={`${p.days_per_week ?? 4}`} />
+        <Section title="Current program">
+          <div className="space-y-3 p-3">
+            <div className="flex items-center justify-between px-1">
+              <div>
+                <div className="text-sm font-semibold">{program?.name ?? "No active program"}</div>
+                <div className="text-[11px] text-muted-foreground">{p.days_per_week ?? 4} days/week · tap a session to edit</div>
+              </div>
+            </div>
+            <ProgramEditor />
+          </div>
         </Section>
 
         <Section title="Nutrition">
