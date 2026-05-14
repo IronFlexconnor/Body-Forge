@@ -14,6 +14,7 @@ import { HeightPicker, ftInToCm, cmToFtIn, formatHeight, type HeightUnit } from 
 import { InjuryAssessment, parseInjuries, serializeInjuries } from "@/components/InjuryAssessment";
 import { NutritionPreferencesForm, DEFAULT_NUTRITION } from "@/components/NutritionPreferences";
 import { DEFAULT_UNITS, type Units, displayWeight, unitsToWeightUnit } from "@/lib/units";
+import { ProgramEditor } from "@/components/ProgramEditor";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "Profile — Body Forge" }] }),
