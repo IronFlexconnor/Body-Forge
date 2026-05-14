@@ -25,12 +25,14 @@ type Props = {
 };
 
 /**
- * Premium meal-prep video block:
- *  - Sharp thumbnails (YouTube maxresdefault → hqdefault fallback)
- *  - Stable aspect-ratio box: no layout shift while scrolling
- *  - Premium "Regenerate" pill that cycles to a different curated clip
- *    with shimmer + animated transition
- *  - Tap-to-play inline iframe (no external nav required)
+ * Premium meal-prep video block — tuned for smooth mobile scroll:
+ *  - Iframe is NEVER mounted until (a) the card is in view AND (b) the user
+ *    taps play. This avoids YouTube's heavy player + network work during scroll.
+ *  - Thumbnail itself only decodes once the card is near the viewport
+ *    (IntersectionObserver w/ generous rootMargin), keeping offscreen cards
+ *    from competing for the main thread.
+ *  - Skeleton/shimmer use cheap CSS (no animate-pulse stacking, no blur on
+ *    the base skeleton) — the regen overlay is the only briefly-animated layer.
  */
 export function MealPrepVideo({
   recipe,
@@ -46,6 +48,8 @@ export function MealPrepVideo({
   const [regenerating, setRegenerating] = useState(false);
   const [imgReady, setImgReady] = useState(false);
   const [usedFallback, setUsedFallback] = useState(false);
+  const [inView, setInView] = useState(priority);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   // Sharp source first; fall back if maxres is missing.
@@ -57,11 +61,34 @@ export function MealPrepVideo({
     setUsedFallback(false);
   }, [video.id]);
 
+  // Defer thumbnail decode + iframe mount until near viewport.
+  useEffect(() => {
+    if (priority || inView) return;
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            setInView(true);
+            io.disconnect();
+            break;
+          }
+        }
+      },
+      { rootMargin: "400px 0px", threshold: 0.01 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [priority, inView]);
+
   const handleRegenerate = () => {
     if (regenerating) return;
     setRegenerating(true);
     setPlaying(false);
-    // Small delay so the shimmer reads as "fetching a fresh clip"
     setTimeout(() => {
       const nextOffset = offset + 1;
       const next = nextVideoForRecipe(recipe, offset);
@@ -75,7 +102,10 @@ export function MealPrepVideo({
   const playIconSize = size === "lg" ? "h-8 w-8" : "h-7 w-7";
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-primary/20 bg-primary/5 shadow-card">
+    <div
+      ref={containerRef}
+      className="overflow-hidden rounded-2xl border border-primary/20 bg-primary/5 shadow-card [content-visibility:auto] [contain-intrinsic-size:320px_240px]"
+    >
       <div className="flex items-center justify-between gap-2 border-b border-primary/10 px-3 py-2 text-[11px] font-semibold text-primary">
         <span className="inline-flex items-center gap-1.5">
           <PlayCircle className="h-3.5 w-3.5" /> Meal-prep video
@@ -92,21 +122,22 @@ export function MealPrepVideo({
 
       {/* Stable aspect box prevents layout shift while scrolling */}
       <div className="relative aspect-video w-full overflow-hidden bg-black">
-        {/* Skeleton — visible until image decodes */}
+        {/* Lightweight skeleton — solid token, no pulse stacking */}
         <div
-          className={`absolute inset-0 bg-gradient-to-br from-muted via-surface to-muted ${
+          className={`absolute inset-0 bg-surface ${
             imgReady ? "opacity-0" : "opacity-100"
-          } transition-opacity duration-300`}
+          } transition-opacity duration-200`}
           aria-hidden
         />
 
-        {playing ? (
+        {playing && inView ? (
           <iframe
             key={video.id}
             src={`${video.embedUrl}&autoplay=1`}
             title={`${title} prep video`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
+            loading="lazy"
             className="absolute inset-0 h-full w-full"
           />
         ) : (
@@ -116,30 +147,33 @@ export function MealPrepVideo({
             className="group absolute inset-0 h-full w-full"
             aria-label={`Play ${title} prep video`}
           >
-            <img
-              ref={imgRef}
-              key={video.id}
-              src={maxThumb}
-              srcSet={`${maxThumb} 1280w, ${hqThumb} 480w`}
-              sizes={size === "lg" ? "(max-width: 768px) 100vw, 640px" : "(max-width: 768px) 100vw, 480px"}
-              alt={`${title} prep video thumbnail`}
-              loading={priority ? "eager" : "lazy"}
-              decoding="async"
-              fetchPriority={priority ? "high" : "auto"}
-              onLoad={() => setImgReady(true)}
-              onError={(e) => {
-                if (!usedFallback) {
-                  setUsedFallback(true);
-                  e.currentTarget.srcset = "";
-                  e.currentTarget.src = hqThumb;
-                } else {
-                  setImgReady(true);
-                }
-              }}
-              className={`h-full w-full object-cover transition duration-500 ${
-                imgReady ? "opacity-100" : "opacity-0"
-              } group-hover:scale-[1.03]`}
-            />
+            {inView && (
+              <img
+                ref={imgRef}
+                key={video.id}
+                src={maxThumb}
+                srcSet={`${maxThumb} 1280w, ${hqThumb} 480w`}
+                sizes={size === "lg" ? "(max-width: 768px) 100vw, 640px" : "(max-width: 768px) 100vw, 480px"}
+                alt={`${title} prep video thumbnail`}
+                loading={priority ? "eager" : "lazy"}
+                decoding="async"
+                fetchPriority={priority ? "high" : "auto"}
+                onLoad={() => setImgReady(true)}
+                onError={(e) => {
+                  if (!usedFallback) {
+                    setUsedFallback(true);
+                    e.currentTarget.srcset = "";
+                    e.currentTarget.src = hqThumb;
+                  } else {
+                    setImgReady(true);
+                  }
+                }}
+                className={`h-full w-full object-cover transition-opacity duration-300 ${
+                  imgReady ? "opacity-100" : "opacity-0"
+                } group-hover:scale-[1.02] motion-reduce:group-hover:scale-100`}
+                style={{ willChange: "opacity" }}
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
 
             {/* Top-left chips */}
@@ -159,7 +193,7 @@ export function MealPrepVideo({
             {/* Center play */}
             <div className="absolute inset-0 grid place-items-center">
               <div
-                className={`grid ${playBtnSize} place-items-center rounded-full bg-primary/95 text-primary-foreground shadow-glow ring-4 ring-white/15 transition-transform group-hover:scale-110`}
+                className={`grid ${playBtnSize} place-items-center rounded-full bg-primary/95 text-primary-foreground shadow-glow ring-4 ring-white/15 transition-transform group-hover:scale-110 motion-reduce:group-hover:scale-100`}
               >
                 <PlayCircle className={playIconSize} />
               </div>
@@ -177,13 +211,12 @@ export function MealPrepVideo({
           </button>
         )}
 
-        {/* Regenerating shimmer overlay */}
+        {/* Regenerating overlay — single lightweight animated layer */}
         {regenerating && (
-          <div className="absolute inset-0 grid place-items-center bg-black/55 backdrop-blur-sm">
+          <div className="absolute inset-0 grid place-items-center bg-black/55">
             <div className="flex items-center gap-2 rounded-full border border-primary/40 bg-surface/90 px-3 py-1.5 text-xs font-semibold text-primary shadow-glow">
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Finding a fresher clip…
             </div>
-            <div className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/10 to-transparent" />
           </div>
         )}
       </div>
@@ -203,7 +236,7 @@ export function MealPrepVideo({
           {regenerating ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            <RefreshCcw className="h-3.5 w-3.5 transition-transform group-hover:-rotate-180 duration-500" />
+            <RefreshCcw className="h-3.5 w-3.5 transition-transform group-hover:-rotate-180 duration-500 motion-reduce:group-hover:rotate-0" />
           )}
           <span>Regenerate</span>
           <Sparkles className="h-3 w-3 opacity-70" />
