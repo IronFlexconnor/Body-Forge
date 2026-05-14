@@ -56,6 +56,11 @@ export function MealPrepVideo({
   const maxThumb = `https://i.ytimg.com/vi/${video.id}/maxresdefault.jpg`;
   const hqThumb = `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
 
+  // Prefetch the *next* curated clip's thumbnail so a Regenerate tap feels instant.
+  const nextVideo = nextVideoForRecipe(recipe, offset);
+  const nextMaxThumb = `https://i.ytimg.com/vi/${nextVideo.id}/maxresdefault.jpg`;
+  const nextHqThumb = `https://i.ytimg.com/vi/${nextVideo.id}/hqdefault.jpg`;
+
   useEffect(() => {
     setImgReady(false);
     setUsedFallback(false);
