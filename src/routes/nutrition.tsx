@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { buildMealPlan, calculateMacroTargets, reviewLoggedMeals } from "../../supabase/functions/nutrition-coach/planner";
 import { MealRegenerationModal } from "@/components/MealRegenerationModal";
-import { videoForRecipe } from "@/lib/mealVideos";
 import { MealPrepVideo } from "@/components/MealPrepVideo";
 
 export const Route = createFileRoute("/nutrition")({
