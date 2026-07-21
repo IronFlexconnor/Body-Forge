@@ -108,9 +108,9 @@ function Welcome() {
       <div className="pointer-events-none absolute -top-32 -right-24 h-80 w-80 rounded-full bg-primary/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
 
-      <div className="relative mx-auto flex min-h-dvh max-w-lg flex-col px-6 pt-14 pb-8">
+      <div className="relative mx-auto flex min-h-dvh max-w-lg flex-col px-5 pt-10 pb-6 sm:px-6 sm:pt-14 sm:pb-8">
         <div className="flex flex-1 flex-col">
-          <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary animate-fade-in">
+          <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary animate-fade-in sm:mb-5 sm:text-xs">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
@@ -119,26 +119,26 @@ function Welcome() {
           </div>
 
           <h1
-            className="text-display text-[3.25rem] sm:text-6xl md:text-7xl leading-[0.95] tracking-tightest animate-fade-in text-white [text-wrap:balance]"
+            className="text-display text-[2.5rem] leading-[0.95] tracking-tightest text-white animate-fade-in [text-wrap:balance] sm:text-6xl md:text-7xl"
             style={{ textShadow: "0 1px 24px oklch(0.18 0.045 250 / 40%)" }}
           >
-            Body Forge <span className="text-white/80">AI Coach</span>
-            <span className="mt-2 block bg-gradient-to-r from-white via-[oklch(0.94_0.08_195)] to-[oklch(0.78_0.15_190)] bg-clip-text text-transparent">
-              Your 24/7 Personal Trainer
+            <span className="block">Body Forge</span>
+            <span className="block text-white/80">AI Coach</span>
+            <span className="mt-1.5 block bg-gradient-to-r from-white via-[oklch(0.94_0.08_195)] to-[oklch(0.78_0.15_190)] bg-clip-text text-transparent sm:mt-2">
+              Your 24/7 Trainer
             </span>
-
           </h1>
-          <p className="mt-5 max-w-md text-lg sm:text-xl leading-[1.55] font-medium text-white/75 animate-fade-in [text-wrap:pretty]">
+          <p className="mt-4 max-w-md text-[15px] font-medium leading-[1.5] text-white/75 animate-fade-in [text-wrap:pretty] sm:mt-5 sm:text-xl sm:leading-[1.55]">
             Custom plans. Real-time form feedback. Nutrition that actually tastes good.
           </p>
 
-
           {/* Quick value props */}
-          <div className="mt-7 grid grid-cols-3 gap-2.5">
+          <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-7 sm:gap-2.5">
             <ValueChip icon={Zap} label="Plans in 30s" />
             <ValueChip icon={Video} label="Form analysis" />
             <ValueChip icon={ChefHat} label="2,000+ meals" />
           </div>
+
 
           {/* Hero feature card */}
           <div className="relative mt-7 overflow-hidden rounded-3xl border border-primary/30 bg-gradient-card p-5 shadow-card animate-fade-in">
@@ -245,30 +245,33 @@ function Welcome() {
           </div>
         </div>
 
-        <div className="mt-8 space-y-3">
+        <div className="mt-6 space-y-2.5 sm:mt-8 sm:space-y-3">
           <Button
             onClick={() => navigate({ to: "/auth" })}
             size="lg"
-            className="h-16 w-full rounded-2xl bg-gradient-primary text-base font-bold text-primary-foreground shadow-glow hover:scale-[1.01] transition-transform"
+            className="h-14 w-full rounded-2xl bg-gradient-primary text-[15px] font-bold text-primary-foreground shadow-glow transition-transform hover:scale-[1.01] sm:h-16 sm:text-base"
           >
             <Sparkles className="mr-2 h-5 w-5" />
             Start My Free 7-Day Trial
           </Button>
-          <p className="text-center text-[11px] text-muted-foreground">Then $14.99/mo · cancel anytime</p>
+          <p className="text-center text-[11px] font-medium text-white/60">
+            Then $14.99/mo · cancel anytime
+          </p>
           <button
             onClick={() => setShowOnboarding(true)}
-            className="flex w-full items-center justify-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+            className="flex w-full items-center justify-center gap-1.5 py-1 text-sm font-semibold text-white/70 transition-colors hover:text-white"
           >
             See how it works <ChevronRight className="h-4 w-4" />
           </button>
-          <div className="flex items-center justify-center gap-3 pt-1 text-[11px] text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 pt-0.5 text-[11px] text-white/55">
             <span className="inline-flex items-center gap-1"><Heart className="h-3 w-3 text-primary" /> No credit card</span>
-            <span>·</span>
+            <span aria-hidden>·</span>
             <span>Cancel anytime</span>
-            <span>·</span>
-            <Link to="/auth" className="font-medium text-primary hover:underline">Sign in</Link>
+            <span aria-hidden>·</span>
+            <Link to="/auth" className="font-semibold text-primary hover:underline">Sign in</Link>
           </div>
         </div>
+
       </div>
     </div>
   );
