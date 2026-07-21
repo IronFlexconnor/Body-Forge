@@ -108,6 +108,14 @@ type RegenPrefs = {
 const DEFAULT_PREFS: RegenPrefs = { cuisines: [], prepTime: "any", dietary: [], mood: null };
 
 function todayKey() { return new Date().toISOString().slice(0, 10); }
+// Monday-anchored week key so meals refresh once a week, not every day.
+function weekKey() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const dayNum = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - dayNum);
+  return d.toISOString().slice(0, 10);
+}
 function hash(s: string) {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
