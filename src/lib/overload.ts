@@ -1,7 +1,7 @@
 // Pure helpers for progressive-overload recommendations.
 // Kept side-effect free so they can be unit-tested and reused.
 
-export type WeightUnit = "kg" | "lb";
+export type WeightUnit = "kg" | "lb" | "lbs";
 
 export type LoggedSet = {
   reps: string;
