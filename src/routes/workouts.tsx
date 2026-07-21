@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DEFAULT_WEIGHT_UNIT, unitsToWeightUnit, type WeightUnit } from "@/lib/units";
 import { GoalSelector } from "@/components/GoalSelector";
+import { computeSessionSummary } from "@/lib/overload";
 
 export const Route = createFileRoute("/workouts")({
   head: () => ({ meta: [{ title: "Workouts — Body Forge" }] }),
@@ -217,39 +218,11 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
     await supabase.from("workout_logs").update({ completed_at: new Date().toISOString(), duration_min: duration }).eq("id", logId);
     await supabase.from("workouts").update({ status: "completed" }).eq("id", workout.id);
 
-    // --- Build progressive-overload recommendations from this session's sets ---
-    const round = (n: number) => {
-      const step = weightUnit === "kg" ? 2.5 : 5;
-      return Math.round(n / step) * step;
-    };
-    const recs: NonNullable<typeof summary>["recs"] = [];
-    let totalSets = 0, totalReps = 0, totalVolume = 0;
-    for (const ex of workout.exercises) {
-      const sets = (logs[ex.name] ?? []).filter((s) => s.done && s.weight && s.reps);
-      if (!sets.length) continue;
-      // Heaviest set wins; tie-broken by reps
-      const top = sets
-        .map((s) => ({ w: parseFloat(s.weight), r: parseInt(s.reps), rpe: s.rpe ? parseFloat(s.rpe) : NaN }))
-        .filter((s) => Number.isFinite(s.w) && Number.isFinite(s.r))
-        .sort((a, b) => b.w - a.w || b.r - a.r)[0];
-      if (!top) continue;
-      sets.forEach((s) => {
-        const w = parseFloat(s.weight); const r = parseInt(s.reps);
-        if (Number.isFinite(w) && Number.isFinite(r)) { totalSets++; totalReps += r; totalVolume += w * r; }
-      });
-      const rpe = Number.isFinite(top.rpe) ? top.rpe : null;
-      let deltaPct = 0; let verdict = "Hold steady — dial in technique";
-      if (rpe == null || rpe <= 7) { deltaPct = 5; verdict = "Felt strong — push the bar"; }
-      else if (rpe <= 8) { deltaPct = 2.5; verdict = "Solid effort — small jump"; }
-      else if (rpe <= 8.5) { deltaPct = 1.25; verdict = "Right at the edge — micro-load"; }
-      else if (rpe <= 9.5) { deltaPct = 0; verdict = "Hold weight — chase a clean rep PR"; }
-      else { deltaPct = -5; verdict = "Back off 5% — recover and rebuild"; }
-      const nextWeight = Math.max(round(top.w * (1 + deltaPct / 100)), 0);
-      recs.push({ exercise: ex.name, topWeight: top.w, topReps: top.r, rpe, nextWeight, deltaPct, verdict });
-    }
+    // Progressive-overload recommendations (see src/lib/overload.ts + unit tests)
+    const { recs, totals } = computeSessionSummary(workout.exercises, logs, weightUnit);
 
     // Show summary first; auto-adjust runs in parallel and updates coachNote on arrival
-    setSummary({ durationMin: duration, totalSets, totalReps, totalVolume, recs });
+    setSummary({ durationMin: duration, ...totals, recs });
 
     supabase.functions.invoke("auto-adjust", { body: { trigger: "workout_complete", workout_log_id: logId } })
       .then(({ data }) => {
