@@ -197,6 +197,35 @@
     line-height: 1;
   }
   .tracking-tightest { letter-spacing: -0.045em; }
+
+  /* Cross-app hierarchy helpers */
+  .page-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.045em;
+    line-height: 1.0;
+    font-size: clamp(1.75rem, 3.5vw + 0.6rem, 2.75rem);
+    background: linear-gradient(135deg, var(--color-foreground) 0%, oklch(0.34 0.09 210) 55%, var(--color-primary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-wrap: balance;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+    font-size: clamp(1.25rem, 1.4vw + 0.8rem, 1.75rem);
+    color: var(--color-foreground);
+    text-wrap: balance;
+  }
+  .lede {
+    font-size: 1.0625rem;
+    line-height: 1.55;
+    color: color-mix(in oklab, var(--color-foreground) 78%, transparent);
+    text-wrap: pretty;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
