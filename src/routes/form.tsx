@@ -629,13 +629,25 @@ function ResultCard({ result, exercise, onReset, onApplyFix }:
   return (
     <div className="space-y-4">
       {result.mediaUrl && (
-        <div className="overflow-hidden rounded-3xl border border-border/60 bg-black">
+        <figure className="overflow-hidden rounded-3xl border border-border/60 bg-black">
           {result.mediaKind === "photo" ? (
-            <img src={result.mediaUrl} alt="Your form" className="aspect-video w-full bg-black object-contain" />
+            <img src={result.mediaUrl} alt={`Your recorded form for ${a.exercise_detected ?? "this exercise"}`} className="aspect-video w-full bg-black object-contain" />
           ) : (
-            <video src={result.mediaUrl} controls playsInline className="aspect-video w-full bg-black object-contain" />
+            <video
+              src={result.mediaUrl}
+              controls
+              playsInline
+              preload="metadata"
+              aria-label={`Your recorded form video for ${a.exercise_detected ?? "this exercise"}. Use the player controls to play, pause, seek, adjust volume, and toggle fullscreen. A full text analysis follows below.`}
+              className="aspect-video w-full bg-black object-contain"
+            >
+              Your browser can't play this video. The full coach analysis is available below as text.
+            </video>
           )}
-        </div>
+          <figcaption className="sr-only">
+            Video and photo uploads are analyzed by the AI coach; the complete written breakdown — form score, tempo, findings, and cues — is shown in the sections that follow and serves as the transcript for this clip.
+          </figcaption>
+        </figure>
       )}
 
       <div className="rounded-3xl border border-primary/20 bg-gradient-card p-5 shadow-card">

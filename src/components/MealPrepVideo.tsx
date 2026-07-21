@@ -139,7 +139,7 @@ export function MealPrepVideo({
           <iframe
             key={video.id}
             src={`${video.embedUrl}&autoplay=1`}
-            title={`${title} prep video`}
+            title={`${title} prep video — press the CC button in the player to turn on captions`}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             loading="lazy"
