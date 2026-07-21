@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, Search, Sparkles, Heart, Play, Loader2, RefreshCcw, Shuffle,
   Clock, Flame, Leaf, Utensils, Plus, X, Sunrise, Sun, Moon, Coffee, Cookie, Apple,
-  ShoppingCart, Copy, Check, Wand2,
+  ShoppingCart, Copy, Check, Wand2, CalendarClock,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ import { thumbForRecipe, thumbFallbackForRecipe, videoForRecipe } from "@/lib/me
 import { useFavorites } from "@/lib/favorites";
 import { logPlanChangeToCoach } from "@/lib/coachSync";
 import { trackEvent } from "@/lib/usage";
+import { nextRefreshLabel } from "@/lib/weekRefresh";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/fresh-meals")({
