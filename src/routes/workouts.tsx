@@ -168,20 +168,47 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
       if (!names.length) return;
       const { data } = await supabase
         .from("set_logs")
-        .select("exercise_name, weight, reps, weight_unit, created_at")
+        .select("exercise_name, weight, reps, rpe, weight_unit, workout_log_id, created_at")
         .eq("user_id", user.id)
         .in("exercise_name", names)
         .order("created_at", { ascending: false })
-        .limit(200);
-      const map: typeof lastByExercise = {};
+        .limit(400);
+      const lastMap: typeof lastByExercise = {};
+      const recMap: typeof recByExercise = {};
+      // Group by exercise; find most recent workout_log_id per exercise, then top set within it.
+      const byEx: Record<string, any[]> = {};
       (data ?? []).forEach((row: any) => {
-        if (!map[row.exercise_name] && row.weight != null) {
-          map[row.exercise_name] = { weight: row.weight, reps: row.reps, unit: row.weight_unit, date: row.created_at };
-        }
+        (byEx[row.exercise_name] ??= []).push(row);
       });
-      setLastByExercise(map);
+      for (const [name, rows] of Object.entries(byEx)) {
+        const mostRecent = rows[0];
+        if (mostRecent?.weight != null) {
+          lastMap[name] = {
+            weight: mostRecent.weight,
+            reps: mostRecent.reps,
+            rpe: mostRecent.rpe,
+            unit: mostRecent.weight_unit,
+            date: mostRecent.created_at,
+          };
+        }
+        // Top set from the most recent session (or fall back to last set)
+        const sessionRows = mostRecent?.workout_log_id
+          ? rows.filter((r) => r.workout_log_id === mostRecent.workout_log_id)
+          : rows.slice(0, 1);
+        const withWeight = sessionRows.filter((r) => r.weight != null);
+        if (withWeight.length) {
+          const top = withWeight.sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0) || (b.reps ?? 0) - (a.reps ?? 0))[0];
+          recMap[name] = recommendFromHistory(
+            name,
+            { weight: top.weight, reps: top.reps, rpe: top.rpe },
+            weightUnit,
+          );
+        }
+      }
+      setLastByExercise(lastMap);
+      setRecByExercise(recMap);
     })();
-  }, [user, workout]);
+  }, [user, workout, weightUnit]);
 
   const updateSet = (ex: string, idx: number, key: "reps" | "weight" | "rpe", val: string) => {
     setLogs((l) => ({ ...l, [ex]: l[ex].map((s, i) => i === idx ? { ...s, [key]: val } : s) }));
