@@ -77,7 +77,7 @@ export function PasswordStrengthMeter({ password }: Props) {
         ))}
       </div>
       <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground">{strength.label}</span>
+        <span className="font-semibold text-white">{strength.label}</span>
         {breached === true && (
           <span className="inline-flex items-center gap-1 font-medium text-destructive">
             <ShieldAlert className="h-3 w-3" /> Found in a data breach
