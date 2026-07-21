@@ -299,30 +299,30 @@ function Welcome() {
           </div>
         </div>
 
-        <div className="mt-6 space-y-2.5 sm:mt-8 sm:space-y-3">
+        <div className="mt-6 space-y-3 sm:mt-8">
           <Button
             onClick={() => navigate({ to: "/auth" })}
             size="lg"
-            className="h-14 w-full rounded-2xl bg-gradient-primary text-[15px] font-bold text-primary-foreground shadow-glow transition-transform hover:scale-[1.01] sm:h-16 sm:text-base"
+            className="h-16 w-full rounded-2xl bg-gradient-primary text-base font-extrabold tracking-tight text-primary-foreground shadow-glow transition-transform hover:scale-[1.01] sm:h-[68px] sm:text-lg"
           >
             <Sparkles className="mr-2 h-5 w-5" />
             Start My Free 7-Day Trial
           </Button>
-          <p className="text-center text-[11px] font-medium text-white/60">
+          <p className="text-center text-[12px] font-semibold text-white/70">
             Then $14.99/mo · cancel anytime
           </p>
           <button
             onClick={() => setShowOnboarding(true)}
-            className="flex w-full items-center justify-center gap-1.5 py-1 text-sm font-semibold text-white/70 transition-colors hover:text-white"
+            className="flex w-full items-center justify-center gap-1.5 py-1 text-sm font-semibold text-white/75 transition-colors hover:text-white"
           >
             See how it works <ChevronRight className="h-4 w-4" />
           </button>
-          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 pt-0.5 text-[11px] text-white/55">
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 pt-0.5 text-[11px] text-white/60">
             <span className="inline-flex items-center gap-1"><Heart className="h-3 w-3 text-primary" /> No credit card</span>
             <span aria-hidden>·</span>
             <span>Cancel anytime</span>
             <span aria-hidden>·</span>
-            <Link to="/auth" className="font-semibold text-primary hover:underline">Sign in</Link>
+            <Link to="/auth" className="font-bold text-primary hover:underline">Sign in</Link>
           </div>
         </div>
 
@@ -333,9 +333,9 @@ function Welcome() {
 
 function ValueChip({ icon: Icon, label }: { icon: typeof Zap; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-1.5 rounded-2xl border border-border/60 bg-gradient-card px-2 py-3 text-center shadow-card">
-      <Icon className="h-4 w-4 text-primary" />
-      <span className="text-[11px] font-semibold leading-tight">{label}</span>
+    <div className="flex flex-col items-center gap-2 rounded-2xl border border-white/15 bg-white/[0.08] px-2 py-3.5 text-center backdrop-blur-md shadow-card">
+      <Icon className="h-5 w-5 text-[oklch(0.84_0.18_188)]" strokeWidth={2.4} />
+      <span className="text-[12px] font-bold leading-tight tracking-tight text-white">{label}</span>
     </div>
   );
 }
