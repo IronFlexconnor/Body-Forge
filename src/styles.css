@@ -135,17 +135,17 @@
     font-family: var(--font-display);
     color: var(--color-foreground);
     font-weight: 800;
-    letter-spacing: -0.035em;
+    letter-spacing: -0.04em;
     line-height: 1.02;
     text-wrap: balance;
   }
-  h1 { font-weight: 800; letter-spacing: -0.045em; }
-  h2 { font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; }
-  h3 { font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; }
+  h1 { font-weight: 900; letter-spacing: -0.05em; line-height: 0.98; }
+  h2 { font-weight: 800; letter-spacing: -0.04em; line-height: 1.03; }
+  h3 { font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
   h4 { font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
   p  { line-height: 1.6; text-wrap: pretty; }
-  button { font-family: var(--font-sans); font-weight: 600; letter-spacing: -0.005em; }
-  strong, b { font-weight: 700; }
+  button { font-family: var(--font-sans); font-weight: 700; letter-spacing: -0.005em; }
+  strong, b { font-weight: 800; }
 }
 
 @layer utilities {
