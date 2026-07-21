@@ -1,7 +1,36 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles, Video, MessageCircle, ChefHat, ChevronRight, Check, Zap, Heart, Play, Flame, TrendingUp, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+function useHeroParallax() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const el = ref.current;
+        if (!el) return;
+        const y = Math.min(window.scrollY, 600);
+        el.style.setProperty("--pFar", `${y * 0.08}px`);
+        el.style.setProperty("--pMid", `${y * 0.16}px`);
+        el.style.setProperty("--pNear", `${y * 0.26}px`);
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+  return ref;
+}
 
 export const Route = createFileRoute("/welcome")({
   head: () => ({
