@@ -17,9 +17,15 @@ type Recipe = {
   cuisine: string | null;
 };
 
-// Stable date key, e.g. "2026-05-07"
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+// Stable week key (Monday-anchored ISO date), e.g. "2026-05-04".
+// Rotating on a week — not a day — keeps meal variety consistent long enough
+// for users to actually try recipes but still refreshes every Monday.
+function weekKey() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const dayNum = (d.getDay() + 6) % 7; // Monday = 0
+  d.setDate(d.getDate() - dayNum);
+  return d.toISOString().slice(0, 10);
 }
 
 // Hash a string into 32-bit int
@@ -52,9 +58,9 @@ export function DailyFreshPicks() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const date = todayKey();
-      // Cache per-day in sessionStorage so the carousel feels instant on revisit
-      const cacheKey = `forge:fresh-meals:${date}`;
+      const date = weekKey();
+      // Cache per-week in sessionStorage so the carousel feels instant on revisit
+      const cacheKey = `forge:fresh-meals:week:${date}`;
       try {
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
@@ -63,9 +69,9 @@ export function DailyFreshPicks() {
         }
       } catch {}
 
-      // Pull a wide window of recipes, then deterministically shuffle by date so all
-      // users see the same fresh set today and a new set tomorrow — without ever
-      // repeating the previous day's picks.
+      // Pull a wide window of recipes, then deterministically shuffle by week so
+      // all users see the same fresh set this week and a new set next Monday —
+      // without ever repeating the previous week's picks.
       const { data } = await supabase
         .from("recipes")
         .select("id,slug,title,meal_type,calories,protein_g,dietary_tags,cuisine")
@@ -89,9 +95,9 @@ export function DailyFreshPicks() {
       <div className="mb-3 flex items-end justify-between">
         <div>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-            <Sparkles className="h-3 w-3" /> Fresh today
+            <Sparkles className="h-3 w-3" /> Fresh this week
           </div>
-          <h3 className="mt-1.5 text-lg font-semibold leading-tight">Today's Fresh Meals</h3>
+          <h3 className="mt-1.5 text-lg font-semibold leading-tight">This Week's Fresh Meals</h3>
         </div>
         <button onClick={open} className="flex shrink-0 items-center gap-0.5 text-sm font-medium text-primary">
           See all <ChevronRight className="h-4 w-4" />

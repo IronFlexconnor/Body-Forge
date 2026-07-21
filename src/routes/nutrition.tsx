@@ -497,7 +497,7 @@ function Nutrition() {
                             </button>
                             {open && (
                               <div className="mt-2 space-y-2">
-                                {video?.url && <MealPrepVideo recipe={{ slug: meal.title, title: meal.title, meal_type: meal.slot }} title={meal.title} categoryLabel={meal.slot} />}
+                                {video?.url && <MealPrepVideo recipe={{ slug: meal.title, title: meal.title, meal_type: meal.slot }} title={meal.title} categoryLabel={meal.slot} size="sm" />}
                                 {meal.ingredients_with_units?.length > 0 && (
                                   <div><div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Ingredients</div>
                                     <ul className="mt-1 text-xs text-muted-foreground">{meal.ingredients_with_units.map((ing: string, k2: number) => <li key={k2}>· {ing}</li>)}</ul></div>
@@ -554,7 +554,7 @@ function Nutrition() {
 
                             {meal.training_rationale && <p className="mt-2 text-xs italic text-muted-foreground">{meal.training_rationale}</p>}
 
-                            {meal.prep_video?.url && <div className="mt-3"><MealPrepVideo recipe={{ slug: meal.title, title: meal.title, meal_type: meal.slot }} title={meal.title} categoryLabel={meal.slot} /></div>}
+                            {meal.prep_video?.url && <div className="mt-3"><MealPrepVideo recipe={{ slug: meal.title, title: meal.title, meal_type: meal.slot }} title={meal.title} categoryLabel={meal.slot} size="sm" /></div>}
 
                             {meal.ingredients_with_units?.length > 0 && (
                               <div className="mt-3">

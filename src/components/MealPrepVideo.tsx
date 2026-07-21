@@ -14,8 +14,8 @@ type RecipeLike = {
 type Props = {
   recipe: RecipeLike;
   title: string;
-  /** Show big hero-style thumb (Fresh Meals header) vs in-card. */
-  size?: "lg" | "md";
+  /** Hero (lg), in-card (md), or compact list view (sm) for faster browsing. */
+  size?: "lg" | "md" | "sm";
   /** Eager-load the thumbnail (above-the-fold). */
   priority?: boolean;
   /** Optional duration label, e.g. "12 min". */
@@ -103,27 +103,30 @@ export function MealPrepVideo({
     }, 450);
   };
 
-  const playBtnSize = size === "lg" ? "h-16 w-16" : "h-14 w-14";
-  const playIconSize = size === "lg" ? "h-8 w-8" : "h-7 w-7";
+  const playBtnSize = size === "lg" ? "h-16 w-16" : size === "sm" ? "h-10 w-10" : "h-14 w-14";
+  const playIconSize = size === "lg" ? "h-8 w-8" : size === "sm" ? "h-5 w-5" : "h-7 w-7";
+  const isCompact = size === "sm";
 
   return (
     <div
       ref={containerRef}
       className="overflow-hidden rounded-2xl border border-primary/20 bg-primary/5 shadow-card [content-visibility:auto] [contain-intrinsic-size:320px_240px]"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-primary/10 px-3 py-2 text-[11px] font-semibold text-primary">
-        <span className="inline-flex items-center gap-1.5">
-          <PlayCircle className="h-3.5 w-3.5" /> Meal-prep video
-        </span>
-        <a
-          href={video.watchUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="text-[11px] font-semibold text-primary/80 underline-offset-2 hover:underline"
-        >
-          Open on YouTube
-        </a>
-      </div>
+      {!isCompact && (
+        <div className="flex items-center justify-between gap-2 border-b border-primary/10 px-3 py-2 text-[11px] font-semibold text-primary">
+          <span className="inline-flex items-center gap-1.5">
+            <PlayCircle className="h-3.5 w-3.5" /> Meal-prep video
+          </span>
+          <a
+            href={video.watchUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-[11px] font-semibold text-primary/80 underline-offset-2 hover:underline"
+          >
+            Open on YouTube
+          </a>
+        </div>
+      )}
 
       {/* Stable aspect box prevents layout shift while scrolling */}
       <div className="relative aspect-video w-full overflow-hidden bg-black">
@@ -242,16 +245,18 @@ export function MealPrepVideo({
         )}
       </div>
 
-      {/* Premium action row */}
-      <div className="flex items-center justify-between gap-2 px-3 py-2">
-        <p className="line-clamp-1 text-[11px] text-muted-foreground">
-          Tap to autoplay · curated by Coach Forge
-        </p>
+      {/* Premium action row — compact size hides the caption to keep the card small */}
+      <div className={`flex items-center justify-between gap-2 px-3 ${isCompact ? "py-1.5" : "py-2"}`}>
+        {!isCompact && (
+          <p className="line-clamp-1 text-[11px] text-muted-foreground">
+            Tap to autoplay · curated by Coach Forge
+          </p>
+        )}
         <button
           type="button"
           onClick={handleRegenerate}
           disabled={regenerating}
-          className="group inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-primary/10 to-accent/10 px-3 py-1.5 text-[11px] font-semibold text-primary shadow-sm transition hover:border-primary/60 hover:from-primary/20 hover:to-accent/20 disabled:opacity-60"
+          className={`group ml-auto inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-primary/10 to-accent/10 ${isCompact ? "px-2 py-1 text-[10px]" : "px-3 py-1.5 text-[11px]"} font-semibold text-primary shadow-sm transition hover:border-primary/60 hover:from-primary/20 hover:to-accent/20 disabled:opacity-60`}
           aria-label="Regenerate prep video"
         >
           {regenerating ? (
@@ -259,8 +264,8 @@ export function MealPrepVideo({
           ) : (
             <RefreshCcw className="h-3.5 w-3.5 transition-transform group-hover:-rotate-180 duration-500 motion-reduce:group-hover:rotate-0" />
           )}
-          <span>Regenerate</span>
-          <Sparkles className="h-3 w-3 opacity-70" />
+          <span>{isCompact ? "New" : "Regenerate"}</span>
+          {!isCompact && <Sparkles className="h-3 w-3 opacity-70" />}
         </button>
       </div>
     </div>

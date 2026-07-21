@@ -107,7 +107,14 @@ type RegenPrefs = {
 };
 const DEFAULT_PREFS: RegenPrefs = { cuisines: [], prepTime: "any", dietary: [], mood: null };
 
-function todayKey() { return new Date().toISOString().slice(0, 10); }
+// Monday-anchored week key so meals refresh once a week, not every day.
+function weekKey() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const dayNum = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - dayNum);
+  return d.toISOString().slice(0, 10);
+}
 function hash(s: string) {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
@@ -233,7 +240,7 @@ function FreshMealsPage() {
   // Build the daily plan using applied prefs; gracefully fall back if too narrow.
   const slotPicks = useMemo(() => {
     if (!baseFiltered) return null;
-    const seed = hash(todayKey() + ":" + seedOffset + ":" + JSON.stringify(prefs));
+    const seed = hash(weekKey() + ":" + seedOffset + ":" + JSON.stringify(prefs));
     const withPrefs = applyPrefs(baseFiltered, prefs);
     const fallback = baseFiltered;
     const shuffledPref = seededShuffle(withPrefs, seed);
