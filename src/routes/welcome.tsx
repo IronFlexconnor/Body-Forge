@@ -173,21 +173,21 @@ function Welcome() {
           </div>
 
           <h1
-            className="text-display text-[2.5rem] leading-[0.95] tracking-tightest text-white animate-fade-in [text-wrap:balance] sm:text-6xl md:text-7xl"
-            style={{ textShadow: "0 1px 24px oklch(0.18 0.045 250 / 40%)" }}
+            className="text-display text-[2.75rem] leading-[0.92] tracking-tightest text-white animate-fade-in [text-wrap:balance] sm:text-[4.5rem] md:text-[5.25rem]"
+            style={{ textShadow: "0 2px 28px oklch(0.14 0.05 250 / 55%)" }}
           >
             <span className="block">Body Forge</span>
-            <span className="block text-white/80">AI Coach</span>
-            <span className="mt-1.5 block bg-gradient-to-r from-white via-[oklch(0.94_0.08_195)] to-[oklch(0.78_0.15_190)] bg-clip-text text-transparent sm:mt-2">
+            <span className="block text-white/85">AI Coach</span>
+            <span className="mt-1.5 block bg-gradient-to-r from-white via-[oklch(0.94_0.1_195)] to-[oklch(0.78_0.17_190)] bg-clip-text text-transparent sm:mt-2">
               Your 24/7 Trainer
             </span>
           </h1>
-          <p className="mt-4 max-w-md text-[15px] font-medium leading-[1.5] text-white/75 animate-fade-in [text-wrap:pretty] sm:mt-5 sm:text-xl sm:leading-[1.55]">
+          <p className="mt-5 max-w-md text-[16px] font-medium leading-[1.5] text-white/80 animate-fade-in [text-wrap:pretty] sm:mt-6 sm:text-[1.35rem] sm:leading-[1.5]">
             Custom plans. Real-time form feedback. Nutrition that actually tastes good.
           </p>
 
           {/* Quick value props */}
-          <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-7 sm:gap-2.5">
+          <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-8 sm:gap-3">
             <ValueChip icon={Zap} label="Plans in 30s" />
             <ValueChip icon={Video} label="Form analysis" />
             <ValueChip icon={ChefHat} label="2,000+ meals" />
