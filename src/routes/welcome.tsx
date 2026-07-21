@@ -164,7 +164,7 @@ function Welcome() {
 
       <div className="relative mx-auto flex min-h-dvh max-w-lg flex-col px-5 pt-10 pb-6 sm:px-6 sm:pt-14 sm:pb-8">
         <div className="flex flex-1 flex-col">
-          <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary animate-fade-in sm:mb-5 sm:text-xs">
+          <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white animate-fade-in sm:mb-5 sm:text-xs">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
@@ -178,7 +178,7 @@ function Welcome() {
           >
             <span className="block">Body Forge</span>
             <span className="block text-white">AI Coach</span>
-            <span className="mt-1.5 block bg-gradient-to-r from-white via-[oklch(0.94_0.1_195)] to-[oklch(0.78_0.17_190)] bg-clip-text text-transparent sm:mt-2">
+            <span className="mt-1.5 block text-white sm:mt-2">
               Your 24/7 Trainer
             </span>
           </h1>
