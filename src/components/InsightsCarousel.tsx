@@ -49,7 +49,15 @@ export function InsightsCarousel() {
   const [cards, setCards] = useState<InsightCard[] | null>(null);
 
   useEffect(() => {
-    loadInsights().then(setCards).catch(() => setCards([]));
+    loadInsights()
+      .then((cs) => {
+        // Rotate lead card per visit so the feed always feels fresh, even
+        // between the daily server-side refreshes.
+        if (!cs?.length) { setCards(cs); return; }
+        const offset = Math.floor(Date.now() / (1000 * 60 * 60 * 6)) % cs.length; // rotates every 6h
+        setCards([...cs.slice(offset), ...cs.slice(0, offset)]);
+      })
+      .catch(() => setCards([]));
   }, []);
 
   return (
@@ -57,7 +65,7 @@ export function InsightsCarousel() {
       <div className="mb-3 flex items-end justify-between">
         <div>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-            <Sparkles className="h-3 w-3" /> Latest Insights
+            <Sparkles className="h-3 w-3" /> Fresh insights · updated daily
           </div>
           <h3 className="mt-1.5 text-lg font-semibold leading-tight">What's new in performance science</h3>
         </div>
