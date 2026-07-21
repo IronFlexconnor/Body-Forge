@@ -123,9 +123,10 @@ function Welcome() {
             style={{ textShadow: "0 1px 24px oklch(0.18 0.045 250 / 40%)" }}
           >
             Body Forge <span className="text-white/80">AI Coach</span>
-            <span className="mt-2 block bg-gradient-to-r from-white via-[oklch(0.92_0.09_195)] to-[oklch(0.72_0.16_190)] bg-clip-text text-transparent">
+            <span className="mt-2 block bg-gradient-to-r from-white via-[oklch(0.94_0.08_195)] to-[oklch(0.78_0.15_190)] bg-clip-text text-transparent">
               Your 24/7 Personal Trainer
             </span>
+
           </h1>
           <p className="mt-5 max-w-md text-lg sm:text-xl leading-[1.55] font-medium text-white/75 animate-fade-in [text-wrap:pretty]">
             Custom plans. Real-time form feedback. Nutrition that actually tastes good.
