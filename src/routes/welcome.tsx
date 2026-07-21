@@ -104,9 +104,20 @@ function Welcome() {
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-gradient-hero">
-      {/* Ambient glow */}
-      <div className="pointer-events-none absolute -top-32 -right-24 h-80 w-80 rounded-full bg-primary/30 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
+      {/* Ambient depth — layered teal glows with a navy vignette that protects headline contrast */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        {/* Top-right teal aurora */}
+        <div className="absolute -top-40 -right-28 h-[22rem] w-[22rem] rounded-full bg-[oklch(0.72_0.15_190/0.28)] blur-[110px] motion-safe:animate-pulse [animation-duration:9s]" />
+        {/* Bottom-left cyan wash */}
+        <div className="absolute -bottom-40 -left-28 h-[26rem] w-[26rem] rounded-full bg-[oklch(0.62_0.13_205/0.22)] blur-[120px]" />
+        {/* Mid accent spark */}
+        <div className="absolute top-1/3 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[oklch(0.82_0.16_190/0.10)] blur-[90px]" />
+        {/* Readability vignette — deepens navy behind the H1/hero copy without touching text color */}
+        <div className="absolute inset-x-0 top-0 h-[62%] bg-[radial-gradient(120%_70%_at_50%_0%,oklch(0.14_0.05_250/0.55)_0%,oklch(0.14_0.05_250/0.25)_45%,transparent_75%)]" />
+        {/* Fine grain / edge fade for premium finish */}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,transparent_55%,oklch(0.12_0.045_250/0.35)_100%)]" />
+      </div>
+
 
       <div className="relative mx-auto flex min-h-dvh max-w-lg flex-col px-5 pt-10 pb-6 sm:px-6 sm:pt-14 sm:pb-8">
         <div className="flex flex-1 flex-col">
