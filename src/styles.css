@@ -57,10 +57,10 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.045 250);
 
-  /* Vibrant teal — hero CTA. Darker shade tuned for AA on white; brighter glow for gradients */
-  --primary: oklch(0.58 0.145 195);
+  /* Vibrant teal — hero CTA. Punchier chroma for stronger POP while staying AA on white */
+  --primary: oklch(0.56 0.17 195);
   --primary-foreground: oklch(1 0 0);
-  --primary-glow: oklch(0.82 0.16 190);
+  --primary-glow: oklch(0.84 0.18 188);
 
   /* Deep navy — headings, dark hero surfaces */
   --secondary: oklch(0.18 0.045 250);
