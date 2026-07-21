@@ -109,7 +109,7 @@ function Welcome() {
 
             <ul className="mx-auto mt-7 w-full max-w-sm space-y-2.5">
               {slide.bullets.map((b) => (
-                <li key={b} className="flex items-center gap-3 rounded-2xl border border-border/60 bg-gradient-card px-4 py-3 text-sm font-semibold text-white shadow-card">
+                <li key={b} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-surface-elevated px-4 py-3 text-sm font-semibold text-white shadow-card">
                   <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
                     <Check className="h-4 w-4" strokeWidth={3} />
                   </span>
