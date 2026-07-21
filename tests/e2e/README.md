@@ -1,7 +1,12 @@
 # End-to-End Smoke Tests
 
 Playwright smoke tests that cover the workout logger, calendar day drilldown,
-and progressive-overload card flows.
+and progressive-overload card flows, plus a visual regression pass over the
+pre-auth funnel (`visual-onboarding.spec.ts`) that screenshots welcome, auth,
+and every onboarding step at mobile + tablet viewports and fails if any
+visible copy renders as a mid-grey — guarding the "white/bold on navy" brand
+rule for the sign-up flow. Screenshots land in `tests/e2e/screenshots/`
+(gitignored).
 
 ## Running
 
