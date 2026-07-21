@@ -162,13 +162,13 @@ function Onboarding() {
         ),
       },
       { title: "What should your coach call you?", subtitle: "Let's make this personal.", valid: !!data.name?.trim(),
-        body: <Input autoFocus placeholder="Your name" value={data.name ?? ""} onChange={(e) => update("name", e.target.value)} className="h-14 text-lg" /> },
+        body: <Input autoFocus placeholder="Your name" value={data.name ?? ""} onChange={(e) => update("name", e.target.value)} className="h-14 text-lg font-semibold text-white placeholder:text-white/80" /> },
       { title: "Tell us about you", subtitle: "Helps us calibrate intensity & recovery.", valid: !!data.age && !!data.gender,
         body: (
           <div className="space-y-4">
-            <Input type="number" placeholder="Age" value={data.age ?? ""} onChange={(e) => update("age", e.target.value)} className="h-14 text-lg" />
+            <Input type="number" placeholder="Age" value={data.age ?? ""} onChange={(e) => update("age", e.target.value)} className="h-14 text-lg font-semibold text-white placeholder:text-white/80" />
             <Chips options={genders} value={data.gender} onSelect={(v) => update("gender", v)} />
-            <Input inputMode="decimal" placeholder={`Weight (${weightLabel(units)})`} value={data.weight ?? ""} onChange={(e) => update("weight", e.target.value)} className="h-14" />
+            <Input inputMode="decimal" placeholder={`Weight (${weightLabel(units)})`} value={data.weight ?? ""} onChange={(e) => update("weight", e.target.value)} className="h-14 font-semibold text-white placeholder:text-white/80" />
           </div>
         ) },
       { title: "Your experience level", subtitle: "Be honest — your coach adapts every week.", valid: !!data.level,
@@ -217,15 +217,15 @@ function Onboarding() {
         valid: !!data.agreedToDisclaimer,
         body: (
           <div className="space-y-4">
-            <div className="max-h-72 overflow-y-auto rounded-2xl border border-border bg-surface p-4 text-sm leading-relaxed text-muted-foreground">
+            <div className="max-h-72 overflow-y-auto rounded-2xl border border-border bg-surface p-4 text-sm font-semibold leading-relaxed text-white">
               <p className="mb-3">
                 ForgeCoach and its AI coach provide general fitness guidance only.
               </p>
               <p className="mb-3">
-                This app is <span className="font-semibold text-foreground">NOT</span> a licensed medical professional, doctor, physical therapist, nutritionist, or dietitian.
+                This app is <span className="font-bold text-white">NOT</span> a licensed medical professional, doctor, physical therapist, nutritionist, or dietitian.
               </p>
               <p className="mb-3">
-                It does <span className="font-semibold text-foreground">NOT</span> provide medical advice, diagnose injuries, or guarantee any results.
+                It does <span className="font-bold text-white">NOT</span> provide medical advice, diagnose injuries, or guarantee any results.
               </p>
               <p className="mb-3">
                 You assume all risk for any injury, illness, or harm that may result from using the workouts, programs, or advice provided by the app.
@@ -241,7 +241,7 @@ function Onboarding() {
                 onChange={(e) => update("agreedToDisclaimer", e.target.checked)}
                 className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-[oklch(0.78_0.17_165)]"
               />
-              <span className="text-sm font-medium text-foreground">
+              <span className="text-sm font-bold text-white">
                 I have read, understood, and fully agree to the disclaimer and liability waiver above. I release ForgeCoach from all liability and acknowledge this forms a binding agreement.
               </span>
             </label>
@@ -345,8 +345,8 @@ function Chips({ options, value, onSelect }: { options: string[]; value?: string
     <div className="flex flex-wrap gap-2">
       {options.map((o) => (
         <button key={o} onClick={() => onSelect(o)}
-          className={cn("rounded-full border px-4 py-2.5 text-sm font-medium transition-all",
-            value === o ? "border-primary bg-primary/15 text-primary" : "border-border bg-surface hover:border-primary/50")}>
+          className={cn("rounded-full border px-4 py-2.5 text-sm font-semibold transition-all",
+            value === o ? "border-primary bg-primary/15 text-primary" : "border-border bg-surface text-white hover:border-primary/50")}>
           {o}
         </button>
       ))}
@@ -359,8 +359,8 @@ function ChipsLarge({ options, value, onSelect }: { options: string[]; value?: s
     <div className="grid grid-cols-2 gap-3">
       {options.map((o) => (
         <button key={o} onClick={() => onSelect(o)}
-          className={cn("rounded-2xl border bg-gradient-card px-4 py-5 text-left text-base font-semibold transition-all",
-            value === o ? "border-primary text-primary shadow-glow" : "border-border hover:border-primary/50")}>
+          className={cn("rounded-2xl border bg-gradient-card px-4 py-5 text-left text-base font-bold transition-all",
+            value === o ? "border-primary text-primary shadow-glow" : "border-border text-white hover:border-primary/50")}>
           {o}
         </button>
       ))}
@@ -372,9 +372,9 @@ function Slider({ label, value, min, max, step = 1, onChange, suffix }: { label:
   return (
     <div>
       <div className="mb-3 flex items-baseline justify-between">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
+        <span className="text-sm font-semibold text-white">{label}</span>
         <span className="text-2xl font-bold text-primary tabular-nums">
-          {value}<span className="ml-1 text-sm font-medium text-muted-foreground">{suffix}</span>
+          {value}<span className="ml-1 text-sm font-semibold text-white">{suffix}</span>
         </span>
       </div>
       <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))}
@@ -400,8 +400,8 @@ function GoalGrid({ value, onSelect }: { value?: string; onSelect: (v: string) =
             )}
           >
             <div className="text-3xl">{g.emoji}</div>
-            <div className="mt-2 text-sm font-bold leading-tight">{g.title}</div>
-            <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">{g.blurb}</p>
+            <div className="mt-2 text-sm font-bold leading-tight text-white">{g.title}</div>
+            <p className="mt-1 line-clamp-2 text-[11px] font-semibold text-white">{g.blurb}</p>
           </button>
         );
       })}
