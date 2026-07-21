@@ -195,7 +195,7 @@ function Welcome() {
 
 
           {/* Hero feature card */}
-          <div className="relative mt-7 overflow-hidden rounded-3xl border border-primary/30 bg-gradient-card p-5 shadow-card animate-fade-in">
+          <div className="relative mt-7 overflow-hidden rounded-3xl border border-primary/30 bg-surface-elevated p-5 shadow-card animate-fade-in">
             <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/25 blur-3xl" />
             <div className="relative flex items-start gap-3">
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">
@@ -225,7 +225,7 @@ function Welcome() {
             {/* Today's session preview */}
             <button
               onClick={() => navigate({ to: "/auth" })}
-              className="group w-full overflow-hidden rounded-2xl border border-primary/30 bg-gradient-card p-4 text-left shadow-card transition active:scale-[0.99]"
+              className="group w-full overflow-hidden rounded-2xl border border-primary/30 bg-surface-elevated p-4 text-left shadow-card transition active:scale-[0.99]"
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
@@ -245,7 +245,7 @@ function Welcome() {
             {/* Fresh meal preview */}
             <button
               onClick={() => navigate({ to: "/auth" })}
-              className="group w-full overflow-hidden rounded-2xl border border-border/60 bg-gradient-card p-4 text-left shadow-card transition active:scale-[0.99]"
+              className="group w-full overflow-hidden rounded-2xl border border-white/10 bg-surface-elevated p-4 text-left shadow-card transition active:scale-[0.99]"
             >
               <div className="flex items-center gap-3">
                 <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-2xl">🍳</div>
@@ -266,7 +266,7 @@ function Welcome() {
             {/* Insight preview */}
             <button
               onClick={() => navigate({ to: "/auth" })}
-              className="group w-full overflow-hidden rounded-2xl border border-border/60 bg-gradient-card p-4 text-left shadow-card transition active:scale-[0.99]"
+              className="group w-full overflow-hidden rounded-2xl border border-white/10 bg-surface-elevated p-4 text-left shadow-card transition active:scale-[0.99]"
             >
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
@@ -285,7 +285,7 @@ function Welcome() {
               { name: "Sarah K.", role: "Lost 18 lbs in 12 weeks", quote: "Feels like having a coach in my pocket. The form feedback is unreal." },
               { name: "Marcus T.", role: "Added 40 lbs to squat", quote: "Plans adapt to me. I've never been this consistent." },
             ].map((t) => (
-              <div key={t.name} className="flex items-start gap-3 rounded-2xl border border-border/60 bg-gradient-card p-3.5 shadow-card">
+              <div key={t.name} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-surface-elevated p-3.5 shadow-card">
                 <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-primary text-xs font-bold text-primary-foreground shadow-glow">
                   {t.name.slice(0, 1)}
                 </div>
