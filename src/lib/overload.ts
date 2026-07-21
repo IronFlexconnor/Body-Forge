@@ -66,6 +66,37 @@ export function recommendForExercise(
   return { exercise, topWeight: top.w, topReps: top.r, rpe, nextWeight, deltaPct, verdict };
 }
 
+/**
+ * Given the top set from a previous session (weight, reps, optional RPE),
+ * suggest the next-session working weight using the same RPE rules.
+ * Returns null when the input is missing weight.
+ */
+export function recommendFromHistory(
+  exercise: string,
+  prev: { weight: number | null; reps: number | null; rpe?: number | null },
+  unit: WeightUnit,
+): OverloadRec | null {
+  if (prev.weight == null || !Number.isFinite(prev.weight)) return null;
+  const rpe = prev.rpe != null && Number.isFinite(prev.rpe) ? prev.rpe : null;
+  let deltaPct = 0;
+  let verdict = "Match last session — earn the jump";
+  if (rpe == null || rpe <= 7) { deltaPct = 5; verdict = "You had gas left — add weight"; }
+  else if (rpe <= 8) { deltaPct = 2.5; verdict = "Small bump — you're ready"; }
+  else if (rpe <= 8.5) { deltaPct = 1.25; verdict = "Micro-load — precision progress"; }
+  else if (rpe <= 9.5) { deltaPct = 0; verdict = "Hold weight — chase a clean rep PR"; }
+  else { deltaPct = -5; verdict = "Deload 5% — come back stronger"; }
+  const nextWeight = Math.max(roundToStep(prev.weight * (1 + deltaPct / 100), unit), 0);
+  return {
+    exercise,
+    topWeight: prev.weight,
+    topReps: prev.reps ?? 0,
+    rpe,
+    nextWeight,
+    deltaPct,
+    verdict,
+  };
+}
+
 export function computeSessionSummary(
   exercises: { name: string }[],
   logsByExercise: Record<string, LoggedSet[]>,
