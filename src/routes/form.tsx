@@ -868,11 +868,13 @@ function ResultCard({ result, exercise, onReset, onApplyFix }:
         <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ask a follow-up</div>
         <form onSubmit={(e) => { e.preventDefault(); askFollowUp(); }} className="flex items-center gap-2 rounded-xl border border-border bg-surface px-2 py-1.5">
           <input value={followUp} onChange={(e) => setFollowUp(e.target.value)}
+            aria-label="Ask a follow-up question"
             placeholder='e.g. "Why is my back rounding?"'
             className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground" />
           <button type="submit" disabled={!followUp.trim() || followLoading}
+            aria-label="Send follow-up"
             className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow disabled:opacity-40">
-            {followLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {followLoading ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" /> : <Send aria-hidden="true" className="h-4 w-4" />}
           </button>
         </form>
         {followAnswer && (

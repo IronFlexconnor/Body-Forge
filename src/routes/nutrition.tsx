@@ -617,7 +617,7 @@ function Nutrition() {
                 <div className="font-semibold leading-tight truncate">{m.name}</div>
                 <div className="mt-0.5 text-xs text-muted-foreground">{m.calories ?? "—"} kcal · {m.protein_g ?? 0}P / {m.carbs_g ?? 0}C / {m.fat_g ?? 0}F</div>
               </div>
-              <button onClick={() => removeMeal(m.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+              <button onClick={() => removeMeal(m.id)} aria-label={`Remove ${m.name}`} className="text-muted-foreground hover:text-destructive"><Trash2 aria-hidden="true" className="h-4 w-4" /></button>
             </div>
           ))}
         </div>

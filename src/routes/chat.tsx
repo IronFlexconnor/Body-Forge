@@ -324,10 +324,12 @@ function Chat() {
               {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
             </button>
             <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask your coach anything..."
+              aria-label="Message your coach"
               className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground" disabled={streaming} />
             <button type="submit" disabled={!input.trim() || streaming}
+              aria-label="Send message"
               className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow disabled:opacity-40">
-              <Send className="h-4 w-4" />
+              <Send aria-hidden="true" className="h-4 w-4" />
             </button>
           </form>
           {!isPro && (chatUsage.showWarning || videoUsage.showWarning) && (
