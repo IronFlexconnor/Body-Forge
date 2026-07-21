@@ -346,7 +346,8 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="fixed right-4 bottom-24 z-20">
