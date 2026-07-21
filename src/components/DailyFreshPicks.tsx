@@ -58,9 +58,9 @@ export function DailyFreshPicks() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const date = todayKey();
-      // Cache per-day in sessionStorage so the carousel feels instant on revisit
-      const cacheKey = `forge:fresh-meals:${date}`;
+      const date = weekKey();
+      // Cache per-week in sessionStorage so the carousel feels instant on revisit
+      const cacheKey = `forge:fresh-meals:week:${date}`;
       try {
         const cached = sessionStorage.getItem(cacheKey);
         if (cached) {
@@ -69,9 +69,9 @@ export function DailyFreshPicks() {
         }
       } catch {}
 
-      // Pull a wide window of recipes, then deterministically shuffle by date so all
-      // users see the same fresh set today and a new set tomorrow — without ever
-      // repeating the previous day's picks.
+      // Pull a wide window of recipes, then deterministically shuffle by week so
+      // all users see the same fresh set this week and a new set next Monday —
+      // without ever repeating the previous week's picks.
       const { data } = await supabase
         .from("recipes")
         .select("id,slug,title,meal_type,calories,protein_g,dietary_tags,cuisine")
