@@ -1,7 +1,36 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sparkles, Video, MessageCircle, ChefHat, ChevronRight, Check, Zap, Heart, Play, Flame, TrendingUp, Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+function useHeroParallax() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return;
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const el = ref.current;
+        if (!el) return;
+        const y = Math.min(window.scrollY, 600);
+        el.style.setProperty("--pFar", `${y * 0.08}px`);
+        el.style.setProperty("--pMid", `${y * 0.16}px`);
+        el.style.setProperty("--pNear", `${y * 0.26}px`);
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+  return ref;
+}
 
 export const Route = createFileRoute("/welcome")({
   head: () => ({
@@ -43,6 +72,7 @@ function Welcome() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const parallaxRef = useHeroParallax();
 
   if (showOnboarding) {
     const slide = SLIDES[step];
@@ -105,14 +135,27 @@ function Welcome() {
   return (
     <div className="relative min-h-dvh overflow-hidden bg-gradient-hero">
       {/* Ambient depth — layered teal glows with a navy vignette that protects headline contrast */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        {/* Top-right teal aurora */}
-        <div className="absolute -top-40 -right-28 h-[22rem] w-[22rem] rounded-full bg-[oklch(0.72_0.15_190/0.28)] blur-[110px] motion-safe:animate-pulse [animation-duration:9s]" />
-        {/* Bottom-left cyan wash */}
-        <div className="absolute -bottom-40 -left-28 h-[26rem] w-[26rem] rounded-full bg-[oklch(0.62_0.13_205/0.22)] blur-[120px]" />
-        {/* Mid accent spark */}
-        <div className="absolute top-1/3 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[oklch(0.82_0.16_190/0.10)] blur-[90px]" />
-        {/* Readability vignette — deepens navy behind the H1/hero copy without touching text color */}
+      <div
+        ref={parallaxRef}
+        aria-hidden
+        className="pointer-events-none absolute inset-0 [--pFar:0px] [--pMid:0px] [--pNear:0px]"
+      >
+        {/* Top-right teal aurora — near layer, moves most */}
+        <div
+          className="absolute -top-40 -right-28 h-[22rem] w-[22rem] rounded-full bg-[oklch(0.72_0.15_190/0.28)] blur-[110px] motion-safe:animate-pulse [animation-duration:9s] will-change-transform"
+          style={{ transform: "translate3d(0, calc(var(--pNear) * -1), 0)" }}
+        />
+        {/* Bottom-left cyan wash — mid layer */}
+        <div
+          className="absolute -bottom-40 -left-28 h-[26rem] w-[26rem] rounded-full bg-[oklch(0.62_0.13_205/0.22)] blur-[120px] will-change-transform"
+          style={{ transform: "translate3d(0, var(--pMid), 0)" }}
+        />
+        {/* Mid accent spark — far layer, drifts slowly */}
+        <div
+          className="absolute top-1/3 left-1/2 h-64 w-64 rounded-full bg-[oklch(0.82_0.16_190/0.10)] blur-[90px] will-change-transform"
+          style={{ transform: "translate3d(-50%, calc(var(--pFar) * -1), 0)" }}
+        />
+        {/* Readability vignette — stays anchored so headline contrast never drops */}
         <div className="absolute inset-x-0 top-0 h-[62%] bg-[radial-gradient(120%_70%_at_50%_0%,oklch(0.14_0.05_250/0.55)_0%,oklch(0.14_0.05_250/0.25)_45%,transparent_75%)]" />
         {/* Fine grain / edge fade for premium finish */}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_0%,transparent_55%,oklch(0.12_0.045_250/0.35)_100%)]" />
