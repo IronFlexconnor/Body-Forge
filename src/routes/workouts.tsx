@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DEFAULT_WEIGHT_UNIT, unitsToWeightUnit, type WeightUnit } from "@/lib/units";
 import { GoalSelector } from "@/components/GoalSelector";
-import { computeSessionSummary } from "@/lib/overload";
+import { computeSessionSummary, recommendFromHistory, type OverloadRec } from "@/lib/overload";
 
 export const Route = createFileRoute("/workouts")({
   head: () => ({ meta: [{ title: "Workouts — Body Forge" }] }),
@@ -135,7 +135,8 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
   const [logs, setLogs] = useState<Record<string, { reps: string; weight: string; rpe: string; done: boolean }[]>>({});
   const [finishing, setFinishing] = useState(false);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_WEIGHT_UNIT);
-  const [lastByExercise, setLastByExercise] = useState<Record<string, { weight: number | null; reps: number | null; unit: string | null; date: string } | null>>({});
+  const [lastByExercise, setLastByExercise] = useState<Record<string, { weight: number | null; reps: number | null; rpe: number | null; unit: string | null; date: string } | null>>({});
+  const [recByExercise, setRecByExercise] = useState<Record<string, OverloadRec | null>>({});
   const [summary, setSummary] = useState<null | {
     durationMin: number;
     totalSets: number;
@@ -167,20 +168,47 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
       if (!names.length) return;
       const { data } = await supabase
         .from("set_logs")
-        .select("exercise_name, weight, reps, weight_unit, created_at")
+        .select("exercise_name, weight, reps, rpe, weight_unit, workout_log_id, created_at")
         .eq("user_id", user.id)
         .in("exercise_name", names)
         .order("created_at", { ascending: false })
-        .limit(200);
-      const map: typeof lastByExercise = {};
+        .limit(400);
+      const lastMap: typeof lastByExercise = {};
+      const recMap: typeof recByExercise = {};
+      // Group by exercise; find most recent workout_log_id per exercise, then top set within it.
+      const byEx: Record<string, any[]> = {};
       (data ?? []).forEach((row: any) => {
-        if (!map[row.exercise_name] && row.weight != null) {
-          map[row.exercise_name] = { weight: row.weight, reps: row.reps, unit: row.weight_unit, date: row.created_at };
-        }
+        (byEx[row.exercise_name] ??= []).push(row);
       });
-      setLastByExercise(map);
+      for (const [name, rows] of Object.entries(byEx)) {
+        const mostRecent = rows[0];
+        if (mostRecent?.weight != null) {
+          lastMap[name] = {
+            weight: mostRecent.weight,
+            reps: mostRecent.reps,
+            rpe: mostRecent.rpe,
+            unit: mostRecent.weight_unit,
+            date: mostRecent.created_at,
+          };
+        }
+        // Top set from the most recent session (or fall back to last set)
+        const sessionRows = mostRecent?.workout_log_id
+          ? rows.filter((r) => r.workout_log_id === mostRecent.workout_log_id)
+          : rows.slice(0, 1);
+        const withWeight = sessionRows.filter((r) => r.weight != null);
+        if (withWeight.length) {
+          const top = withWeight.sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0) || (b.reps ?? 0) - (a.reps ?? 0))[0];
+          recMap[name] = recommendFromHistory(
+            name,
+            { weight: top.weight, reps: top.reps, rpe: top.rpe },
+            weightUnit,
+          );
+        }
+      }
+      setLastByExercise(lastMap);
+      setRecByExercise(recMap);
     })();
-  }, [user, workout]);
+  }, [user, workout, weightUnit]);
 
   const updateSet = (ex: string, idx: number, key: "reps" | "weight" | "rpe", val: string) => {
     setLogs((l) => ({ ...l, [ex]: l[ex].map((s, i) => i === idx ? { ...s, [key]: val } : s) }));
@@ -251,15 +279,18 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
       </div>
 
       <div className="px-5 pt-6 space-y-4">
-        {workout.exercises.map((ex) => (
+        {workout.exercises.map((ex) => {
+          const last = lastByExercise[ex.name];
+          const rec = recByExercise[ex.name];
+          return (
           <div key={ex.name} className="rounded-2xl border border-border/60 bg-gradient-card p-4 shadow-card">
             <div className="mb-3 flex items-baseline justify-between">
               <div className="min-w-0">
                 <div className="font-semibold truncate">{ex.name}</div>
                 <div className="text-xs text-muted-foreground">Target: {ex.sets} × {ex.reps}{ex.rpe ? ` · RPE ${ex.rpe}` : ""}</div>
-                {lastByExercise[ex.name] ? (
+                {last ? (
                   <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-                    Last: {lastByExercise[ex.name]!.weight}{lastByExercise[ex.name]!.unit ?? weightUnit} × {lastByExercise[ex.name]!.reps ?? "—"}
+                    Last: {last.weight}{last.unit ?? weightUnit} × {last.reps ?? "—"}
                   </div>
                 ) : (
                   <div className="mt-1 text-[10px] text-muted-foreground">First time logging — set your baseline 💪</div>
@@ -269,6 +300,23 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
                 <Video className="h-4 w-4" />
               </button>
             </div>
+            {rec && (
+              <div className="mb-3 flex items-start gap-2 rounded-xl border border-primary/30 bg-gradient-to-r from-primary/15 to-primary/5 p-2.5">
+                <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-primary text-primary-foreground shadow-glow">
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-primary">Try this week</div>
+                  <div className="text-sm font-semibold leading-tight">
+                    {rec.nextWeight}{weightUnit} × {rec.topReps || ex.reps}
+                    <span className="ml-1.5 text-[11px] font-medium text-muted-foreground">
+                      (last: {rec.topWeight}{weightUnit} × {rec.topReps}{rec.rpe != null ? ` @ RPE ${rec.rpe}` : ""})
+                    </span>
+                  </div>
+                  <div className="mt-0.5 text-[11px] italic text-muted-foreground">{rec.verdict}</div>
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
               <div className="grid grid-cols-[24px_1fr_1fr_1fr_36px] items-center gap-2 px-1 text-[10px] uppercase tracking-wider text-muted-foreground">
                 <div>#</div><div>Weight ({weightUnit})</div><div>Reps</div><div>RPE</div><div></div>
@@ -276,7 +324,7 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
               {logs[ex.name]?.map((s, i) => (
                 <div key={i} className={cn("grid grid-cols-[24px_1fr_1fr_1fr_36px] items-center gap-2 rounded-lg p-1 transition-colors", s.done && "bg-primary/10")}>
                   <div className="text-center text-xs font-semibold text-muted-foreground">{i + 1}</div>
-                  <Input inputMode="decimal" value={s.weight} onChange={(e) => updateSet(ex.name, i, "weight", e.target.value)} placeholder={lastByExercise[ex.name]?.weight != null ? String(lastByExercise[ex.name]!.weight) : weightUnit} className="h-9 text-sm" />
+                  <Input inputMode="decimal" value={s.weight} onChange={(e) => updateSet(ex.name, i, "weight", e.target.value)} placeholder={rec?.nextWeight != null ? String(rec.nextWeight) : last?.weight != null ? String(last.weight) : weightUnit} className="h-9 text-sm" />
                   <Input inputMode="numeric" value={s.reps} onChange={(e) => updateSet(ex.name, i, "reps", e.target.value)} placeholder={ex.reps} className="h-9 text-sm" />
                   <Input inputMode="decimal" value={s.rpe} onChange={(e) => updateSet(ex.name, i, "rpe", e.target.value)} placeholder="—" className="h-9 text-sm" />
                   <button onClick={() => toggleDone(ex.name, i)}
@@ -298,7 +346,8 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="fixed right-4 bottom-24 z-20">
