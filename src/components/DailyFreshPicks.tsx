@@ -17,9 +17,15 @@ type Recipe = {
   cuisine: string | null;
 };
 
-// Stable date key, e.g. "2026-05-07"
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+// Stable week key (Monday-anchored ISO date), e.g. "2026-05-04".
+// Rotating on a week — not a day — keeps meal variety consistent long enough
+// for users to actually try recipes but still refreshes every Monday.
+function weekKey() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  const dayNum = (d.getDay() + 6) % 7; // Monday = 0
+  d.setDate(d.getDate() - dayNum);
+  return d.toISOString().slice(0, 10);
 }
 
 // Hash a string into 32-bit int
