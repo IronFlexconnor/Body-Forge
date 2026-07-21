@@ -35,9 +35,10 @@
   --color-ring: var(--ring);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
-  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "Space Grotesk", system-ui, sans-serif;
   --font-sans: "Inter", system-ui, sans-serif;
 }
+
 
 :root {
   --radius: 1.1rem;
