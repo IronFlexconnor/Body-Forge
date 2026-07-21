@@ -245,30 +245,33 @@ function Welcome() {
           </div>
         </div>
 
-        <div className="mt-8 space-y-3">
+        <div className="mt-6 space-y-2.5 sm:mt-8 sm:space-y-3">
           <Button
             onClick={() => navigate({ to: "/auth" })}
             size="lg"
-            className="h-16 w-full rounded-2xl bg-gradient-primary text-base font-bold text-primary-foreground shadow-glow hover:scale-[1.01] transition-transform"
+            className="h-14 w-full rounded-2xl bg-gradient-primary text-[15px] font-bold text-primary-foreground shadow-glow transition-transform hover:scale-[1.01] sm:h-16 sm:text-base"
           >
             <Sparkles className="mr-2 h-5 w-5" />
             Start My Free 7-Day Trial
           </Button>
-          <p className="text-center text-[11px] text-muted-foreground">Then $14.99/mo · cancel anytime</p>
+          <p className="text-center text-[11px] font-medium text-white/60">
+            Then $14.99/mo · cancel anytime
+          </p>
           <button
             onClick={() => setShowOnboarding(true)}
-            className="flex w-full items-center justify-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+            className="flex w-full items-center justify-center gap-1.5 py-1 text-sm font-semibold text-white/70 transition-colors hover:text-white"
           >
             See how it works <ChevronRight className="h-4 w-4" />
           </button>
-          <div className="flex items-center justify-center gap-3 pt-1 text-[11px] text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 pt-0.5 text-[11px] text-white/55">
             <span className="inline-flex items-center gap-1"><Heart className="h-3 w-3 text-primary" /> No credit card</span>
-            <span>·</span>
+            <span aria-hidden>·</span>
             <span>Cancel anytime</span>
-            <span>·</span>
-            <Link to="/auth" className="font-medium text-primary hover:underline">Sign in</Link>
+            <span aria-hidden>·</span>
+            <Link to="/auth" className="font-semibold text-primary hover:underline">Sign in</Link>
           </div>
         </div>
+
       </div>
     </div>
   );
