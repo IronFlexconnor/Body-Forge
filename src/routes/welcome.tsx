@@ -108,9 +108,9 @@ function Welcome() {
       <div className="pointer-events-none absolute -top-32 -right-24 h-80 w-80 rounded-full bg-primary/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
 
-      <div className="relative mx-auto flex min-h-dvh max-w-lg flex-col px-6 pt-14 pb-8">
+      <div className="relative mx-auto flex min-h-dvh max-w-lg flex-col px-5 pt-10 pb-6 sm:px-6 sm:pt-14 sm:pb-8">
         <div className="flex flex-1 flex-col">
-          <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary animate-fade-in">
+          <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary animate-fade-in sm:mb-5 sm:text-xs">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
@@ -119,26 +119,26 @@ function Welcome() {
           </div>
 
           <h1
-            className="text-display text-[3.25rem] sm:text-6xl md:text-7xl leading-[0.95] tracking-tightest animate-fade-in text-white [text-wrap:balance]"
+            className="text-display text-[2.5rem] leading-[0.95] tracking-tightest text-white animate-fade-in [text-wrap:balance] sm:text-6xl md:text-7xl"
             style={{ textShadow: "0 1px 24px oklch(0.18 0.045 250 / 40%)" }}
           >
-            Body Forge <span className="text-white/80">AI Coach</span>
-            <span className="mt-2 block bg-gradient-to-r from-white via-[oklch(0.94_0.08_195)] to-[oklch(0.78_0.15_190)] bg-clip-text text-transparent">
-              Your 24/7 Personal Trainer
+            <span className="block">Body Forge</span>
+            <span className="block text-white/80">AI Coach</span>
+            <span className="mt-1.5 block bg-gradient-to-r from-white via-[oklch(0.94_0.08_195)] to-[oklch(0.78_0.15_190)] bg-clip-text text-transparent sm:mt-2">
+              Your 24/7 Trainer
             </span>
-
           </h1>
-          <p className="mt-5 max-w-md text-lg sm:text-xl leading-[1.55] font-medium text-white/75 animate-fade-in [text-wrap:pretty]">
+          <p className="mt-4 max-w-md text-[15px] font-medium leading-[1.5] text-white/75 animate-fade-in [text-wrap:pretty] sm:mt-5 sm:text-xl sm:leading-[1.55]">
             Custom plans. Real-time form feedback. Nutrition that actually tastes good.
           </p>
 
-
           {/* Quick value props */}
-          <div className="mt-7 grid grid-cols-3 gap-2.5">
+          <div className="mt-6 grid grid-cols-3 gap-2 sm:mt-7 sm:gap-2.5">
             <ValueChip icon={Zap} label="Plans in 30s" />
             <ValueChip icon={Video} label="Form analysis" />
             <ValueChip icon={ChefHat} label="2,000+ meals" />
           </div>
+
 
           {/* Hero feature card */}
           <div className="relative mt-7 overflow-hidden rounded-3xl border border-primary/30 bg-gradient-card p-5 shadow-card animate-fade-in">
