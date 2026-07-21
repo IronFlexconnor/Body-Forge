@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Play, Sparkles, ChevronRight, Loader2, Heart } from "lucide-react";
+import { Play, Sparkles, ChevronRight, Loader2, Heart, RefreshCcw, CalendarClock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { thumbForRecipe, thumbFallbackForRecipe } from "@/lib/mealVideos";
 import { useFavorites } from "@/lib/favorites";
+import { weekKey, nextRefreshLabel } from "@/lib/weekRefresh";
 import { toast } from "sonner";
 
 type Recipe = {
@@ -16,17 +17,6 @@ type Recipe = {
   dietary_tags: string[] | null;
   cuisine: string | null;
 };
-
-// Stable week key (Monday-anchored ISO date), e.g. "2026-05-04".
-// Rotating on a week — not a day — keeps meal variety consistent long enough
-// for users to actually try recipes but still refreshes every Monday.
-function weekKey() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  const dayNum = (d.getDay() + 6) % 7; // Monday = 0
-  d.setDate(d.getDate() - dayNum);
-  return d.toISOString().slice(0, 10);
-}
 
 // Hash a string into 32-bit int
 function hash(s: string) {
