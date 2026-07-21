@@ -112,19 +112,21 @@ export function MealPrepVideo({
       ref={containerRef}
       className="overflow-hidden rounded-2xl border border-primary/20 bg-primary/5 shadow-card [content-visibility:auto] [contain-intrinsic-size:320px_240px]"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-primary/10 px-3 py-2 text-[11px] font-semibold text-primary">
-        <span className="inline-flex items-center gap-1.5">
-          <PlayCircle className="h-3.5 w-3.5" /> Meal-prep video
-        </span>
-        <a
-          href={video.watchUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="text-[11px] font-semibold text-primary/80 underline-offset-2 hover:underline"
-        >
-          Open on YouTube
-        </a>
-      </div>
+      {!isCompact && (
+        <div className="flex items-center justify-between gap-2 border-b border-primary/10 px-3 py-2 text-[11px] font-semibold text-primary">
+          <span className="inline-flex items-center gap-1.5">
+            <PlayCircle className="h-3.5 w-3.5" /> Meal-prep video
+          </span>
+          <a
+            href={video.watchUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-[11px] font-semibold text-primary/80 underline-offset-2 hover:underline"
+          >
+            Open on YouTube
+          </a>
+        </div>
+      )}
 
       {/* Stable aspect box prevents layout shift while scrolling */}
       <div className="relative aspect-video w-full overflow-hidden bg-black">
