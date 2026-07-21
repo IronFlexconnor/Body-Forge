@@ -118,13 +118,19 @@ function Welcome() {
             Trusted by 50,000+ athletes
           </div>
 
-          <h1 className="text-[2.75rem] font-bold leading-[1.05] tracking-tight animate-fade-in">
-            Body Forge AI Coach —{" "}
-            <span className="text-gradient-primary">Your 24/7 Personal Trainer</span>
+          <h1
+            className="text-display text-[3.25rem] sm:text-6xl md:text-7xl leading-[0.95] tracking-tightest animate-fade-in text-white [text-wrap:balance]"
+            style={{ textShadow: "0 1px 24px oklch(0.18 0.045 250 / 40%)" }}
+          >
+            Body Forge <span className="text-white/80">AI Coach</span>
+            <span className="mt-2 block bg-gradient-to-r from-white via-[oklch(0.92_0.09_195)] to-[oklch(0.72_0.16_190)] bg-clip-text text-transparent">
+              Your 24/7 Personal Trainer
+            </span>
           </h1>
-          <p className="mt-4 text-lg leading-relaxed text-muted-foreground animate-fade-in">
+          <p className="mt-5 max-w-md text-lg sm:text-xl leading-[1.55] font-medium text-white/75 animate-fade-in [text-wrap:pretty]">
             Custom plans. Real-time form feedback. Nutrition that actually tastes good.
           </p>
+
 
           {/* Quick value props */}
           <div className="mt-7 grid grid-cols-3 gap-2.5">
