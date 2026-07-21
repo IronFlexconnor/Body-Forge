@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { DEFAULT_WEIGHT_UNIT, unitsToWeightUnit, type WeightUnit } from "@/lib/units";
 import { GoalSelector } from "@/components/GoalSelector";
-import { computeSessionSummary } from "@/lib/overload";
+import { computeSessionSummary, recommendFromHistory, type OverloadRec } from "@/lib/overload";
 
 export const Route = createFileRoute("/workouts")({
   head: () => ({ meta: [{ title: "Workouts — Body Forge" }] }),
