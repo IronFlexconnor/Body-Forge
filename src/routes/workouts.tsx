@@ -135,7 +135,8 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
   const [logs, setLogs] = useState<Record<string, { reps: string; weight: string; rpe: string; done: boolean }[]>>({});
   const [finishing, setFinishing] = useState(false);
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(DEFAULT_WEIGHT_UNIT);
-  const [lastByExercise, setLastByExercise] = useState<Record<string, { weight: number | null; reps: number | null; unit: string | null; date: string } | null>>({});
+  const [lastByExercise, setLastByExercise] = useState<Record<string, { weight: number | null; reps: number | null; rpe: number | null; unit: string | null; date: string } | null>>({});
+  const [recByExercise, setRecByExercise] = useState<Record<string, OverloadRec | null>>({});
   const [summary, setSummary] = useState<null | {
     durationMin: number;
     totalSets: number;
