@@ -95,9 +95,9 @@ export function DailyFreshPicks() {
       <div className="mb-3 flex items-end justify-between">
         <div>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-            <Sparkles className="h-3 w-3" /> Fresh today
+            <Sparkles className="h-3 w-3" /> Fresh this week
           </div>
-          <h3 className="mt-1.5 text-lg font-semibold leading-tight">Today's Fresh Meals</h3>
+          <h3 className="mt-1.5 text-lg font-semibold leading-tight">This Week's Fresh Meals</h3>
         </div>
         <button onClick={open} className="flex shrink-0 items-center gap-0.5 text-sm font-medium text-primary">
           See all <ChevronRight className="h-4 w-4" />
