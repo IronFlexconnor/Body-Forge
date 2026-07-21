@@ -241,7 +241,7 @@ function FreshMealsPage() {
   // Build the daily plan using applied prefs; gracefully fall back if too narrow.
   const slotPicks = useMemo(() => {
     if (!baseFiltered) return null;
-    const seed = hash(todayKey() + ":" + seedOffset + ":" + JSON.stringify(prefs));
+    const seed = hash(weekKey() + ":" + seedOffset + ":" + JSON.stringify(prefs));
     const withPrefs = applyPrefs(baseFiltered, prefs);
     const fallback = baseFiltered;
     const shuffledPref = seededShuffle(withPrefs, seed);
