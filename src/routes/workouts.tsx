@@ -270,7 +270,7 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
   return (
     <div className="min-h-dvh bg-background pb-32">
       <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/60 bg-background/90 px-5 py-4 backdrop-blur-xl">
-        <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-surface"><X className="h-4 w-4" /></button>
+        <button onClick={onClose} aria-label="Close workout" className="grid h-9 w-9 place-items-center rounded-full bg-surface"><X aria-hidden="true" className="h-4 w-4" /></button>
         <div className="text-center">
           <div className="text-xs text-muted-foreground">In progress</div>
           <div className="font-semibold">{workout.title}</div>
@@ -324,23 +324,25 @@ function ActiveSession({ workout, onClose, onComplete }: { workout: Workout; onC
               {logs[ex.name]?.map((s, i) => (
                 <div key={i} className={cn("grid grid-cols-[24px_1fr_1fr_1fr_36px] items-center gap-2 rounded-lg p-1 transition-colors", s.done && "bg-primary/10")}>
                   <div className="text-center text-xs font-semibold text-muted-foreground">{i + 1}</div>
-                  <Input inputMode="decimal" value={s.weight} onChange={(e) => updateSet(ex.name, i, "weight", e.target.value)} placeholder={rec?.nextWeight != null ? String(rec.nextWeight) : last?.weight != null ? String(last.weight) : weightUnit} className="h-9 text-sm" />
-                  <Input inputMode="numeric" value={s.reps} onChange={(e) => updateSet(ex.name, i, "reps", e.target.value)} placeholder={ex.reps} className="h-9 text-sm" />
-                  <Input inputMode="decimal" value={s.rpe} onChange={(e) => updateSet(ex.name, i, "rpe", e.target.value)} placeholder="—" className="h-9 text-sm" />
+                  <Input inputMode="decimal" aria-label={`${ex.name} set ${i + 1} weight in ${weightUnit}`} value={s.weight} onChange={(e) => updateSet(ex.name, i, "weight", e.target.value)} placeholder={rec?.nextWeight != null ? String(rec.nextWeight) : last?.weight != null ? String(last.weight) : weightUnit} className="h-9 text-sm" />
+                  <Input inputMode="numeric" aria-label={`${ex.name} set ${i + 1} reps`} value={s.reps} onChange={(e) => updateSet(ex.name, i, "reps", e.target.value)} placeholder={ex.reps} className="h-9 text-sm" />
+                  <Input inputMode="decimal" aria-label={`${ex.name} set ${i + 1} RPE`} value={s.rpe} onChange={(e) => updateSet(ex.name, i, "rpe", e.target.value)} placeholder="—" className="h-9 text-sm" />
                   <button onClick={() => toggleDone(ex.name, i)}
+                    aria-label={`Mark ${ex.name} set ${i + 1} ${s.done ? "not done" : "done"}`}
+                    aria-pressed={s.done}
                     className={cn("grid h-9 w-9 place-items-center rounded-lg",
                       s.done ? "bg-gradient-primary text-primary-foreground shadow-glow" : "bg-surface text-muted-foreground")}>
-                    <Check className="h-4 w-4" />
+                    <Check aria-hidden="true" className="h-4 w-4" />
                   </button>
                 </div>
               ))}
               <div className="flex gap-2 pt-1">
                 <button onClick={() => addSet(ex.name)} className="flex-1 rounded-lg border border-dashed border-border py-2 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary">
-                  <Plus className="mr-1 inline h-3 w-3" /> Add set
+                  <Plus aria-hidden="true" className="mr-1 inline h-3 w-3" /> Add set
                 </button>
                 {logs[ex.name]?.length > 1 && (
-                  <button onClick={() => removeSet(ex.name, logs[ex.name].length - 1)} className="rounded-lg border border-dashed border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-destructive">
-                    <Minus className="h-3 w-3" />
+                  <button onClick={() => removeSet(ex.name, logs[ex.name].length - 1)} aria-label={`Remove last ${ex.name} set`} className="rounded-lg border border-dashed border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-destructive">
+                    <Minus aria-hidden="true" className="h-3 w-3" />
                   </button>
                 )}
               </div>

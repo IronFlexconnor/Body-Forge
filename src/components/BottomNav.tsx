@@ -13,7 +13,7 @@ const items = [
 export function BottomNav() {
   const { pathname } = useLocation();
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 bg-background/80 backdrop-blur-xl">
+    <nav aria-label="Primary" className="fixed bottom-0 inset-x-0 z-40 border-t border-border/60 bg-background/80 backdrop-blur-xl">
       <ul className="mx-auto flex max-w-lg items-center justify-around px-2 pb-[env(safe-area-inset-bottom)] pt-2">
         {items.map(({ to, label, icon: Icon }) => {
           const active = to === "/" ? pathname === "/" : pathname.startsWith(to);
@@ -21,12 +21,15 @@ export function BottomNav() {
             <li key={to} className="flex-1">
               <Link
                 to={to}
+                aria-label={label}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-medium transition-colors",
                   active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <span
+                  aria-hidden="true"
                   className={cn(
                     "flex h-9 w-9 items-center justify-center rounded-xl transition-all",
                     active && "bg-primary/15 shadow-glow"
