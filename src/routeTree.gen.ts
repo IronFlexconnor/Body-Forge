@@ -28,7 +28,6 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AdminMetricsRouteImport } from './routes/admin.metrics'
-import { Route as AdminMealTestRouteImport } from './routes/admin.meal-test'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
@@ -131,11 +130,6 @@ const AdminMetricsRoute = AdminMetricsRouteImport.update({
   path: '/admin/metrics',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminMealTestRoute = AdminMealTestRouteImport.update({
-  id: '/admin/meal-test',
-  path: '/admin/meal-test',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
   Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
     id: '/.well-known/oauth-protected-resource',
@@ -192,7 +186,6 @@ export interface FileRoutesByFullPath {
   '/workouts': typeof WorkoutsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  '/admin/meal-test': typeof AdminMealTestRoute
   '/admin/metrics': typeof AdminMetricsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -220,7 +213,6 @@ export interface FileRoutesByTo {
   '/workouts': typeof WorkoutsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  '/admin/meal-test': typeof AdminMealTestRoute
   '/admin/metrics': typeof AdminMetricsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -249,7 +241,6 @@ export interface FileRoutesById {
   '/workouts': typeof WorkoutsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  '/admin/meal-test': typeof AdminMealTestRoute
   '/admin/metrics': typeof AdminMetricsRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -279,7 +270,6 @@ export interface FileRouteTypes {
     | '/workouts'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
-    | '/admin/meal-test'
     | '/admin/metrics'
     | '/checkout/return'
     | '/.lovable/oauth/consent'
@@ -307,7 +297,6 @@ export interface FileRouteTypes {
     | '/workouts'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
-    | '/admin/meal-test'
     | '/admin/metrics'
     | '/checkout/return'
     | '/.lovable/oauth/consent'
@@ -335,7 +324,6 @@ export interface FileRouteTypes {
     | '/workouts'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
-    | '/admin/meal-test'
     | '/admin/metrics'
     | '/checkout/return'
     | '/.lovable/oauth/consent'
@@ -364,7 +352,6 @@ export interface RootRouteChildren {
   WorkoutsRoute: typeof WorkoutsRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  AdminMealTestRoute: typeof AdminMealTestRoute
   AdminMetricsRoute: typeof AdminMetricsRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -508,13 +495,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMetricsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/meal-test': {
-      id: '/admin/meal-test'
-      path: '/admin/meal-test'
-      fullPath: '/admin/meal-test'
-      preLoaderRoute: typeof AdminMealTestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/.well-known/oauth-protected-resource': {
       id: '/.well-known/oauth-protected-resource'
       path: '/.well-known/oauth-protected-resource'
@@ -581,7 +561,6 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
-  AdminMealTestRoute: AdminMealTestRoute,
   AdminMetricsRoute: AdminMetricsRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
