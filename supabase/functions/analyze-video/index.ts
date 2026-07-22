@@ -509,8 +509,19 @@ Deno.serve(async (req) => {
     const calibration = await buildCalibration(supabase, exercise ?? null);
 
     // --- Plan limits (entitlements remain enforced server-side) ---
-    const { getPlanTier, countUsage, logUsage, FREE_LIMITS } = await import("../_shared/entitlements.ts");
+    const { getPlanTier, countUsage, logUsage, FREE_LIMITS, PRO_LIMITS } = await import("../_shared/entitlements.ts");
     const tier = await getPlanTier(user.id);
+    if (tier === "pro") {
+      const since = new Date(); since.setDate(since.getDate() - 30);
+      const used = await countUsage(user.id, "video", since);
+      if (used >= PRO_LIMITS.video_per_month) {
+        return new Response(JSON.stringify({
+          error: "limit_reached",
+          code: "video_monthly_limit",
+          message: `You've used your ${PRO_LIMITS.video_per_month} Starter form checks this month. Elite includes unlimited video analysis.`,
+        }), { status: 402, headers: { ...cors, "Content-Type": "application/json" } });
+      }
+    }
     if (tier === "free") {
       const since = new Date(); since.setDate(since.getDate() - 30);
       const used = await countUsage(user.id, "video", since);

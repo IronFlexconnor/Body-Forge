@@ -72,8 +72,19 @@ Deno.serve(async (req) => {
     // --- Plan & free-tier limits ---
     // NOTE: usage is logged only AFTER the AI gateway accepts the request, so
     // a gateway error never burns one of a free user's daily messages.
-    const { getPlanTier, countUsage, logUsage, FREE_LIMITS } = await import("../_shared/entitlements.ts");
+    const { getPlanTier, countUsage, logUsage, FREE_LIMITS, PRO_LIMITS } = await import("../_shared/entitlements.ts");
     const tier = await getPlanTier(user.id);
+    if (tier === "pro") {
+      const since = new Date(); since.setHours(0, 0, 0, 0);
+      const used = await countUsage(user.id, "chat", since);
+      if (used >= PRO_LIMITS.chat_per_day) {
+        return new Response(JSON.stringify({
+          error: "limit_reached",
+          code: "chat_daily_limit",
+          message: `You've used your ${PRO_LIMITS.chat_per_day} Starter coach messages today. Elite gives you unlimited 24/7 coaching.`,
+        }), { status: 402, headers: { ...cors, "Content-Type": "application/json" } });
+      }
+    }
     if (tier === "free") {
       const since = new Date(); since.setHours(0, 0, 0, 0);
       const used = await countUsage(user.id, "chat", since);

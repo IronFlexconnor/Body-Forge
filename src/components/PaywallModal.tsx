@@ -9,47 +9,48 @@ import { PaymentTestModeBanner } from "./PaymentTestModeBanner";
 
 type Tier = "pro" | "elite";
 
-const TIERS: Record<Tier, {
-  name: string;
-  price: string;
-  priceId: string;
-  tagline: string;
-  perks: string[];
-  highlight: boolean;
-  icon: typeof Sparkles;
-}> = {
+const TIERS: Record<
+  Tier,
+  {
+    name: string;
+    price: string;
+    priceId: string;
+    tagline: string;
+    perks: string[];
+    highlight: boolean;
+    icon: typeof Sparkles;
+  }
+> = {
   pro: {
     name: "Starter Coach",
     price: "$9.99",
     priceId: PRICE_PRO,
-    tagline: "The basics to stay on track",
+    tagline: "Everything you need to train smarter",
     icon: Sparkles,
     highlight: false,
     perks: [
-      "30 AI coach messages / day",
-      "Standard adaptive program",
+      "30 coach messages every day",
+      "Programs that adapt after every workout",
       "5 video form checks / month",
-      "Core meal library (1,500 recipes)",
-      "Weekly auto-adjustments",
-      "Basic readiness insights",
+      "Meal plans matched to your allergies & goals",
+      "Snap-a-meal photo logging",
+      "PR celebrations & share cards",
     ],
   },
   elite: {
     name: "Elite AI Coach",
     price: "$14.99",
     priceId: PRICE_ELITE,
-    tagline: "Best value — your full-time elite trainer",
+    tagline: "Best value — your full-time trainer, no limits",
     icon: Crown,
     highlight: true,
     perks: [
-      "UNLIMITED AI coach chat 24/7",
+      "UNLIMITED coaching chat, 24/7",
       "UNLIMITED video form analysis",
-      "Real-time program auto-adjustments",
-      "Full 5,000+ recipe vault + saved favorites",
-      "Senior-safe geriatric programs",
-      "Priority GPT-5 / Gemini Pro responses",
-      "Advanced nutrition deep-dives & macro coaching",
-      "Daily insights + exportable progress reports",
+      "Everything in Starter, with no caps",
+      "Weekly calorie auto-tuning from your real weight trend",
+      "Injury-aware programming on every recommendation",
+      "Full recipe vault with prep videos",
       "Early access to every new feature",
     ],
   },
@@ -84,11 +85,16 @@ export function PaywallModal({ open, onClose, reason, recommend = "elite" }: Pay
 
         {selected ? (
           <div className="p-5">
-            <button onClick={() => setSelected(null)} className="mb-4 text-sm text-muted-foreground hover:text-foreground">
+            <button
+              onClick={() => setSelected(null)}
+              className="mb-4 text-sm text-muted-foreground hover:text-foreground"
+            >
               ← Back to plans
             </button>
             <h2 className="mb-1 text-xl font-bold">Start your 7-day free trial</h2>
-            <p className="mb-5 text-sm text-muted-foreground">{TIERS[selected].name} — cancel anytime before day 7 and pay nothing.</p>
+            <p className="mb-5 text-sm text-muted-foreground">
+              {TIERS[selected].name} — cancel anytime before day 7 and pay nothing.
+            </p>
             <StripeEmbeddedCheckout
               priceId={TIERS[selected].priceId}
               customerEmail={user?.email ?? undefined}
@@ -104,7 +110,8 @@ export function PaywallModal({ open, onClose, reason, recommend = "elite" }: Pay
               Unlock your <span className="text-gradient-primary">elite coach</span>.
             </h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              {reason ?? "Free forever has its limits. Go further with unlimited coaching, video form analysis, and adaptive nutrition."}
+              {reason ??
+                "Free forever has its limits. Go further with unlimited coaching, video form analysis, and adaptive nutrition."}
             </p>
 
             <div className="mt-6 space-y-3">
@@ -129,10 +136,14 @@ export function PaywallModal({ open, onClose, reason, recommend = "elite" }: Pay
                       </span>
                     )}
                     <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "grid h-11 w-11 place-items-center rounded-xl",
-                        isRec ? "bg-gradient-primary text-primary-foreground shadow-glow" : "bg-primary/15 text-primary",
-                      )}>
+                      <div
+                        className={cn(
+                          "grid h-11 w-11 place-items-center rounded-xl",
+                          isRec
+                            ? "bg-gradient-primary text-primary-foreground shadow-glow"
+                            : "bg-primary/15 text-primary",
+                        )}
+                      >
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="flex-1">
@@ -143,7 +154,9 @@ export function PaywallModal({ open, onClose, reason, recommend = "elite" }: Pay
                       </div>
                       <div className="text-right">
                         <div className="text-xl font-bold tabular-nums">{t.price}</div>
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">/month</div>
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          /month
+                        </div>
                       </div>
                     </div>
                     <ul className="mt-4 space-y-1.5 text-sm">
@@ -166,7 +179,8 @@ export function PaywallModal({ open, onClose, reason, recommend = "elite" }: Pay
               Start 7-day free trial
             </Button>
             <p className="mt-3 text-center text-[11px] text-muted-foreground">
-              Card required. We'll remind you before day 7. Cancel anytime in Profile → Manage subscription.
+              Card required. We'll remind you before day 7. Cancel anytime in Profile → Manage
+              subscription.
             </p>
           </div>
         )}
@@ -176,7 +190,13 @@ export function PaywallModal({ open, onClose, reason, recommend = "elite" }: Pay
 }
 
 /** Tiny banner-style upgrade pill the chat/nutrition pages can drop inline. */
-export function UpgradeInlineBanner({ onClick, message }: { onClick: () => void; message: string }) {
+export function UpgradeInlineBanner({
+  onClick,
+  message,
+}: {
+  onClick: () => void;
+  message: string;
+}) {
   return (
     <button
       onClick={onClick}

@@ -16,6 +16,13 @@ export const FREE_LIMITS = {
   auto_adjust_per_month: 4,
 };
 
+// Starter (pro) tier: generous but bounded — Elite is unlimited.
+// These numbers MUST match the paywall copy in src/components/PaywallModal.tsx.
+export const PRO_LIMITS = {
+  chat_per_day: 30,
+  video_per_month: 5,
+};
+
 export function adminClient() {
   return createClient(
     Deno.env.get("SUPABASE_URL")!,
