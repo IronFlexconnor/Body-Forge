@@ -1,13 +1,16 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Dumbbell, Apple, MessageCircle, CalendarDays } from "lucide-react";
+import { Home, Dumbbell, Apple, MessageCircle, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+// Primary destinations. Calendar lives inside Workouts; Progress is promoted
+// to a tab because it's the screen that shows users their results — the #1
+// reason they keep coming back.
 const items = [
   { to: "/", label: "Home", icon: Home },
   { to: "/workouts", label: "Workouts", icon: Dumbbell },
-  { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/nutrition", label: "Nutrition", icon: Apple },
-  { to: "/chat", label: "Chat", icon: MessageCircle },
+  { to: "/progress", label: "Progress", icon: TrendingUp },
+  { to: "/chat", label: "Coach", icon: MessageCircle },
 ] as const;
 
 export function BottomNav() {

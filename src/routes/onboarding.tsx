@@ -219,7 +219,7 @@ function Onboarding() {
           <div className="space-y-4">
             <div className="max-h-72 overflow-y-auto rounded-2xl border border-border bg-surface p-4 text-sm font-semibold leading-relaxed text-white">
               <p className="mb-3">
-                ForgeCoach and its AI coach provide general fitness guidance only.
+                Body Forge and its AI coach provide general fitness guidance only.
               </p>
               <p className="mb-3">
                 This app is <span className="font-bold text-white">NOT</span> a licensed medical professional, doctor, physical therapist, nutritionist, or dietitian.
@@ -231,7 +231,7 @@ function Onboarding() {
                 You assume all risk for any injury, illness, or harm that may result from using the workouts, programs, or advice provided by the app.
               </p>
               <p>
-                By proceeding, you agree that ForgeCoach, its creators, and its AI coach are not liable for any injury, loss, or damage of any kind.
+                By proceeding, you agree that Body Forge, its creators, and its AI coach are not liable for any injury, loss, or damage of any kind.
               </p>
             </div>
             <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 border-border bg-gradient-card p-4 transition-all hover:border-primary/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:shadow-glow">
@@ -242,7 +242,7 @@ function Onboarding() {
                 className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-[oklch(0.78_0.17_165)]"
               />
               <span className="text-sm font-bold text-white">
-                I have read, understood, and fully agree to the disclaimer and liability waiver above. I release ForgeCoach from all liability and acknowledge this forms a binding agreement.
+                I have read, understood, and fully agree to the disclaimer and liability waiver above. I release Body Forge from all liability and acknowledge this forms a binding agreement.
               </span>
             </label>
           </div>

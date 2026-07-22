@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Search, Loader2, ExternalLink, Play, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { PageHeader } from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
@@ -12,7 +13,7 @@ import { trackEvent } from "@/lib/usage";
 export const Route = createFileRoute("/library")({
   head: () => ({
     meta: [
-      { title: "Exercise Library — ForgeCoach" },
+      { title: "Exercise Library — Body Forge" },
       { name: "description", content: "Searchable exercise library with demo videos. Browse strength, mobility, cardio and more." },
     ],
   }),
@@ -82,11 +83,11 @@ function Library() {
   return (
     <AppShell>
       <div className="px-5 pt-12">
-        <div className="mb-5">
-          <p className="text-sm text-muted-foreground">Reference</p>
-          <h1 className="page-title">Exercise Library</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{items.length} exercises with demo videos. Coach Forge can reference these.</p>
-        </div>
+        <PageHeader
+          title="Exercise Library"
+          subtitle={`${items.length} exercises with demo videos`}
+          fallbackTo="/workouts"
+        />
 
         <div className="relative mb-3">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

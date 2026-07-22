@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Play, Calendar, Plus, Minus, Check, Loader2, X, Sparkles, Target, Video, TrendingUp, ArrowRight } from "lucide-react";
+import { Play, Calendar, Plus, Minus, Check, Loader2, X, Sparkles, Target, Video, TrendingUp, ArrowRight, BookOpen } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,14 +63,24 @@ function Workouts() {
             <p className="text-sm text-muted-foreground">Your Program</p>
             <h1 className="page-title">Upcoming sessions</h1>
           </div>
-          <Link
-            to="/calendar"
-            aria-label="Open workout calendar"
-            className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-2 text-xs font-semibold text-primary shadow-card transition-all hover:border-primary hover:bg-primary/20 active:scale-95"
-          >
-            <Calendar className="h-4 w-4" />
-            History
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/library"
+              aria-label="Open exercise library"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-gradient-card px-3.5 py-2 text-xs font-semibold shadow-card transition-all hover:border-primary/40 active:scale-95"
+            >
+              <BookOpen className="h-4 w-4 text-primary" />
+              Library
+            </Link>
+            <Link
+              to="/calendar"
+              aria-label="Open workout calendar"
+              className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-2 text-xs font-semibold text-primary shadow-card transition-all hover:border-primary hover:bg-primary/20 active:scale-95"
+            >
+              <Calendar className="h-4 w-4" />
+              Calendar
+            </Link>
+          </div>
         </div>
 
         <div className="mb-5 rounded-2xl border border-primary/30 bg-gradient-card p-4 shadow-card">

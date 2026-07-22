@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Sparkles, Loader2, Wand2, Check, RefreshCw } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { loadInsights, type InsightCard } from "@/components/InsightsCarousel";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,23 +80,20 @@ function InsightsPage() {
   return (
     <AppShell>
       <div className="px-5 pt-12">
-        <div className="mb-5 flex items-end justify-between">
-          <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-              <Sparkles className="h-3 w-3" /> Fresh today
-            </div>
-            <h1 className="page-title mt-1.5">Latest Insights</h1>
-            <p className="text-sm text-muted-foreground">Curated by Coach from the newest health & fitness science.</p>
-          </div>
-          <button
-            onClick={refresh}
-            disabled={refreshing}
-            className="grid h-10 w-10 place-items-center rounded-full border border-border/60 bg-gradient-card text-muted-foreground shadow-card hover:border-primary/40"
-            aria-label="Refresh"
-          >
-            {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          </button>
-        </div>
+        <PageHeader
+          title="Latest Insights"
+          subtitle="Curated by Coach from the newest health & fitness science."
+          right={
+            <button
+              onClick={refresh}
+              disabled={refreshing}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border/60 bg-gradient-card text-muted-foreground shadow-card hover:border-primary/40"
+              aria-label="Refresh"
+            >
+              {refreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            </button>
+          }
+        />
 
         {!cards ? (
           <div className="grid h-40 place-items-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

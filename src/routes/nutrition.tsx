@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Apple, Loader2, Plus, Sparkles, Trash2, ArrowLeft, Target, ChefHat, ChevronDown, ShoppingCart, BookOpen, PlayCircle, RefreshCcw, Wand2, Zap } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { SnapMeal } from "@/components/SnapMeal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/auth";
@@ -224,6 +225,15 @@ function Nutrition() {
             <h1 className="page-title">Nutrition</h1>
           </div>
         </div>
+
+        <SnapMeal
+          onLogged={async () => {
+            if (!user) return;
+            const since = new Date(); since.setHours(0, 0, 0, 0);
+            const { data } = await supabase.from("meal_logs").select("*").eq("user_id", user.id).gte("eaten_at", since.toISOString()).order("eaten_at", { ascending: false });
+            setMeals((data ?? []) as Meal[]);
+          }}
+        />
 
         {!targets ? (
           <div className="mb-6 rounded-3xl border border-primary/20 bg-gradient-card p-5 shadow-card">

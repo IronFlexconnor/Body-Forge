@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { PaywallModal } from "@/components/PaywallModal";
 
 export const Route = createFileRoute("/body")({
-  head: () => ({ meta: [{ title: "Body Composition — ForgeCoach" }] }),
+  head: () => ({ meta: [{ title: "Body Composition — Body Forge" }] }),
   component: BodyAnalysis,
 });
 

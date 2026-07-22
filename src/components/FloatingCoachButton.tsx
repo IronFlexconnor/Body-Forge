@@ -1,7 +1,9 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
 
-const HIDE_ON = ["/welcome", "/auth", "/onboarding", "/chat"];
+// Hidden where it would collide with a screen's own fixed controls
+// (workout session finish bar, form recorder) or where it's redundant (chat).
+const HIDE_ON = ["/welcome", "/auth", "/onboarding", "/chat", "/workouts", "/form"];
 
 export function FloatingCoachButton() {
   const { pathname } = useLocation();

@@ -5,6 +5,7 @@ import {
   TrendingUp, Check, RefreshCw, Send, ChevronRight, AlertTriangle, Activity, Heart, Zap, Target,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,7 +43,7 @@ const fallbackAnalysis = (kind: "video" | "photo", movement: string): Analysis =
 });
 
 export const Route = createFileRoute("/form")({
-  head: () => ({ meta: [{ title: "Form Analysis — ForgeCoach" }] }),
+  head: () => ({ meta: [{ title: "Form Analysis — Body Forge" }] }),
   component: FormAnalysis,
 });
 
@@ -404,10 +405,10 @@ function FormAnalysis() {
   return (
     <AppShell>
       <div className="px-5 pt-12 pb-24">
+        <PageHeader title="Form Analysis" fallbackTo="/workouts" />
         <div className="mb-1 inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
           <Sparkles className="h-3 w-3" /> AI Form Lab
         </div>
-        <h1 className="page-title mb-1">Form Analysis</h1>
         <p className="mb-5 text-sm text-muted-foreground">
           Record up to 15 seconds, upload a clip, or snap a photo. Coach grades your form in seconds —
           tied to your injuries and goals.

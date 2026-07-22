@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Flame, Play, MessageCircle, TrendingUp, Activity, Heart, Zap, ChevronRight, Loader2, Apple, Check, Crown, Sparkles, Video, ChefHat, Dumbbell } from "lucide-react";
+import { Flame, Play, MessageCircle, TrendingUp, Activity, Heart, Zap, ChevronRight, Loader2, Apple, Check, Crown, Sparkles, Video, Camera, Dumbbell } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -142,10 +142,10 @@ function Home() {
           <QuickAction to="/workouts" icon={Dumbbell} label="Log workout" />
           <QuickAction to="/form" icon={Video} label="Record form" />
           <QuickAction
-            icon={ChefHat}
-            label="New meals"
+            icon={Camera}
+            label="Snap meal"
             onClick={() => {
-              if (typeof window !== "undefined") sessionStorage.setItem("forge:open-regen", "1");
+              if (typeof window !== "undefined") sessionStorage.setItem("forge:open-snap", "1");
               navigate({ to: "/nutrition" });
             }}
           />

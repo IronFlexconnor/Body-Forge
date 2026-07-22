@@ -336,7 +336,7 @@ function FreshMealsPage() {
       <div className="px-5 pt-6">
         {/* Header */}
         <div className="mb-4 flex items-center gap-3">
-          <button onClick={() => navigate({ to: "/" })} aria-label="Back" className="grid h-10 w-10 place-items-center rounded-full border border-border/60 bg-card hover:border-primary/50">
+          <button onClick={() => navigate({ to: "/nutrition" })} aria-label="Back to Nutrition" className="grid h-10 w-10 place-items-center rounded-full border border-border/60 bg-card hover:border-primary/50">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1">
