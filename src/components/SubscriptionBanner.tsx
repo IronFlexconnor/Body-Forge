@@ -1,69 +1,90 @@
-import { Sparkles, Crown, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useSubscription } from "@/hooks/useSubscription";
 
-/** Top-of-app banner: trial countdown, dunning, or grace period notice. */
+/**
+ * Top-of-app notice, shown only when the user genuinely needs to act:
+ *  - payment failing (past due)
+ *  - canceled but still in the grace period
+ *  - trial ending within 3 days
+ * A healthy trial or active subscription shows nothing — the app stays clean.
+ */
 export function SubscriptionBanner() {
   const { sub, isActive, isTrialing, loading } = useSubscription();
   if (loading || !sub) return null;
 
-  // Past due — payment retrying
   if (sub.status === "past_due") {
     return (
-      <Banner tone="warning" icon={AlertTriangle}>
+      <Notice tone="warning">
         <span>
-          <strong>Payment issue.</strong> Update your card to keep your coach access.
+          <strong>Payment issue.</strong> Update your card to keep your coach.
         </span>
-        <Link to="/profile" className="ml-auto shrink-0 rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold">
-          Fix it
-        </Link>
-      </Banner>
+        <Action to="/profile">Fix it</Action>
+      </Notice>
     );
   }
 
-  // Canceled but still in grace period
-  if (sub.status === "canceled" && sub.current_period_end && new Date(sub.current_period_end) > new Date()) {
+  if (
+    sub.status === "canceled" &&
+    sub.current_period_end &&
+    new Date(sub.current_period_end) > new Date()
+  ) {
     const days = Math.ceil((new Date(sub.current_period_end).getTime() - Date.now()) / 86400000);
     return (
-      <Banner tone="warning" icon={AlertTriangle}>
-        <span>Subscription canceled — access ends in {days} day{days === 1 ? "" : "s"}.</span>
-        <Link to="/profile" className="ml-auto shrink-0 rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold">
-          Resume
-        </Link>
-      </Banner>
+      <Notice tone="warning">
+        <span>
+          Access ends in {days} day{days === 1 ? "" : "s"}.
+        </span>
+        <Action to="/profile">Resume</Action>
+      </Notice>
     );
   }
 
-  // Trialing with cancel-at-period-end → end-of-trial reminder
   if (isTrialing && sub.trial_end) {
-    const days = Math.max(0, Math.ceil((new Date(sub.trial_end).getTime() - Date.now()) / 86400000));
-    if (days <= 7) {
+    const days = Math.max(
+      0,
+      Math.ceil((new Date(sub.trial_end).getTime() - Date.now()) / 86400000),
+    );
+    if (days <= 3) {
       return (
-        <Banner tone="primary" icon={Crown}>
+        <Notice tone="neutral">
           <span>
-            <strong>Trial:</strong> {days === 0 ? "ends today" : `${days} day${days === 1 ? "" : "s"} left`} — full access.
+            Trial {days === 0 ? "ends today" : `ends in ${days} day${days === 1 ? "" : "s"}`}.
           </span>
-          <Link to="/profile" className="ml-auto shrink-0 rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold">
-            Manage
-          </Link>
-        </Banner>
+          <Action to="/profile">Keep my coach</Action>
+        </Notice>
       );
     }
   }
 
-  // Active premium → no banner (they're happy)
   if (isActive) return null;
   return null;
 }
 
-function Banner({ tone, icon: Icon, children }: { tone: "primary" | "warning"; icon: typeof Sparkles; children: React.ReactNode }) {
-  const cls = tone === "primary"
-    ? "border-primary/40 bg-gradient-to-r from-primary/15 to-primary/5 text-foreground"
-    : "border-warning/40 bg-warning/10 text-foreground";
+function Notice({ tone, children }: { tone: "neutral" | "warning"; children: React.ReactNode }) {
   return (
-    <div className={`flex items-center gap-2 border-b px-4 py-2 text-sm ${cls}`}>
-      <Icon className="h-4 w-4 shrink-0 text-primary" />
+    <div
+      className={
+        tone === "warning"
+          ? "flex items-center gap-2 border-b border-warning/30 bg-warning/10 px-5 py-2 text-[13px] text-foreground"
+          : "flex items-center gap-2 border-b border-border/60 bg-surface px-5 py-2 text-[13px] text-foreground"
+      }
+    >
+      {tone === "warning" && (
+        <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-warning" aria-hidden="true" />
+      )}
       {children}
     </div>
+  );
+}
+
+function Action({ to, children }: { to: string; children: React.ReactNode }) {
+  return (
+    <Link
+      to={to}
+      className="ml-auto shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"
+    >
+      {children}
+    </Link>
   );
 }

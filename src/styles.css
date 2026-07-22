@@ -124,6 +124,9 @@
 @layer base {
   * { border-color: var(--color-border); }
   html, body { background-color: var(--color-background); color: var(--color-foreground); }
+  html { scroll-behavior: smooth; }
+  * { -webkit-tap-highlight-color: transparent; }
+  ::selection { background: color-mix(in oklch, var(--color-primary) 25%, transparent); }
   body {
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;

@@ -211,7 +211,7 @@ function Welcome() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
             </span>
-            Coaching built on NSCA / ISSN-grade science
+            The AI coach that adapts to you every day
           </div>
 
           <h1

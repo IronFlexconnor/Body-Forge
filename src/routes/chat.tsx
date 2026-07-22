@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles, Video, Loader2 } from "lucide-react";
+import { Send, Video, Loader2 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { BrandMark } from "@/components/BrandMark";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,11 +37,16 @@ function Chat() {
   const [streaming, setStreaming] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
-  const [paywall, setPaywall] = useState<{ open: boolean; reason?: string; recommend?: "pro" | "elite" }>({ open: false });
+  const [paywall, setPaywall] = useState<{
+    open: boolean;
+    reason?: string;
+    recommend?: "pro" | "elite";
+  }>({ open: false });
   const endRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const ADJUST_REGEX = /\b(switch|change|swap|adjust|modify|update|rebuild|redo|new|give me|make|increase|decrease|more|less|higher|lower|add|remove|replace|push.?pull|upper.?lower|hypertrophy|strength|cut|bulk|keto|vegan|vegetarian|paleo|carni|protein|calorie|macro|meal plan|workout split|sore|tired|injured|injury|deload|drop|reduce|boost|focus on|sport|agility|cardio|hiit|mobility|recovery)\b/i;
+  const ADJUST_REGEX =
+    /\b(switch|change|swap|adjust|modify|update|rebuild|redo|new|give me|make|increase|decrease|more|less|higher|lower|add|remove|replace|push.?pull|upper.?lower|hypertrophy|strength|cut|bulk|keto|vegan|vegetarian|paleo|carni|protein|calorie|macro|meal plan|workout split|sore|tired|injured|injury|deload|drop|reduce|boost|focus on|sport|agility|cardio|hiit|mobility|recovery)\b/i;
   const isAdjustIntent = (t: string) => ADJUST_REGEX.test(t) && t.trim().length > 8;
 
   const triggerAdjust = async (text: string) => {
@@ -55,13 +61,17 @@ function Chat() {
       if (d?.should_adjust) {
         toast.success(`✨ Plan updated — ${d.summary}`, {
           duration: 8000,
-          action: d.adjustment_id ? {
-            label: "Undo",
-            onClick: async () => {
-              await supabase.functions.invoke("apply-adjustment", { body: { adjustment_id: d.adjustment_id, action: "undo" } });
-              toast.success("Reverted to your previous plan");
-            },
-          } : undefined,
+          action: d.adjustment_id
+            ? {
+                label: "Undo",
+                onClick: async () => {
+                  await supabase.functions.invoke("apply-adjustment", {
+                    body: { adjustment_id: d.adjustment_id, action: "undo" },
+                  });
+                  toast.success("Reverted to your previous plan");
+                },
+              }
+            : undefined,
         });
       }
     } finally {
@@ -75,14 +85,22 @@ function Chat() {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("chat_messages").select("id, role, content").eq("user_id", user.id).order("created_at").then(({ data }) => {
-      setMessages((data ?? []) as Msg[]);
-    });
+    supabase
+      .from("chat_messages")
+      .select("id, role, content")
+      .eq("user_id", user.id)
+      .order("created_at")
+      .then(({ data }) => {
+        setMessages((data ?? []) as Msg[]);
+      });
   }, [user]);
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-  const MEAL_REGEN_REGEX = /\b(regenerate|new meals?|fresh meals?|surprise me|swap meals?|different meals?|other meals?|more meal options|new (breakfast|lunch|dinner|snack)|other (breakfast|lunch|dinner|snack))\b/i;
+  const MEAL_REGEN_REGEX =
+    /\b(regenerate|new meals?|fresh meals?|surprise me|swap meals?|different meals?|other meals?|more meal options|new (breakfast|lunch|dinner|snack)|other (breakfast|lunch|dinner|snack))\b/i;
   const isMealRegen = (t: string) => MEAL_REGEN_REGEX.test(t);
 
   const send = async (text: string) => {
@@ -110,13 +128,18 @@ function Chat() {
       let serverFirstTokenAt = 0;
       const resp = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ message: text }),
       });
       if (!resp.ok || !resp.body) {
         if (resp.status === 402) {
           let payload: any = null;
-          try { payload = await resp.json(); } catch {}
+          try {
+            payload = await resp.json();
+          } catch {}
           if (payload?.code === "chat_daily_limit") {
             setPaywall({ open: true, reason: payload.message, recommend: "pro" });
           } else {
@@ -147,13 +170,18 @@ function Chat() {
           if (line.endsWith("\r")) line = line.slice(0, -1);
           if (line.startsWith(":") || !line.startsWith("data: ")) continue;
           const json = line.slice(6).trim();
-          if (json === "[DONE]") { done = true; break; }
+          if (json === "[DONE]") {
+            done = true;
+            break;
+          }
           try {
             const parsed = JSON.parse(json);
             // Server-side timing markers (custom, non-OpenAI)
             if (parsed.type === "timing") {
-              if (typeof parsed.server_received_at === "number") serverReceivedAt = parsed.server_received_at;
-              if (typeof parsed.server_first_token_at === "number") serverFirstTokenAt = parsed.server_first_token_at;
+              if (typeof parsed.server_received_at === "number")
+                serverReceivedAt = parsed.server_received_at;
+              if (typeof parsed.server_first_token_at === "number")
+                serverFirstTokenAt = parsed.server_first_token_at;
               continue;
             }
             const c = parsed.choices?.[0]?.delta?.content;
@@ -161,17 +189,34 @@ function Chat() {
               if (!firstTokenAt) {
                 firstTokenAt = performance.now();
                 const clientFirstToken = firstTokenAt - t0;
-                const serverProcessing = serverReceivedAt && serverFirstTokenAt ? serverFirstTokenAt - serverReceivedAt : 0;
-                const networkOverhead = serverProcessing > 0 ? Math.max(0, clientFirstToken - serverProcessing) : 0;
+                const serverProcessing =
+                  serverReceivedAt && serverFirstTokenAt
+                    ? serverFirstTokenAt - serverReceivedAt
+                    : 0;
+                const networkOverhead =
+                  serverProcessing > 0 ? Math.max(0, clientFirstToken - serverProcessing) : 0;
                 import("@/lib/perf").then(({ recordPerf }) => {
                   recordPerf({
                     event_type: "ai_first_token",
                     value_ms: clientFirstToken,
                     route: "/chat",
-                    meta: { server_processing_ms: Math.round(serverProcessing), network_overhead_ms: Math.round(networkOverhead) },
+                    meta: {
+                      server_processing_ms: Math.round(serverProcessing),
+                      network_overhead_ms: Math.round(networkOverhead),
+                    },
                   });
-                  if (serverProcessing > 0) recordPerf({ event_type: "ai_server_processing", value_ms: serverProcessing, route: "/chat" });
-                  if (networkOverhead > 0) recordPerf({ event_type: "ai_network_overhead", value_ms: networkOverhead, route: "/chat" });
+                  if (serverProcessing > 0)
+                    recordPerf({
+                      event_type: "ai_server_processing",
+                      value_ms: serverProcessing,
+                      route: "/chat",
+                    });
+                  if (networkOverhead > 0)
+                    recordPerf({
+                      event_type: "ai_network_overhead",
+                      value_ms: networkOverhead,
+                      route: "/chat",
+                    });
                 });
               }
               acc += c;
@@ -181,11 +226,19 @@ function Chat() {
                 return copy;
               });
             }
-          } catch { buf = line + "\n" + buf; break; }
+          } catch {
+            buf = line + "\n" + buf;
+            break;
+          }
         }
       }
       import("@/lib/perf").then(({ recordPerf }) =>
-        recordPerf({ event_type: "ai_total", value_ms: performance.now() - t0, route: "/chat", meta: { chars: acc.length } })
+        recordPerf({
+          event_type: "ai_total",
+          value_ms: performance.now() - t0,
+          route: "/chat",
+          meta: { chars: acc.length },
+        }),
       );
     } catch (e) {
       toast.error("Network error");
@@ -212,7 +265,9 @@ function Chat() {
           .from("workout-videos")
           .upload(path, file, { contentType: file.type || "video/mp4", upsert: false });
         if (!upErr) storagePath = path;
-      } catch { /* upload optional */ }
+      } catch {
+        /* upload optional */
+      }
 
       // Extract frames in browser (server caps at 4)
       let frames: string[] = [];
@@ -225,7 +280,12 @@ function Chat() {
       let d: any = null;
       if (frames.length > 0) {
         const { data, error } = await supabase.functions.invoke("analyze-video", {
-          body: { exercise: "workout", frames, storage_path: storagePath ?? "", media_type: "video" },
+          body: {
+            exercise: "workout",
+            frames,
+            storage_path: storagePath ?? "",
+            media_type: "video",
+          },
         });
         if (error) console.warn("analyze-video error", error);
         d = data;
@@ -238,27 +298,51 @@ function Chat() {
       }
       const a = d?.analysis ?? {
         score: 75,
-        summary: "Coach received your clip but couldn't fully read the frames. Try a brighter side-angle view of the full lift for a sharper read.",
-        fixes: ["Film from the side at hip height", "Keep your full body in frame setup→finish", "Brace before each rep", "Control the lowering 2–3 seconds"],
+        summary:
+          "Coach received your clip but couldn't fully read the frames. Try a brighter side-angle view of the full lift for a sharper read.",
+        fixes: [
+          "Film from the side at hip height",
+          "Keep your full body in frame setup→finish",
+          "Brace before each rep",
+          "Control the lowering 2–3 seconds",
+        ],
         cues: ["Brace first", "Full foot pressure", "Smooth lockout"],
       };
       const summary = `📹 **Form check complete** — score **${a.score ?? "—"}/100**\n\n**Verdict:** ${a.summary ?? ""}\n\n**Top fixes:**\n${(a.fixes ?? []).map((f: string) => `- ${f}`).join("\n")}\n\n**Cues for next time:**\n${(a.cues ?? []).map((c: string) => `- ${c}`).join("\n")}`;
       // Persist as a system message so coach has it
-      await supabase.from("chat_messages").insert({ user_id: user.id, role: "user", content: "[Uploaded a workout video for form check]" });
-      await supabase.from("chat_messages").insert({ user_id: user.id, role: "assistant", content: summary });
-      setMessages((m) => [...m, { role: "user", content: "📹 Uploaded a video for form check" }, { role: "assistant", content: summary }]);
+      await supabase.from("chat_messages").insert({
+        user_id: user.id,
+        role: "user",
+        content: "[Uploaded a workout video for form check]",
+      });
+      await supabase
+        .from("chat_messages")
+        .insert({ user_id: user.id, role: "assistant", content: summary });
+      setMessages((m) => [
+        ...m,
+        { role: "user", content: "📹 Uploaded a video for form check" },
+        { role: "assistant", content: summary },
+      ]);
       toast.success("Form analysis ready");
       // Auto-adjust based on form feedback
-      supabase.functions.invoke("auto-adjust", { body: { trigger: "video_analysis" } })
+      supabase.functions
+        .invoke("auto-adjust", { body: { trigger: "video_analysis" } })
         .then(({ data }) => {
           const d = data as any;
-          if (d?.should_adjust && d?.summary) toast.success(`Coach adjusted next session — ${d.summary}`, { duration: 6000 });
-        }).catch(() => {});
+          if (d?.should_adjust && d?.summary)
+            toast.success(`Coach adjusted next session — ${d.summary}`, { duration: 6000 });
+        })
+        .catch(() => {});
     } catch (e) {
       console.error("video analyze flow error", e);
       toast.dismiss("analyze");
-      const friendly = "Coach couldn't fully read that clip. Try a brighter, side-angle view of the full lift and re-upload — your plan and chat are still good.";
-      setMessages((m) => [...m, { role: "user", content: "📹 Uploaded a video for form check" }, { role: "assistant", content: friendly }]);
+      const friendly =
+        "Coach couldn't fully read that clip. Try a brighter, side-angle view of the full lift and re-upload — your plan and chat are still good.";
+      setMessages((m) => [
+        ...m,
+        { role: "user", content: "📹 Uploaded a video for form check" },
+        { role: "assistant", content: friendly },
+      ]);
       toast.success("Coach gave you general cues — re-upload for a sharper read.");
     } finally {
       setAnalyzing(false);
@@ -271,15 +355,21 @@ function Chat() {
         <div className="sticky top-14 z-10 border-b border-border/60 bg-background/80 px-5 py-4 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">
-                <Sparkles className="h-5 w-5" />
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-surface-elevated shadow-glow">
+                <BrandMark size={26} />
               </div>
               <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background bg-success" />
             </div>
             <div>
               <div className="font-semibold leading-tight">Coach Forge</div>
               <div className="text-xs text-muted-foreground">
-                {adjusting ? <span className="inline-flex items-center gap-1 text-primary"><Loader2 className="h-3 w-3 animate-spin" /> Updating your plan…</span> : "Online · Personalized to you"}
+                {adjusting ? (
+                  <span className="inline-flex items-center gap-1 text-primary">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Updating your plan…
+                  </span>
+                ) : (
+                  "Online · Knows your plan, your lifts, your goals"
+                )}
               </div>
             </div>
           </div>
@@ -288,16 +378,29 @@ function Chat() {
         <div className="flex-1 space-y-4 px-5 py-6">
           {messages.length === 0 && (
             <div className="rounded-2xl border border-border/60 bg-gradient-card p-4 text-sm text-muted-foreground">
-              Ask anything — programming, nutrition, recovery, mindset. Upload a video and I'll grade your form.
+              Ask anything — programming, nutrition, recovery, mindset. Upload a video and I'll
+              grade your form.
             </div>
           )}
           {messages.map((m, i) => (
-            <div key={i} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
-              <div className={cn("max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed",
-                m.role === "user"
-                  ? "rounded-br-md bg-gradient-primary text-primary-foreground shadow-glow"
-                  : "rounded-bl-md border border-border/60 bg-gradient-card shadow-card")}>
-                {m.content || (streaming && i === messages.length - 1 ? <Loader2 className="h-4 w-4 animate-spin" /> : "")}
+            <div
+              key={i}
+              className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}
+            >
+              <div
+                className={cn(
+                  "max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                  m.role === "user"
+                    ? "rounded-br-md bg-gradient-primary text-primary-foreground shadow-glow"
+                    : "rounded-bl-md border border-border/60 bg-gradient-card shadow-card",
+                )}
+              >
+                {m.content ||
+                  (streaming && i === messages.length - 1 ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    ""
+                  ))}
               </div>
             </div>
           ))}
@@ -307,8 +410,11 @@ function Chat() {
         {messages.length <= 1 && !streaming && (
           <div className="mb-2 -mx-1 flex gap-2 overflow-x-auto px-5 pb-2">
             {suggestions.map((s) => (
-              <button key={s} onClick={() => send(s)}
-                className="shrink-0 rounded-full border border-border bg-surface px-3.5 py-2 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-primary">
+              <button
+                key={s}
+                onClick={() => send(s)}
+                className="shrink-0 rounded-full border border-border bg-surface px-3.5 py-2 text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-primary"
+              >
                 {s}
               </button>
             ))}
@@ -316,28 +422,67 @@ function Chat() {
         )}
 
         <div className="sticky bottom-0 border-t border-border/60 bg-background/90 px-4 py-3 backdrop-blur-xl">
-          <form onSubmit={(e) => { e.preventDefault(); send(input); }} className="flex items-center gap-2 rounded-2xl border border-border bg-surface px-2 py-1.5">
-            <input ref={fileRef} type="file" accept="video/*" hidden
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) onVideo(f); e.target.value = ""; }} />
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={analyzing}
-              className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:text-primary disabled:opacity-50" aria-label="Upload video">
-              {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              send(input);
+            }}
+            className="flex items-center gap-2 rounded-2xl border border-border bg-surface px-2 py-1.5"
+          >
+            <input
+              ref={fileRef}
+              type="file"
+              accept="video/*"
+              hidden
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) onVideo(f);
+                e.target.value = "";
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={analyzing}
+              className="grid h-9 w-9 place-items-center rounded-xl text-muted-foreground hover:text-primary disabled:opacity-50"
+              aria-label="Upload video"
+            >
+              {analyzing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Video className="h-4 w-4" />
+              )}
             </button>
-            <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Ask your coach anything..."
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask your coach anything..."
               aria-label="Message your coach"
-              className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground" disabled={streaming} />
-            <button type="submit" disabled={!input.trim() || streaming}
+              className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
+              disabled={streaming}
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || streaming}
               aria-label="Send message"
-              className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow disabled:opacity-40">
+              className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow disabled:opacity-40"
+            >
               <Send aria-hidden="true" className="h-4 w-4" />
             </button>
           </form>
           {!isPro && (chatUsage.showWarning || videoUsage.showWarning) && (
             <p className="mt-2 text-center text-[11px] text-muted-foreground">
               {chatUsage.showWarning && `${chatUsage.remaining} coach message left today. `}
-              {videoUsage.showWarning && `${videoUsage.remaining} video form check left this month. `}
-              <button onClick={() => setPaywall({ open: true, reason: "Unlock unlimited coaching.", recommend: "pro" })}
-                className="font-semibold text-primary underline-offset-2 hover:underline">Upgrade</button>
+              {videoUsage.showWarning &&
+                `${videoUsage.remaining} video form check left this month. `}
+              <button
+                onClick={() =>
+                  setPaywall({ open: true, reason: "Unlock unlimited coaching.", recommend: "pro" })
+                }
+                className="font-semibold text-primary underline-offset-2 hover:underline"
+              >
+                Upgrade
+              </button>
             </p>
           )}
         </div>

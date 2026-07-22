@@ -150,10 +150,6 @@ function Home() {
           <h1 className="page-title">{name} 👋</h1>
         </div>
 
-        <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
-          <Sparkles className="h-3 w-3" /> Expert mode · NSCA / ISSN / ACSM-grade
-        </div>
-
         <div className="mb-5 flex gap-3">
           <Stat icon={Heart} value={readiness ? `${readiness}` : "—"} label="Readiness" />
           <Stat icon={Flame} value={`${stats.streak}wk`} label="Streak" />
@@ -188,9 +184,12 @@ function Home() {
               <Crown className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <div className="text-sm font-semibold">Unlock unlimited coaching</div>
+              <div className="text-sm font-semibold">A coach that never stops adjusting</div>
               <div className="text-[11px] text-muted-foreground">
-                7-day free trial · Cancel anytime
+                Your plan updates after every workout · Video form checks · Unlimited coaching
+              </div>
+              <div className="mt-0.5 text-[11px] font-semibold text-primary">
+                Free for 7 days · Cancel anytime
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground" />
