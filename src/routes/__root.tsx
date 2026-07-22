@@ -14,6 +14,10 @@ import { installPerfObservers } from "@/lib/perf";
 
 import appCss from "../styles.css?url";
 
+// Set to your production URL (e.g. "https://bodyforge.app") so social
+// preview images resolve for link scrapers. Empty = relative (works on most).
+const SITE_URL = "";
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -77,18 +81,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Body Forge — AI Personal Trainer" },
-      { name: "description", content: "An elite AI personal trainer in your pocket. Custom programs, real-time form feedback, and unwavering accountability." },
+      {
+        name: "description",
+        content:
+          "An elite AI personal trainer in your pocket. Custom programs, real-time form feedback, and unwavering accountability.",
+      },
       { name: "author", content: "Body Forge" },
-      { name: "theme-color", content: "#1a1f29" },
+      { name: "theme-color", content: "#101725" },
       { property: "og:title", content: "Body Forge — AI Personal Trainer" },
-      { property: "og:description", content: "An elite AI personal trainer in your pocket. Custom programs, real-time form feedback, and unwavering accountability." },
+      {
+        property: "og:description",
+        content:
+          "An elite AI personal trainer in your pocket. Custom programs, real-time form feedback, and unwavering accountability.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { property: "og:image", content: `${SITE_URL}/brand/og-image.png` },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Body Forge — AI Personal Trainer" },
-      { name: "twitter:description", content: "An elite AI personal trainer in your pocket. Custom programs, real-time form feedback, and unwavering accountability." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/eac4ac13-ae9b-4fe7-bbbc-95def244d6a4" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/eac4ac13-ae9b-4fe7-bbbc-95def244d6a4" },
+      {
+        name: "twitter:description",
+        content:
+          "An elite AI personal trainer in your pocket. Custom programs, real-time form feedback, and unwavering accountability.",
+      },
+      { name: "twitter:image", content: `${SITE_URL}/brand/og-image.png` },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -98,7 +115,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&display=swap",
       },
-
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/brand/favicon-32.png" },
+      { rel: "icon", type: "image/svg+xml", href: "/brand/mark.svg" },
+      { rel: "apple-touch-icon", href: "/brand/apple-touch-icon.png" },
+    ],
+    scripts: [
+      {
+        // Apply the saved theme before hydration so dark mode never flashes.
+        children:
+          "try{var t=localStorage.getItem('bf-theme');if(t==='dark'||(t===null&&window.matchMedia('(prefers-color-scheme: dark)').matches===false&&false)){document.documentElement.classList.add('dark')}}catch(e){}",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -123,7 +150,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  useEffect(() => { installPerfObservers(); }, []);
+  useEffect(() => {
+    installPerfObservers();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

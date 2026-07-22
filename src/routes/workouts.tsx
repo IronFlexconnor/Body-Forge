@@ -29,6 +29,8 @@ import { RestTimer } from "@/components/RestTimer";
 import { PlateCalculator } from "@/components/PlateCalculator";
 import { detectPR, estimate1RM } from "@/lib/pr";
 import { celebrate } from "@/lib/celebrate";
+import { sharePRCard } from "@/lib/share-card";
+import { Share2 } from "lucide-react";
 import { Disc3 } from "lucide-react";
 
 export const Route = createFileRoute("/workouts")({
@@ -264,6 +266,12 @@ function ActiveSession({
     Record<string, { bestWeight: number; bestE1RM: number }>
   >({});
   const [prCount, setPrCount] = useState(0);
+  const [lastPR, setLastPR] = useState<{
+    exercise: string;
+    weight: number;
+    reps: number;
+    kind: string;
+  } | null>(null);
   // Rest timer: bump key to (re)start
   const [restKey, setRestKey] = useState(0);
   const [restSeconds, setRestSeconds] = useState(90);
@@ -413,6 +421,7 @@ function ActiveSession({
           }));
           if (!pr.isBaseline) {
             setPrCount((c) => c + 1);
+            setLastPR({ exercise: ex, weight, reps, kind: pr.kind });
             celebrate();
             toast.success(
               pr.kind === "weight"
@@ -803,6 +812,16 @@ function ActiveSession({
                   </div>
                   <div className="text-xs text-foreground/90">{summary.coachNote}</div>
                 </div>
+              )}
+
+              {lastPR && (
+                <Button
+                  variant="outline"
+                  className="h-11 w-full rounded-xl border-primary/40 font-semibold text-primary"
+                  onClick={() => sharePRCard({ ...lastPR, unit: weightUnit })}
+                >
+                  <Share2 className="mr-2 h-4 w-4" /> Share my PR card
+                </Button>
               )}
 
               <div className="grid grid-cols-2 gap-2 pt-1">

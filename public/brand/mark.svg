@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="tg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#59E3D2"/>
+      <stop offset="1" stop-color="#0FA5A0"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101725"/>
+      <stop offset="0.55" stop-color="#131E30"/>
+      <stop offset="1" stop-color="#0E2E38"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.62">
+      <stop offset="0" stop-color="#2BD4C4" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#2BD4C4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  
+  <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- bar with center spike -->
+    <path d="M120 322 L204 322 L256 196 L308 322 L392 322" stroke="url(#tg)" stroke-width="34"/>
+    <!-- plates -->
+    <rect x="76"  y="240" width="40" height="164" rx="20" fill="url(#tg)" stroke="none"/>
+    <rect x="396" y="240" width="40" height="164" rx="20" fill="url(#tg)" stroke="none"/>
+    <!-- spark above the peak -->
+    <circle cx="256" cy="150" r="14" fill="#9BEFE3" stroke="none"/>
+  </g>
+</svg>

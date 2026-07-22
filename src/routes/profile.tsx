@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ReminderSettings } from "@/components/ReminderSettings";
+import { Switch } from "@/components/ui/switch";
+import { getTheme, setTheme } from "@/lib/theme";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -163,6 +165,10 @@ function Profile() {
             />
           </div>
         </div>
+
+        <Section title="Appearance">
+          <AppearanceRow />
+        </Section>
 
         <ReminderSettings />
 
@@ -404,6 +410,25 @@ function Row({ icon: Icon, label, value }: { icon: typeof Heart; label: string; 
       <div className="flex-1 text-sm font-medium">{label}</div>
       <div className="text-sm text-muted-foreground">{value}</div>
       <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </div>
+  );
+}
+
+function AppearanceRow() {
+  const [dark, setDark] = useState(() => getTheme() === "dark");
+  const toggle = (next: boolean) => {
+    setDark(next);
+    setTheme(next ? "dark" : "light");
+  };
+  return (
+    <div className="flex items-center justify-between px-4 py-3.5">
+      <div>
+        <div className="text-sm font-semibold">Midnight gym mode</div>
+        <div className="text-xs text-muted-foreground">
+          Dark theme for early sessions and low-lit gyms
+        </div>
+      </div>
+      <Switch checked={dark} onCheckedChange={toggle} aria-label="Toggle dark mode" />
     </div>
   );
 }
