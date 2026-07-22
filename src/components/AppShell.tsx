@@ -1,16 +1,16 @@
 import { ReactNode } from "react";
+import { TopBar } from "./TopBar";
 import { BottomNav } from "./BottomNav";
 import { SubscriptionBanner } from "./SubscriptionBanner";
-import { FloatingCoachButton } from "./FloatingCoachButton";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-background text-foreground">
+      <TopBar />
       <div className="mx-auto max-w-lg pb-28">
         <SubscriptionBanner />
         {children}
       </div>
-      <FloatingCoachButton />
       <BottomNav />
     </div>
   );

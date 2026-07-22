@@ -125,7 +125,7 @@ function BodyAnalysis() {
 
   return (
     <AppShell>
-      <div className="px-5 pt-12">
+      <div className="px-5 pt-6">
         <div className="mb-6 flex items-center gap-3">
           <Link to="/profile" className="grid h-10 w-10 place-items-center rounded-full bg-surface"><ArrowLeft className="h-4 w-4" /></Link>
           <div>

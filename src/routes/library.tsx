@@ -82,7 +82,7 @@ function Library() {
 
   return (
     <AppShell>
-      <div className="px-5 pt-12">
+      <div className="px-5 pt-6">
         <PageHeader
           title="Exercise Library"
           subtitle={`${items.length} exercises with demo videos`}

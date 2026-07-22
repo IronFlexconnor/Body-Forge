@@ -268,7 +268,7 @@ function Chat() {
   return (
     <AppShell>
       <div className="flex min-h-dvh flex-col">
-        <div className="sticky top-0 z-10 border-b border-border/60 bg-background/80 px-5 py-4 backdrop-blur-xl">
+        <div className="sticky top-14 z-10 border-b border-border/60 bg-background/80 px-5 py-4 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-glow">

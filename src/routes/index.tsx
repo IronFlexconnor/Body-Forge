@@ -30,6 +30,7 @@ import { InsightsCarousel } from "@/components/InsightsCarousel";
 import { celebrate } from "@/lib/celebrate";
 import { GoalSelector } from "@/components/GoalSelector";
 import { CoachPulseCard } from "@/components/CoachPulseCard";
+import { computeWeekStreak } from "@/lib/streak";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -43,33 +44,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Home,
 });
-
-/**
- * True training streak: consecutive weeks (Sunday-based, matching the
- * dashboard's "This week" window) with at least one logged workout.
- * The current week counts if it has a session; an empty current week
- * doesn't break the streak until it's over.
- */
-function computeWeekStreak(logs: { started_at: string }[]): number {
-  if (!logs.length) return 0;
-  const weekStart = (d: Date) => {
-    const w = new Date(d);
-    w.setDate(w.getDate() - w.getDay());
-    w.setHours(0, 0, 0, 0);
-    return w.getTime();
-  };
-  const trainedWeeks = new Set(logs.map((l) => weekStart(new Date(l.started_at))));
-  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-  let cursor = weekStart(new Date());
-  // Grace: if nothing logged yet this week, start counting from last week.
-  if (!trainedWeeks.has(cursor)) cursor -= WEEK_MS;
-  let streak = 0;
-  while (trainedWeeks.has(cursor)) {
-    streak++;
-    cursor -= WEEK_MS;
-  }
-  return streak;
-}
 
 function Home() {
   const navigate = useNavigate();
@@ -170,18 +144,10 @@ function Home() {
 
   return (
     <AppShell>
-      <div className="px-5 pt-12">
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Good to see you,</p>
-            <h1 className="page-title">{name} 👋</h1>
-          </div>
-          <Link
-            to="/profile"
-            className="grid h-11 w-11 place-items-center rounded-full bg-gradient-primary text-base font-bold text-primary-foreground shadow-glow"
-          >
-            {name.slice(0, 1).toUpperCase()}
-          </Link>
+      <div className="px-5 pt-6">
+        <div className="mb-3">
+          <p className="text-sm text-muted-foreground">Good to see you,</p>
+          <h1 className="page-title">{name} 👋</h1>
         </div>
 
         <div className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">

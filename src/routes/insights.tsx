@@ -79,7 +79,7 @@ function InsightsPage() {
 
   return (
     <AppShell>
-      <div className="px-5 pt-12">
+      <div className="px-5 pt-6">
         <PageHeader
           title="Latest Insights"
           subtitle="Curated by Coach from the newest health & fitness science."

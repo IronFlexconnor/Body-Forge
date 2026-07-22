@@ -140,7 +140,7 @@ function Profile() {
   const name = p.name || "Athlete";
   return (
     <AppShell>
-      <div className="px-5 pt-12">
+      <div className="px-5 pt-6">
         <h1 className="page-title mb-6">Profile</h1>
 
         <div className="relative mb-6 overflow-hidden rounded-3xl border border-primary/25 bg-gradient-hero p-5 shadow-elevated">

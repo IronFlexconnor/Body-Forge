@@ -120,7 +120,7 @@ function Workouts() {
 
   return (
     <AppShell>
-      <div className="px-5 pt-12">
+      <div className="px-5 pt-6">
         <div className="mb-6 flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground">Your Program</p>

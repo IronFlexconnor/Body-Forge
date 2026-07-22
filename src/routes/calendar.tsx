@@ -144,7 +144,7 @@ function CalendarPage() {
 
   return (
     <AppShell>
-      <div className="px-5 pt-12 pb-6">
+      <div className="px-5 pt-6 pb-6">
         <div className="mb-6">
           <p className="text-sm text-muted-foreground">Your training history</p>
           <h1 className="page-title">Calendar</h1>
