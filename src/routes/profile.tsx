@@ -17,6 +17,17 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { ReminderSettings } from "@/components/ReminderSettings";
 import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { getTheme, setTheme } from "@/lib/theme";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
@@ -366,6 +377,38 @@ function Profile() {
           <Settings className="mr-2 h-4 w-4" /> Edit profile & goals
         </Button>
 
+        <Section title="Help & legal">
+          <div className="divide-y divide-border/60">
+            <a
+              href="mailto:support@bodyforge.app"
+              className="flex items-center justify-between px-4 py-3.5 text-sm font-semibold hover:text-primary"
+            >
+              Contact support
+              <span className="text-xs font-medium text-muted-foreground">
+                support@bodyforge.app
+              </span>
+            </a>
+            <Link
+              to="/terms"
+              className="block px-4 py-3.5 text-sm font-semibold hover:text-primary"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              to="/privacy"
+              className="block px-4 py-3.5 text-sm font-semibold hover:text-primary"
+            >
+              Privacy Policy
+            </Link>
+          </div>
+        </Section>
+
+        <Section title="Danger zone">
+          <div className="px-4 py-3.5">
+            <DeleteAccountRow />
+          </div>
+        </Section>
+
         <Button
           variant="outline"
           onClick={async () => {
@@ -433,6 +476,62 @@ function AppearanceRow() {
         </div>
       </div>
       <Switch checked={dark} onCheckedChange={toggle} aria-label="Toggle dark mode" />
+    </div>
+  );
+}
+
+function DeleteAccountRow() {
+  const { signOut } = useAuth();
+  const [busy, setBusy] = useState(false);
+  const wipe = async () => {
+    setBusy(true);
+    const { error } = await supabase.functions.invoke("delete-account");
+    if (error) {
+      setBusy(false);
+      toast.error("Couldn't delete the account — contact support and we'll do it for you.");
+      return;
+    }
+    toast.success("Account deleted. Take care of yourself out there.");
+    await signOut();
+    window.location.href = "/welcome";
+  };
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <div className="text-sm font-semibold">Delete my account</div>
+        <div className="text-xs text-muted-foreground">
+          Permanently removes your profile, programs, logs, photos, and chats.
+        </div>
+      </div>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="outline"
+            className="h-9 rounded-lg border-destructive/40 text-destructive hover:bg-destructive/10"
+          >
+            Delete
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete your account forever?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently erases everything — your programs, workout history, PRs, weigh-ins,
+              meal logs, photos, and coach conversations. There is no undo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep my account</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busy}
+              onClick={wipe}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {busy ? "Deleting…" : "Yes, delete everything"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

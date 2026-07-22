@@ -397,6 +397,15 @@ function Welcome() {
               Sign in
             </Link>
           </div>
+          <p className="mt-6 text-center text-[11px] text-white/50">
+            <Link to="/terms" className="underline underline-offset-2 hover:text-white/80">
+              Terms
+            </Link>
+            {" · "}
+            <Link to="/privacy" className="underline underline-offset-2 hover:text-white/80">
+              Privacy
+            </Link>
+          </p>
         </div>
       </div>
     </div>

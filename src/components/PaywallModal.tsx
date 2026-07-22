@@ -180,7 +180,15 @@ export function PaywallModal({ open, onClose, reason, recommend = "elite" }: Pay
             </Button>
             <p className="mt-3 text-center text-[11px] text-muted-foreground">
               Card required. We'll remind you before day 7. Cancel anytime in Profile → Manage
-              subscription.
+              subscription. By subscribing you agree to our{" "}
+              <a href="/terms" className="underline underline-offset-2">
+                Terms
+              </a>{" "}
+              and{" "}
+              <a href="/privacy" className="underline underline-offset-2">
+                Privacy Policy
+              </a>
+              .
             </p>
           </div>
         )}

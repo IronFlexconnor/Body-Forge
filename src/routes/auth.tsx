@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import { BrandMark } from "@/components/BrandMark";
@@ -74,6 +74,20 @@ function AuthPage() {
       toast.error(err instanceof Error ? err.message : "Google sign-in failed");
       setBusy(false);
     }
+  };
+
+  const forgot = async () => {
+    if (!email) {
+      toast.error("Enter your email first, then tap Forgot password.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/auth/reset",
+    });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else toast.success("Reset link sent — check your email.");
   };
 
   const isSignup = mode === "signup";
@@ -182,6 +196,15 @@ function AuthPage() {
           >
             {busy ? "Working…" : isSignup ? "Create account" : "Sign in"}
           </Button>
+          {!isSignup && (
+            <button
+              type="button"
+              onClick={forgot}
+              className="w-full text-center text-xs font-semibold text-white/70 hover:text-primary"
+            >
+              Forgot password? We'll email you a reset link.
+            </button>
+          )}
         </form>
 
         <div className="my-6 flex items-center gap-3 text-[11px] font-extrabold uppercase tracking-[0.2em] text-white">
@@ -206,6 +229,18 @@ function AuthPage() {
             {isSignup ? "Sign in" : "Create account"}
           </span>
         </button>
+
+        <p className="mt-6 text-center text-[11px] text-white/50">
+          By continuing you agree to our{" "}
+          <Link to="/terms" className="underline underline-offset-2 hover:text-white/80">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link to="/privacy" className="underline underline-offset-2 hover:text-white/80">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );
