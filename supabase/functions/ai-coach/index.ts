@@ -69,6 +69,8 @@ Deno.serve(async (req) => {
     if (!message?.trim()) return new Response(JSON.stringify({ error: "Empty message" }), { status: 400, headers: cors });
 
     // --- Plan & free-tier limits ---
+    // NOTE: usage is logged only AFTER the AI gateway accepts the request, so
+    // a gateway error never burns one of a free user's daily messages.
     const { getPlanTier, countUsage, logUsage, FREE_LIMITS } = await import("../_shared/entitlements.ts");
     const tier = await getPlanTier(user.id);
     if (tier === "free") {
@@ -81,15 +83,15 @@ Deno.serve(async (req) => {
           message: `You've used your ${FREE_LIMITS.chat_per_day} free coach messages today. Upgrade to Pro Coach for unlimited coaching — start a 7-day free trial.`,
         }), { status: 402, headers: { ...cors, "Content-Type": "application/json" } });
       }
-      await logUsage(user.id, "chat");
     }
 
     // Persist user message
     await supabase.from("chat_messages").insert({ user_id: user.id, role: "user", content: message, attachments: attachments ?? null });
 
     // Gather long-term context
+    const { loadMemory, updateMemory } = await import("../_shared/memory.ts");
     const sinceToday = new Date(); sinceToday.setHours(0, 0, 0, 0);
-    const [{ data: profile }, { data: programs }, { data: recentLogs }, { data: recentVideos }, { data: history }, { data: checkins }, { data: meals }, { data: adjustments }, { data: exercises }] = await Promise.all([
+    const [{ data: profile }, { data: programs }, { data: recentLogs }, { data: recentVideos }, { data: history }, { data: checkins }, { data: meals }, { data: adjustments }, { data: exercises }, memory] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("programs").select("*").eq("user_id", user.id).eq("is_active", true).order("created_at", { ascending: false }).limit(1),
       supabase.from("workout_logs").select("*, set_logs(*)").eq("user_id", user.id).order("started_at", { ascending: false }).limit(5),
@@ -98,7 +100,9 @@ Deno.serve(async (req) => {
       supabase.from("daily_checkins").select("*").eq("user_id", user.id).order("checkin_date", { ascending: false }).limit(3),
       supabase.from("meal_logs").select("name, calories, protein_g, carbs_g, fat_g, eaten_at").eq("user_id", user.id).gte("eaten_at", sinceToday.toISOString()),
       supabase.from("program_adjustments").select("trigger, summary, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
-      supabase.from("exercises").select("name, category, primary_muscles, equipment, video_url"),
+      // Slim columns only — this list rides along on EVERY message, so no video URLs/etc.
+      supabase.from("exercises").select("name, category, equipment"),
+      loadMemory(user.id),
     ]);
 
     const ctx = {
@@ -112,12 +116,15 @@ Deno.serve(async (req) => {
       exerciseLibrary: exercises ?? [],
     };
 
+    const memoryBlock = memory
+      ? `## LONG-TERM MEMORY (durable facts you know about this user from all past conversations — trust and use these)\n${memory}`
+      : "";
     const ctxBlock = `## USER CONTEXT (use this to personalize)\n\`\`\`json\n${JSON.stringify(ctx, null, 2)}\n\`\`\``;
 
     const priorMessages = (history ?? []).reverse().slice(0, -1); // exclude the just-inserted user msg
 
     const messages = [
-      { role: "system", content: `${SYSTEM}\n\n${EXPERT_KNOWLEDGE}\n\n${ctxBlock}` },
+      { role: "system", content: `${SYSTEM}\n\n${EXPERT_KNOWLEDGE}\n\n${memoryBlock}\n\n${ctxBlock}` },
       ...priorMessages.map((m: { role: string; content: string }) => ({ role: m.role, content: m.content })),
       { role: "user", content: message },
     ];
@@ -135,6 +142,9 @@ Deno.serve(async (req) => {
       console.error("AI gateway error", aiResp.status, t);
       return new Response(JSON.stringify({ error: "AI gateway error" }), { status: 500, headers: cors });
     }
+
+    // The AI accepted the request — now it's fair to count the free message.
+    if (tier === "free") await logUsage(user.id, "chat");
 
     // Tee stream: forward to client AND collect to persist final assistant message.
     // Also inject `data: {"type":"timing",...}` SSE events so the client can
@@ -189,6 +199,12 @@ Deno.serve(async (req) => {
           controller.close();
           if (fullText.trim()) {
             await supabase.from("chat_messages").insert({ user_id: user.id, role: "assistant", content: fullText });
+            // Refresh long-term memory in the background — never blocks the reply.
+            const memTask = updateMemory(user.id, apiKey, message, fullText);
+            // deno-lint-ignore no-explicit-any
+            const rt: any = globalThis as any;
+            if (typeof rt.EdgeRuntime?.waitUntil === "function") rt.EdgeRuntime.waitUntil(memTask);
+            else await memTask;
           }
         }
       },

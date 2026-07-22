@@ -23,13 +23,40 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+/**
+ * True training streak: consecutive weeks (Sunday-based, matching the
+ * dashboard's "This week" window) with at least one logged workout.
+ * The current week counts if it has a session; an empty current week
+ * doesn't break the streak until it's over.
+ */
+function computeWeekStreak(logs: { started_at: string }[]): number {
+  if (!logs.length) return 0;
+  const weekStart = (d: Date) => {
+    const w = new Date(d);
+    w.setDate(w.getDate() - w.getDay());
+    w.setHours(0, 0, 0, 0);
+    return w.getTime();
+  };
+  const trainedWeeks = new Set(logs.map((l) => weekStart(new Date(l.started_at))));
+  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  let cursor = weekStart(new Date());
+  // Grace: if nothing logged yet this week, start counting from last week.
+  if (!trainedWeeks.has(cursor)) cursor -= WEEK_MS;
+  let streak = 0;
+  while (trainedWeeks.has(cursor)) {
+    streak++;
+    cursor -= WEEK_MS;
+  }
+  return streak;
+}
+
 function Home() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const { isActive, isTrialing } = useSubscription();
   const [profile, setProfile] = useState<any>(null);
   const [todayWorkout, setTodayWorkout] = useState<any>(null);
-  const [stats, setStats] = useState({ workouts: 0, streak: 0, weekDone: 0, weekTotal: 0 });
+  const [stats, setStats] = useState({ streak: 0, weekDone: 0, weekTotal: 0 });
   const [checkin, setCheckin] = useState<any>(null);
   const [busy, setBusy] = useState(true);
 
@@ -43,7 +70,7 @@ function Home() {
       startOfWeek.setHours(0, 0, 0, 0);
 
       // Parallelize all initial reads — was 5 sequential round-trips, now 1.
-      const [profileRes, workoutRes, checkinRes, weekDoneRes, totalRes] = await Promise.all([
+      const [profileRes, workoutRes, checkinRes, weekDoneRes, logDatesRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("workouts").select("*")
           .eq("user_id", user.id).gte("scheduled_date", today)
@@ -52,7 +79,8 @@ function Home() {
           .eq("user_id", user.id).eq("checkin_date", today).maybeSingle(),
         supabase.from("workout_logs").select("*", { count: "exact", head: true })
           .eq("user_id", user.id).gte("started_at", startOfWeek.toISOString()),
-        supabase.from("workout_logs").select("*", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("workout_logs").select("started_at")
+          .eq("user_id", user.id).order("started_at", { ascending: false }).limit(400),
       ]);
 
       const p = profileRes.data;
@@ -61,11 +89,9 @@ function Home() {
       setTodayWorkout(workoutRes.data);
       setCheckin(checkinRes.data);
       const weekDone = weekDoneRes.count;
-      const total = totalRes.count;
 
       setStats({
-        workouts: total ?? 0,
-        streak: total ?? 0,
+        streak: computeWeekStreak(logDatesRes.data ?? []),
         weekDone: weekDone ?? 0,
         weekTotal: p.days_per_week ?? 4,
       });
@@ -107,7 +133,7 @@ function Home() {
 
         <div className="mb-5 flex gap-3">
           <Stat icon={Heart} value={readiness ? `${readiness}` : "—"} label="Readiness" />
-          <Stat icon={Flame} value={`${stats.workouts}`} label="Total sessions" />
+          <Stat icon={Flame} value={`${stats.streak}wk`} label="Streak" />
           <Stat icon={Activity} value={`${stats.weekDone}/${stats.weekTotal}`} label="This week" />
         </div>
 
