@@ -12,6 +12,7 @@ import { DailyFreshPicks } from "@/components/DailyFreshPicks";
 import { InsightsCarousel } from "@/components/InsightsCarousel";
 import { celebrate } from "@/lib/celebrate";
 import { GoalSelector } from "@/components/GoalSelector";
+import { CoachPulseCard } from "@/components/CoachPulseCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -151,6 +152,8 @@ function Home() {
           />
           <QuickAction to="/chat" icon={MessageCircle} label="Talk to Coach" />
         </div>
+
+        <CoachPulseCard />
 
         {!checkin && (
           <CheckinCard onSaved={(c) => setCheckin(c)} />

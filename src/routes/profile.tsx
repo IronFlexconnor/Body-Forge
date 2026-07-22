@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ChevronRight, Settings, Bell, Heart, Dumbbell, Apple, Shield, LogOut, Sparkles, Loader2, Crown, CreditCard } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { ReminderSettings } from "@/components/ReminderSettings";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,6 +105,8 @@ function Profile() {
             <Mini label="Height" value={formatHeight(p.height, (p.height_unit === "metric" ? "metric" : "imperial"))} />
           </div>
         </div>
+
+        <ReminderSettings />
 
         <div className="mb-6 rounded-3xl border border-border/60 bg-gradient-card p-5 shadow-card">
           <MeasurementSystemPicker
