@@ -22,7 +22,19 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { DEFAULT_WEIGHT_UNIT, unitsToWeightUnit, type WeightUnit } from "@/lib/units";
+import {
+  DEFAULT_WEIGHT_UNIT,
+  unitsToWeightUnit,
+  convertRowWeight,
+  convertRowWeightRounded,
+  type WeightUnit,
+} from "@/lib/units";
+import {
+  planForWeek,
+  waveTarget,
+  applyPhaseToRecommendation,
+  type WeekPlan,
+} from "@/lib/periodization";
 import { GoalSelector } from "@/components/GoalSelector";
 import { computeSessionSummary, recommendFromHistory, type OverloadRec } from "@/lib/overload";
 import { RestTimer } from "@/components/RestTimer";
@@ -263,6 +275,7 @@ function ActiveSession({
     >
   >({});
   const [recByExercise, setRecByExercise] = useState<Record<string, OverloadRec | null>>({});
+  const [phasePlan, setPhasePlan] = useState<WeekPlan | null>(null);
   // All-time bests per exercise (from recent history) for PR detection
   const [bestByExercise, setBestByExercise] = useState<
     Record<string, { bestWeight: number; bestE1RM: number }>
@@ -313,6 +326,23 @@ function ActiveSession({
           setWeightUnit(unitsToWeightUnit(data.units));
         }
       });
+    // Periodization: place this session's week inside the program's mesocycle
+    supabase
+      .from("programs")
+      .select("weeks, structure")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .maybeSingle()
+      .then(({ data }) => {
+        const declared = (data?.structure as any)?.deload_week;
+        setPhasePlan(
+          planForWeek(
+            workout.week ?? 1,
+            data?.weeks ?? 8,
+            typeof declared === "number" ? declared : null,
+          ),
+        );
+      });
     supabase
       .from("workout_logs")
       .insert({ user_id: user.id, workout_id: workout.id })
@@ -352,39 +382,46 @@ function ActiveSession({
         (byEx[row.exercise_name] ??= []).push(row);
       });
       for (const [name, rows] of Object.entries(byEx)) {
+        // Normalize every historical row into the CURRENT display unit first —
+        // rows are stored in whatever unit was active when logged, so raw
+        // comparisons across a kg/lbs switch were previously wrong.
+        const normed = rows.map((r) => ({
+          ...r,
+          nWeight: convertRowWeight(r.weight, r.weight_unit, weightUnit),
+        }));
         // Best weight and best estimated 1RM across fetched history (PR baseline)
         let bw = 0;
         let be = 0;
-        for (const r of rows) {
-          const w = Number(r.weight);
+        for (const r of normed) {
+          const w = Number(r.nWeight);
           const reps = Number(r.reps);
           if (Number.isFinite(w) && w > bw) bw = w;
           const e = estimate1RM(w, Number.isFinite(reps) && reps > 0 ? reps : 1);
           if (e > be) be = e;
         }
         if (bw > 0) bestMap[name] = { bestWeight: bw, bestE1RM: be };
-        const mostRecent = rows[0];
-        if (mostRecent?.weight != null) {
+        const mostRecent = normed[0];
+        if (mostRecent?.nWeight != null) {
           lastMap[name] = {
-            weight: mostRecent.weight,
+            weight: convertRowWeightRounded(mostRecent.weight, mostRecent.weight_unit, weightUnit),
             reps: mostRecent.reps,
             rpe: mostRecent.rpe,
-            unit: mostRecent.weight_unit,
+            unit: weightUnit,
             date: mostRecent.created_at,
           };
         }
         // Top set from the most recent session (or fall back to last set)
         const sessionRows = mostRecent?.workout_log_id
-          ? rows.filter((r) => r.workout_log_id === mostRecent.workout_log_id)
-          : rows.slice(0, 1);
-        const withWeight = sessionRows.filter((r) => r.weight != null);
+          ? normed.filter((r) => r.workout_log_id === mostRecent.workout_log_id)
+          : normed.slice(0, 1);
+        const withWeight = sessionRows.filter((r) => r.nWeight != null);
         if (withWeight.length) {
           const top = withWeight.sort(
-            (a, b) => (b.weight ?? 0) - (a.weight ?? 0) || (b.reps ?? 0) - (a.reps ?? 0),
+            (a, b) => (b.nWeight ?? 0) - (a.nWeight ?? 0) || (b.reps ?? 0) - (a.reps ?? 0),
           )[0];
           recMap[name] = recommendFromHistory(
             name,
-            { weight: top.weight, reps: top.reps, rpe: top.rpe },
+            { weight: top.nWeight, reps: top.reps, rpe: top.rpe },
             weightUnit,
           );
         }
@@ -554,9 +591,44 @@ function ActiveSession({
       </div>
 
       <div className="px-5 pt-6 space-y-4">
+        {phasePlan && (
+          <div
+            className={cn(
+              "rounded-2xl border p-3.5",
+              phasePlan.phase === "deload"
+                ? "border-amber-500/40 bg-amber-500/10"
+                : "border-border/60 bg-gradient-card shadow-card",
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div
+                className={cn(
+                  "text-[11px] font-semibold uppercase tracking-wider",
+                  phasePlan.phase === "deload" ? "text-amber-500" : "text-primary",
+                )}
+              >
+                {phasePlan.headline}
+              </div>
+              <div className="text-[10px] text-muted-foreground">
+                {phasePlan.week}/{phasePlan.totalWeeks} · {phasePlan.repHint} reps
+              </div>
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">{phasePlan.detail}</div>
+            <div className="mt-1 text-[11px] font-medium text-muted-foreground">
+              {phasePlan.effortHint}
+            </div>
+          </div>
+        )}
         {sessionExercises.map((ex) => {
           const last = lastByExercise[ex.name];
-          const rec = recByExercise[ex.name];
+          const e1rm = bestByExercise[ex.name]?.bestE1RM ?? null;
+          const rec = applyPhaseToRecommendation(
+            recByExercise[ex.name] ?? null,
+            phasePlan,
+            e1rm,
+            weightUnit,
+          );
+          const wave = phasePlan ? waveTarget(e1rm, phasePlan, weightUnit) : null;
           return (
             <div
               key={ex.name}
@@ -575,6 +647,15 @@ function ActiveSession({
                     Target: {ex.sets} × {ex.reps}
                     {ex.rpe ? ` · RPE ${ex.rpe}` : ""}
                   </div>
+                  {wave && (
+                    <div className="mt-0.5 text-[11px] font-medium text-muted-foreground">
+                      This week's band:{" "}
+                      <span className="font-semibold text-foreground">
+                        {wave.low}–{wave.high} {weightUnit}
+                      </span>{" "}
+                      ({wave.pctLow}–{wave.pctHigh}% of your best)
+                    </div>
+                  )}
                   {last ? (
                     <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
                       Last: {last.weight}

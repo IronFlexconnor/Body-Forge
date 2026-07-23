@@ -48,6 +48,35 @@ export function toMetricHeight(input: string, u: Units): number | null {
   return u === "imperial" ? inToCm(n) : n;
 }
 
+/**
+ * Normalize a set_logs row weight into a target unit.
+ * Rows are stored in whatever unit the user was logging with at the time
+ * (weight_unit column: "kg" | "lb" | "lbs"; legacy rows may be null).
+ * A null/unknown row unit passes through unchanged — the pre-migration
+ * behavior — so legacy data is never silently corrupted.
+ */
+export function convertRowWeight(
+  weight: number | null | undefined,
+  rowUnit: string | null | undefined,
+  targetUnit: WeightUnit,
+): number | null {
+  if (weight == null || !Number.isFinite(Number(weight))) return null;
+  const w = Number(weight);
+  const from = rowUnit === "kg" ? "kg" : rowUnit === "lb" || rowUnit === "lbs" ? "lbs" : null;
+  if (from == null || from === targetUnit) return w;
+  return from === "lbs" ? lbToKg(w) : kgToLb(w);
+}
+
+/** convertRowWeight rounded for display (1 decimal). */
+export function convertRowWeightRounded(
+  weight: number | null | undefined,
+  rowUnit: string | null | undefined,
+  targetUnit: WeightUnit,
+): number | null {
+  const v = convertRowWeight(weight, rowUnit, targetUnit);
+  return v == null ? null : Math.round(v * 10) / 10;
+}
+
 /** Display a metric DB weight in user's preferred units, e.g. "165 lbs" */
 export function displayWeight(kg: number | null | undefined, u: Units): string {
   if (kg == null) return "—";
