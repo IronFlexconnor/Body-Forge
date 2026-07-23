@@ -27,10 +27,12 @@ import { GoalSelector } from "@/components/GoalSelector";
 import { computeSessionSummary, recommendFromHistory, type OverloadRec } from "@/lib/overload";
 import { RestTimer } from "@/components/RestTimer";
 import { PlateCalculator } from "@/components/PlateCalculator";
+import { SwapExercise } from "@/components/SwapExercise";
+import { ExerciseInfo } from "@/components/ExerciseInfo";
 import { detectPR, estimate1RM } from "@/lib/pr";
 import { celebrate } from "@/lib/celebrate";
 import { sharePRCard } from "@/lib/share-card";
-import { Share2 } from "lucide-react";
+import { Share2, Repeat } from "lucide-react";
 import { Disc3 } from "lucide-react";
 
 export const Route = createFileRoute("/workouts")({
@@ -276,6 +278,10 @@ function ActiveSession({
   const [restKey, setRestKey] = useState(0);
   const [restSeconds, setRestSeconds] = useState(90);
   const [restExercise, setRestExercise] = useState<string | null>(null);
+  // Exercise swaps this session (original name -> replacement)
+  const [swaps, setSwaps] = useState<Record<string, string>>({});
+  const [swapTarget, setSwapTarget] = useState<string | null>(null);
+  const [infoTarget, setInfoTarget] = useState<string | null>(null);
   // Plate calculator target (null = closed)
   const [plateTarget, setPlateTarget] = useState<{ weight: number | null } | null>(null);
   const [summary, setSummary] = useState<null | {
@@ -391,6 +397,29 @@ function ActiveSession({
 
   const updateSet = (ex: string, idx: number, key: "reps" | "weight" | "rpe", val: string) => {
     setLogs((l) => ({ ...l, [ex]: l[ex].map((s, i) => (i === idx ? { ...s, [key]: val } : s)) }));
+  };
+
+  const resolveSwap = (name: string): string => {
+    let n = name;
+    for (let i = 0; i < 5 && swaps[n]; i++) n = swaps[n];
+    return n;
+  };
+  const sessionExercises = workout.exercises.map((e) => ({
+    ...e,
+    name: resolveSwap(e.name),
+  }));
+
+  const applySwap = (original: string, next: string) => {
+    setSwaps((m) => ({ ...m, [original]: next }));
+    setLogs((l) => {
+      if (l[original] && !l[next]) {
+        const { [original]: moved, ...rest } = l;
+        return { ...rest, [next]: moved };
+      }
+      return l;
+    });
+    setSwapTarget(null);
+    toast.success(`Swapped to ${next} — same muscles, sets log under it.`);
   };
 
   const toggleDone = async (ex: string, idx: number) => {
@@ -525,7 +554,7 @@ function ActiveSession({
       </div>
 
       <div className="px-5 pt-6 space-y-4">
-        {workout.exercises.map((ex) => {
+        {sessionExercises.map((ex) => {
           const last = lastByExercise[ex.name];
           const rec = recByExercise[ex.name];
           return (
@@ -535,7 +564,13 @@ function ActiveSession({
             >
               <div className="mb-3 flex items-baseline justify-between">
                 <div className="min-w-0">
-                  <div className="font-semibold truncate">{ex.name}</div>
+                  <button
+                    onClick={() => setInfoTarget(ex.name)}
+                    className="block max-w-full truncate text-left font-semibold underline-offset-4 hover:text-primary hover:underline"
+                    aria-label={`How to do ${ex.name}`}
+                  >
+                    {ex.name}
+                  </button>
                   <div className="text-xs text-muted-foreground">
                     Target: {ex.sets} × {ex.reps}
                     {ex.rpe ? ` · RPE ${ex.rpe}` : ""}
@@ -552,6 +587,13 @@ function ActiveSession({
                   )}
                 </div>
                 <div className="ml-3 flex shrink-0 gap-1.5">
+                  <button
+                    onClick={() => setSwapTarget(ex.name)}
+                    className="grid h-9 w-9 place-items-center rounded-xl border border-border/60 bg-surface text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                    aria-label={`Swap ${ex.name} for an alternative`}
+                  >
+                    <Repeat className="h-4 w-4" />
+                  </button>
                   <button
                     onClick={() => {
                       const current = logs[ex.name]?.find((s) => s.weight)?.weight;
@@ -693,6 +735,16 @@ function ActiveSession({
         exercise={restExercise}
         onDismiss={() => setRestKey(0)}
       />
+
+      {infoTarget && <ExerciseInfo exercise={infoTarget} onClose={() => setInfoTarget(null)} />}
+
+      {swapTarget && (
+        <SwapExercise
+          exercise={swapTarget}
+          onSwap={(next) => applySwap(swapTarget, next)}
+          onClose={() => setSwapTarget(null)}
+        />
+      )}
 
       {plateTarget && (
         <PlateCalculator
