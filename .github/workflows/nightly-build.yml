@@ -1,0 +1,59 @@
+name: Nightly Build Agent
+# Body Forge autonomous improvement agent.
+# Every night it takes the top item from agent/BUILD_QUEUE.md, builds it,
+# runs the tests, and opens a pull request for review. It NEVER pushes to main.
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # 6:00 UTC nightly (~2am ET)
+  workflow_dispatch: # also runnable manually from the Actions tab
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+
+            You are the Body Forge nightly build agent. Your job: make the app
+            better every night, one reviewed pull request at a time.
+
+            Read these two files first — they are your standing orders:
+            1. agent/AGENT_GUIDE.md  (hard rules and off-limits areas)
+            2. agent/BUILD_QUEUE.md  (the prioritized backlog)
+
+            Then:
+            1. Take the TOP unchecked item in BUILD_QUEUE.md. If it is too large
+               for one night, build a meaningful, shippable slice of it.
+            2. Create a branch named claude/nightly-<date>-<short-slug>.
+            3. Implement the work following the guide's rules.
+            4. Run `npm ci` then `npx vitest run tests/unit` — all tests must
+               pass. Add tests for any new pure logic.
+            5. Run `npm run build` — it must succeed.
+            6. Update BUILD_QUEUE.md in the same branch: check off (or annotate
+               progress on) the item you worked.
+            7. Open a pull request to main titled "Nightly: <what you did>"
+               with a plain-English summary a non-engineer can review, plus a
+               "How to verify" section with tap-through steps in the app.
+
+            If the queue is empty or every remaining item is blocked, instead
+            do a quality pass: fix a real bug, an accessibility gap, or a
+            pre-existing TypeScript error — and open a PR for that.
+
+            NEVER push to main. NEVER modify the files listed as off-limits in
+            AGENT_GUIDE.md. One PR per night, focused and small enough to
+            review over coffee.
+          claude_args: |
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm:*),Bash(npx:*),Bash(git:*),Bash(gh pr:*),Bash(gh issue:*)"
