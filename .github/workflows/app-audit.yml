@@ -1,0 +1,49 @@
+name: App Audit Agent
+# On-demand, report-only. Run it from the Actions tab whenever you want a
+# fresh pair of eyes on the whole app. It changes no code — it opens a PR
+# containing only AUDIT_REPORT.md with findings you can feed into the queue.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            REPO: ${{ github.repository }}
+
+            You are auditing Body Forge, a $9.99/mo AI fitness coaching app
+            whose goal is 1,000 subscribers. Read agent/AGENT_GUIDE.md for
+            product context.
+
+            Review the codebase end to end and write AUDIT_REPORT.md at the
+            repo root covering, in priority order:
+            1. Bugs and broken flows (trace user journeys through the routes)
+            2. Conversion blockers (onboarding, paywall, trial experience)
+            3. UX gaps and inconsistencies (mobile-first; check empty states,
+               loading states, error states)
+            4. Code health (dead code, type errors, missing tests, risky
+               patterns) — note the known pre-existing /auth navigate
+               TypeScript errors
+            5. Cost risks (anything that could run up AI/API spend)
+
+            For each finding: severity (P0-P3), where it lives, what a fix
+            looks like, and whether it belongs in agent/BUILD_QUEUE.md.
+
+            DO NOT change any code. Create branch claude/audit-<date>, commit
+            ONLY AUDIT_REPORT.md, and open a PR titled "Audit report <date>"
+            summarizing the top 5 findings in plain English.
+          claude_args: |
+            --allowedTools "Read,Glob,Grep,Bash(npm:*),Bash(npx:*),Bash(git:*),Bash(gh pr:*)"
