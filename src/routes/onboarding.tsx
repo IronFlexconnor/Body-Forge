@@ -98,7 +98,7 @@ function Onboarding() {
   const [units, setUnits] = useState<Units>(DEFAULT_UNITS);
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { next: undefined } });
   }, [user, loading, navigate]);
 
   // Hydrate from existing profile if present

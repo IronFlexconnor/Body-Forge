@@ -80,7 +80,7 @@ function Chat() {
   };
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/auth" });
+    if (!loading && !user) navigate({ to: "/auth", search: { next: undefined } });
   }, [user, loading, navigate]);
 
   useEffect(() => {

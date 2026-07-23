@@ -120,7 +120,7 @@ function Welcome() {
               ))}
             </div>
             <button
-              onClick={() => navigate({ to: "/auth" })}
+              onClick={() => navigate({ to: "/auth", search: { next: undefined } })}
               className="text-xs font-bold text-white hover:text-white"
             >
               Skip
@@ -157,7 +157,7 @@ function Welcome() {
           </div>
 
           <Button
-            onClick={() => (isLast ? navigate({ to: "/auth" }) : setStep(step + 1))}
+            onClick={() => (isLast ? navigate({ to: "/auth", search: { next: undefined } }) : setStep(step + 1))}
             size="lg"
             className="h-14 w-full rounded-2xl bg-gradient-primary text-base font-semibold text-primary-foreground shadow-glow"
           >
@@ -268,7 +268,7 @@ function Welcome() {
 
             {/* Today's session preview */}
             <button
-              onClick={() => navigate({ to: "/auth" })}
+              onClick={() => navigate({ to: "/auth", search: { next: undefined } })}
               className="group w-full overflow-hidden rounded-2xl border border-primary/30 bg-surface-elevated p-4 text-left shadow-card transition active:scale-[0.99]"
             >
               <div className="flex items-center justify-between">
@@ -290,7 +290,7 @@ function Welcome() {
 
             {/* Fresh meal preview */}
             <button
-              onClick={() => navigate({ to: "/auth" })}
+              onClick={() => navigate({ to: "/auth", search: { next: undefined } })}
               className="group w-full overflow-hidden rounded-2xl border border-white/10 bg-surface-elevated p-4 text-left shadow-card transition active:scale-[0.99]"
             >
               <div className="flex items-center gap-3">
@@ -313,7 +313,7 @@ function Welcome() {
 
             {/* Insight preview */}
             <button
-              onClick={() => navigate({ to: "/auth" })}
+              onClick={() => navigate({ to: "/auth", search: { next: undefined } })}
               className="group w-full overflow-hidden rounded-2xl border border-white/10 bg-surface-elevated p-4 text-left shadow-card transition active:scale-[0.99]"
             >
               <div className="flex items-center justify-between">
@@ -370,7 +370,7 @@ function Welcome() {
 
         <div className="mt-6 space-y-3 sm:mt-8">
           <Button
-            onClick={() => navigate({ to: "/auth" })}
+            onClick={() => navigate({ to: "/auth", search: { next: undefined } })}
             size="lg"
             className="h-16 w-full rounded-2xl bg-gradient-primary text-base font-extrabold tracking-tight text-primary-foreground shadow-glow transition-transform hover:scale-[1.01] sm:h-[68px] sm:text-lg"
           >
@@ -393,7 +393,7 @@ function Welcome() {
             <span aria-hidden>·</span>
             <span>Cancel anytime</span>
             <span aria-hidden>·</span>
-            <Link to="/auth" className="font-bold text-primary hover:underline">
+            <Link to="/auth" search={{ next: undefined }} className="font-bold text-primary hover:underline">
               Sign in
             </Link>
           </div>
