@@ -72,7 +72,7 @@ function Nutrition() {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) { navigate({ to: "/auth" }); return; }
+    if (!user) { navigate({ to: "/auth", search: { next: undefined } }); return; }
     (async () => {
       const since = new Date(); since.setHours(0, 0, 0, 0);
       // Parallelize profile + meals

@@ -26,7 +26,7 @@ function Progress() {
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      navigate({ to: "/auth" });
+      navigate({ to: "/auth", search: { next: undefined } });
       return;
     }
     (async () => {
