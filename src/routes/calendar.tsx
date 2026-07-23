@@ -49,7 +49,7 @@ function CalendarPage() {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) { navigate({ to: "/auth" }); return; }
+    if (!user) { navigate({ to: "/auth", search: { next: undefined } }); return; }
     (async () => {
       const since = new Date(); since.setMonth(since.getMonth() - 6);
       const [{ data: wl }, { data: sl }] = await Promise.all([

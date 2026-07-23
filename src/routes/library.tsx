@@ -58,7 +58,7 @@ function Library() {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) { navigate({ to: "/auth" }); return; }
+    if (!user) { navigate({ to: "/auth", search: { next: undefined } }); return; }
     supabase.from("exercises").select("*").order("name").then(({ data }) => {
       setItems((data ?? []) as Exercise[]);
       setBusy(false);

@@ -45,7 +45,7 @@ function BodyAnalysis() {
 
   useEffect(() => {
     if (loading) return;
-    if (!user) { navigate({ to: "/auth" }); return; }
+    if (!user) { navigate({ to: "/auth", search: { next: undefined } }); return; }
     void loadHistory();
   }, [user, loading, navigate]);
 

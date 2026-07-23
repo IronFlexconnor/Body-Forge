@@ -6,9 +6,12 @@ Anything the founder types here in plain English is a valid item.
 
 ## Queue
 
-- [ ] Fix the 16 pre-existing TypeScript errors: `/auth` navigate calls are
+- [x] Fix the 16 pre-existing TypeScript errors: `/auth` navigate calls are
       missing the required search param (~10 route files). Zero behavior
       change — get `npx tsc --noEmit` to zero errors so it can become a gate.
+      (Done 2026-07-23: added `search: { next: undefined }` to every
+      `navigate`/`Link` targeting `/auth` across 10 route files;
+      `npx tsc --noEmit` now reports 0 errors.)
 - [ ] Per-lift progress: e1RM trend chart on the Progress screen. Use
       `set_logs` history (normalize units with `convertRowWeight` from
       `src/lib/units.ts`), compute e1RM via `estimate1RM` in `src/lib/pr.ts`,
