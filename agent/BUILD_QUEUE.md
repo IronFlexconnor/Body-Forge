@@ -4,6 +4,11 @@ The nightly agent works the TOP unchecked item (or a shippable slice of it),
 checks it off in its PR, and stops. Reorder lines to reprioritize — top = next.
 Anything the founder types here in plain English is a valid item.
 
+## Signals from the founder
+
+(Paste real observations here — numbers from /admin/business, user
+complaints, drop-offs. The agent treats these as top priority.)
+
 ## Queue
 
 - [x] Fix the 16 pre-existing TypeScript errors: `/auth` navigate calls are
